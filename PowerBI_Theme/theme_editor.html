@@ -100,29 +100,31 @@
   /* Visual cards grid */
   #visual-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
     margin-top: 4px;
   }
   .vis-card {
     background: #fff;
     border-radius: 10px;
-    padding: 14px 16px;
+    overflow: hidden;
     box-shadow: 0 1px 4px rgba(0,0,0,.08);
     cursor: pointer;
     border: 2px solid transparent;
     transition: border-color .15s, box-shadow .15s;
+    display: flex;
+    flex-direction: column;
   }
   .vis-card:hover { border-color: #1f8ac0; box-shadow: 0 3px 10px rgba(31,138,192,.15); }
-  .vis-card .vc-name { font-size: 13px; font-weight: 700; color: #0f4c81; margin-bottom: 8px; }
-  .vis-card .vc-key  { font-size: 10px; color: #aaa; font-family: monospace; margin-bottom: 8px; }
-  .vis-card .vc-tags { display: flex; flex-wrap: wrap; gap: 4px; }
-  .vc-tag {
-    font-size: 10px; padding: 2px 7px;
-    border-radius: 10px; background: #eaf2fb; color: #1f8ac0;
-    white-space: nowrap;
+  .vis-card .vc-preview-wrap {
+    background: #f8fafd;
+    display: flex; align-items: center; justify-content: center;
+    height: 150px; overflow: hidden;
   }
-  .vc-tag.off { background: #f5f5f5; color: #aaa; }
+  .vis-card canvas.vc-canvas { display: block; }
+  .vis-card .vc-info { padding: 10px 14px 12px; }
+  .vis-card .vc-name { font-size: 13px; font-weight: 700; color: #0f4c81; }
+  .vis-card .vc-key  { font-size: 10px; color: #aaa; font-family: monospace; margin-top: 2px; }
 
   /* ── MODAL ── */
   #modal-overlay {
@@ -1305,10 +1307,10 @@ function openEditModal(key, label) {
   // layout: preview on top, cards below
   const previewWrap = document.createElement('div');
   previewWrap.id = 'modal-preview-wrap';
-  previewWrap.style.cssText = 'background:#f8fafd;border-radius:8px;padding:16px;margin-bottom:16px;min-height:200px;display:flex;align-items:center;justify-content:center;';
+  previewWrap.style.cssText = 'background:#f8fafd;border-radius:8px;margin-bottom:16px;display:flex;align-items:center;justify-content:center;overflow:hidden;height:200px;';
   const canvas = document.createElement('canvas');
   canvas.id = 'preview-canvas';
-  canvas.width = 480; canvas.height = 200;
+  canvas.width = 580; canvas.height = 200;
   canvas.style.cssText = 'max-width:100%;border-radius:4px;';
   previewWrap.appendChild(canvas);
   body.appendChild(previewWrap);
@@ -1321,12 +1323,23 @@ function openEditModal(key, label) {
   });
 
   document.getElementById('modal-overlay').classList.add('open');
-  renderPreview(key);
+  // render modal preview
+  if (_modalChart) { try{_modalChart.destroy();}catch(e){} _modalChart=null; }
+  _modalChart = renderVisualPreview(key, canvas, true);
+}
+
+let _modalChart = null;
+
+function refreshModalPreview(key) {
+  const canvas = document.getElementById('preview-canvas');
+  if (!canvas) return;
+  if (_modalChart) { try{_modalChart.destroy();}catch(e){} _modalChart=null; }
+  _modalChart = renderVisualPreview(key, canvas, true);
 }
 
 function closeEditModal() {
   document.getElementById('modal-overlay').classList.remove('open');
-  buildGrid(); // refresh tags on cards
+  if (_modalChart) { try{_modalChart.destroy();}catch(e){} _modalChart=null; }
 }
 
 // close on overlay click
@@ -1359,7 +1372,8 @@ function buildModalCard(cardName, data, visualKey) {
     const ctrl = buildCtrl(def, val, newVal => {
       data[def.key] = storeVal(def, newVal);
       updateJSON();
-      renderPreview(visualKey);
+      refreshModalPreview(visualKey);
+      refreshGridCard(visualKey);
     });
     row.appendChild(lbl); row.appendChild(ctrl);
     body.appendChild(row);
@@ -1594,152 +1608,499 @@ function makeText(key, val, onChange) {
   return wrap;
 }
 
-// ── Chart preview renderer ──
-let _previewChart = null;
-const SAMPLE_LABELS = ['Jan','Feb','Mar','Apr','May','Jun'];
-const SAMPLE_DATA   = [42, 68, 55, 80, 63, 91];
-const SAMPLE_DATA2  = [30, 45, 60, 35, 70, 50];
+// ── Sample data ──
+const SL  = ['Jan','Feb','Mar','Apr','May','Jun'];
+const SD1 = [42,68,55,80,63,91];
+const SD2 = [30,45,60,35,70,50];
+const SD3 = [20,30,25,45,30,40];
 
-function getThemeColor(idx) { return THEME.dataColors[idx % THEME.dataColors.length]; }
-
-function resolveCardVal(visualKey, cardName, propKey, fallback) {
-  try { return resolveVal(THEME.visualStyles[visualKey]['*'][cardName][0][propKey]) ?? fallback; }
-  catch(e) { return fallback; }
+function rcv(vk,card,prop,fb) {
+  try { return resolveVal(THEME.visualStyles[vk]['*'][card][0][prop]) ?? fb; } catch(e){ return fb; }
 }
+function col(i){ return THEME.dataColors[i % THEME.dataColors.length]; }
 
-function renderPreview(visualKey) {
-  const canvas = document.getElementById('preview-canvas');
-  if (!canvas) return;
-  if (_previewChart) { _previewChart.destroy(); _previewChart = null; }
-
+// ── Master preview renderer — returns Chart instance or null ──
+function renderVisualPreview(vk, canvas, isModal) {
   const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const W = canvas.width, H = canvas.height;
   const colors = THEME.dataColors;
 
-  const legendShow     = resolveCardVal(visualKey,'legend','show', true);
-  const legendPos      = resolveCardVal(visualKey,'legend','position','top').toLowerCase().replace('center','').trim() || 'top';
-  const labelShow      = resolveCardVal(visualKey,'labels','show', false);
-  const labelColor     = resolveCardVal(visualKey,'labels','color','#FFFFFF');
-  const gridColor      = resolveCardVal(visualKey,'valueAxis','gridlineColor','#E0E0E0');
-  const gridShow       = resolveCardVal(visualKey,'valueAxis','gridlineShow', true);
-  const axisColor      = resolveCardVal(visualKey,'categoryAxis','labelColor','#666666');
+  const legendShow = rcv(vk,'legend','show',true);
+  const legendPos  = (rcv(vk,'legend','position','Top')||'Top').toLowerCase().replace('center','').replace('right','right').trim() || 'top';
+  const axisCol    = rcv(vk,'categoryAxis','labelColor','#666666');
+  const gridCol    = rcv(vk,'valueAxis','gridlineColor','#E0E0E0');
+  const gridShow   = rcv(vk,'valueAxis','gridlineShow',true);
+  const fontSize   = isModal ? 11 : 9;
 
-  const baseOpts = {
-    responsive: false,
-    animation: { duration: 200 },
-    plugins: {
-      legend: { display: legendShow, position: legendPos },
-      datalabels: false,
-    },
-    scales: {
-      x: { ticks: { color: axisColor }, grid: { display: false } },
-      y: { ticks: { color: axisColor }, grid: { display: gridShow, color: gridColor } },
-    }
+  const baseScales = {
+    x: { ticks:{color:axisCol,font:{size:fontSize}}, grid:{display:false} },
+    y: { ticks:{color:axisCol,font:{size:fontSize}}, grid:{display:gridShow,color:gridCol} }
   };
-
-  const type2chart = {
-    barChart:'bar', clusteredBarChart:'bar', stackedBarChart:'bar',
-    hundredPercentStackedBarChart:'bar', columnChart:'bar', clusteredColumnChart:'bar',
-    stackedColumnChart:'bar', hundredPercentStackedColumnChart:'bar',
-    lineChart:'line', areaChart:'line', stackedAreaChart:'line', ribbonChart:'bar',
-    waterfallChart:'bar', scatterChart:'scatter',
-    pieChart:'pie', donutChart:'doughnut',
-    treemap:'bar', funnel:'bar',
-    gauge:'doughnut', kpi:'line', card:'doughnut',
-    map:'bar', filledMap:'bar', multiRowCard:'bar',
-    slicer:'bar', tableEx:'bar', matrix:'bar',
-    lineClusteredColumnComboChart:'bar', lineStackedColumnComboChart:'bar',
-    decompositionTree:'bar', shape:null, textbox:null, image:null, actionButton:null,
-    '*':'bar',
+  const basePlugins = {
+    legend:{ display:legendShow && isModal, position:legendPos, labels:{font:{size:fontSize},boxWidth:10} },
+    tooltip:{ enabled:false }
   };
+  const baseOpts = { responsive:false, animation:{duration:150}, plugins:basePlugins };
 
-  const ctype = type2chart[visualKey] || 'bar';
-  if (!ctype) {
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle='#aaa'; ctx.font='14px Segoe UI'; ctx.textAlign='center';
-    ctx.fillText('No chart preview for this visual type', canvas.width/2, canvas.height/2);
-    return;
-  }
-
-  let cfg;
-  if (ctype === 'scatter') {
-    cfg = {
-      type:'scatter',
-      data: { datasets:[{
-        label:'Series 1', backgroundColor: colors[0],
-        data: SAMPLE_LABELS.map((_,i) => ({ x: i*15+5, y: SAMPLE_DATA[i] }))
-      }]},
-      options: { ...baseOpts }
-    };
-  } else if (ctype === 'pie' || ctype === 'doughnut') {
-    const innerRadius = resolveCardVal(visualKey,'innerRadius','innerRadiusRatio',50);
-    cfg = {
-      type: ctype,
-      data: { labels: SAMPLE_LABELS, datasets:[{ data: SAMPLE_DATA, backgroundColor: colors }] },
-      options: {
-        responsive:false, animation:{duration:200},
-        plugins:{ legend:{ display:legendShow, position:legendPos } },
-        cutout: ctype==='doughnut' ? `${innerRadius}%` : 0,
-      }
-    };
-  } else if (ctype === 'line') {
-    const strokeWidth = resolveCardVal(visualKey,'lineStyles','strokeWidth',2);
-    const showMarker  = resolveCardVal(visualKey,'lineStyles','showMarker',false);
-    const fill = ['areaChart','stackedAreaChart'].includes(visualKey);
-    cfg = {
-      type:'line',
-      data:{ labels:SAMPLE_LABELS, datasets:[
-        { label:'Series 1', data:SAMPLE_DATA,  borderColor:colors[0], backgroundColor:colors[0]+'44', borderWidth:strokeWidth, pointRadius:showMarker?4:0, fill },
-        { label:'Series 2', data:SAMPLE_DATA2, borderColor:colors[1], backgroundColor:colors[1]+'44', borderWidth:strokeWidth, pointRadius:showMarker?4:0, fill:false },
-      ]},
-      options:{ ...baseOpts }
-    };
-  } else {
-    const stacked = visualKey.toLowerCase().includes('stacked') || visualKey.toLowerCase().includes('hundred');
-    const horizontal = visualKey.toLowerCase().includes('bar') && !visualKey.toLowerCase().includes('column');
-    cfg = {
+  // ── Horizontal bar charts ──
+  if (['barChart','clusteredBarChart','stackedBarChart','hundredPercentStackedBarChart'].includes(vk)) {
+    const stacked  = vk==='stackedBarChart'||vk==='hundredPercentStackedBarChart';
+    const pct      = vk==='hundredPercentStackedBarChart';
+    const datasets = vk==='barChart'
+      ? [{ label:'A', data:SD1, backgroundColor:col(0), borderRadius:2 }]
+      : [
+          { label:'A', data:SD1, backgroundColor:col(0), borderRadius:2 },
+          { label:'B', data:SD2, backgroundColor:col(1), borderRadius:2 },
+          { label:'C', data:SD3, backgroundColor:col(2), borderRadius:2 },
+        ];
+    return new Chart(ctx,{
       type:'bar',
-      data:{ labels:SAMPLE_LABELS, datasets:[
-        { label:'Series 1', data:SAMPLE_DATA,  backgroundColor:colors[0] },
-        { label:'Series 2', data:SAMPLE_DATA2, backgroundColor:colors[1] },
-      ]},
-      options:{
-        ...baseOpts,
-        indexAxis: horizontal ? 'y' : 'x',
-        scales:{
-          x:{ stacked, ticks:{color:axisColor}, grid:{display:!horizontal && gridShow, color:gridColor} },
-          y:{ stacked, ticks:{color:axisColor}, grid:{display: horizontal && gridShow, color:gridColor} },
-        }
-      }
-    };
+      data:{ labels:SL, datasets },
+      options:{ ...baseOpts, indexAxis:'y',
+        scales:{ x:{stacked,ticks:{color:axisCol,font:{size:fontSize}},grid:{display:gridShow,color:gridCol}, max:pct?100:undefined},
+                 y:{stacked,ticks:{color:axisCol,font:{size:fontSize}},grid:{display:false}} } }
+    });
   }
 
-  _previewChart = new Chart(ctx, cfg);
+  // ── Vertical column charts ──
+  if (['columnChart','clusteredColumnChart','stackedColumnChart','hundredPercentStackedColumnChart'].includes(vk)) {
+    const stacked  = vk==='stackedColumnChart'||vk==='hundredPercentStackedColumnChart';
+    const pct      = vk==='hundredPercentStackedColumnChart';
+    const datasets = vk==='columnChart'
+      ? [{ label:'A', data:SD1, backgroundColor:col(0), borderRadius:2 }]
+      : [
+          { label:'A', data:SD1, backgroundColor:col(0), borderRadius:2 },
+          { label:'B', data:SD2, backgroundColor:col(1), borderRadius:2 },
+          { label:'C', data:SD3, backgroundColor:col(2), borderRadius:2 },
+        ];
+    return new Chart(ctx,{
+      type:'bar',
+      data:{ labels:SL, datasets },
+      options:{ ...baseOpts,
+        scales:{ x:{stacked,ticks:{color:axisCol,font:{size:fontSize}},grid:{display:false}},
+                 y:{stacked,ticks:{color:axisCol,font:{size:fontSize}},grid:{display:gridShow,color:gridCol}, max:pct?100:undefined} } }
+    });
+  }
+
+  // ── Line chart ──
+  if (vk==='lineChart') {
+    const sw = rcv(vk,'lineStyles','strokeWidth',2);
+    const pm = rcv(vk,'lineStyles','showMarker',false) ? 4 : 0;
+    return new Chart(ctx,{
+      type:'line',
+      data:{ labels:SL, datasets:[
+        { label:'A', data:SD1, borderColor:col(0), backgroundColor:'transparent', borderWidth:sw, pointRadius:pm, tension:.4 },
+        { label:'B', data:SD2, borderColor:col(1), backgroundColor:'transparent', borderWidth:sw, pointRadius:pm, tension:.4 },
+      ]},
+      options:{ ...baseOpts, scales:baseScales }
+    });
+  }
+
+  // ── Area chart ──
+  if (vk==='areaChart') {
+    const sw = rcv(vk,'lineStyles','strokeWidth',2);
+    return new Chart(ctx,{
+      type:'line',
+      data:{ labels:SL, datasets:[
+        { label:'A', data:SD1, borderColor:col(0), backgroundColor:col(0)+'55', borderWidth:sw, fill:true, tension:.4, pointRadius:0 },
+        { label:'B', data:SD2, borderColor:col(1), backgroundColor:col(1)+'55', borderWidth:sw, fill:true, tension:.4, pointRadius:0 },
+      ]},
+      options:{ ...baseOpts, scales:baseScales }
+    });
+  }
+
+  // ── Stacked area ──
+  if (vk==='stackedAreaChart'||vk==='hundredPercentStackedAreaChart') {
+    const pct = vk==='hundredPercentStackedAreaChart';
+    return new Chart(ctx,{
+      type:'line',
+      data:{ labels:SL, datasets:[
+        { label:'A', data:SD1, borderColor:col(0), backgroundColor:col(0)+'88', fill:true, tension:.4, pointRadius:0 },
+        { label:'B', data:SD2, borderColor:col(1), backgroundColor:col(1)+'88', fill:true, tension:.4, pointRadius:0 },
+        { label:'C', data:SD3, borderColor:col(2), backgroundColor:col(2)+'88', fill:true, tension:.4, pointRadius:0 },
+      ]},
+      options:{ ...baseOpts, scales:{
+        x:{stacked:true,ticks:{color:axisCol,font:{size:fontSize}},grid:{display:false}},
+        y:{stacked:true,ticks:{color:axisCol,font:{size:fontSize}},grid:{display:gridShow,color:gridCol}, max:pct?100:undefined}
+      }}
+    });
+  }
+
+  // ── Ribbon chart ──
+  if (vk==='ribbonChart') {
+    return new Chart(ctx,{
+      type:'bar',
+      data:{ labels:SL, datasets:[
+        { label:'A', data:SD1, backgroundColor:col(0)+'cc', borderRadius:4 },
+        { label:'B', data:SD2, backgroundColor:col(1)+'cc', borderRadius:4 },
+      ]},
+      options:{ ...baseOpts, scales:{
+        x:{ticks:{color:axisCol,font:{size:fontSize}},grid:{display:false}},
+        y:{ticks:{color:axisCol,font:{size:fontSize}},grid:{display:gridShow,color:gridCol}}
+      }}
+    });
+  }
+
+  // ── Waterfall chart ──
+  if (vk==='waterfallChart') {
+    const inc = rcv(vk,'sentimentColors','increaseFill','#2A9D8F');
+    const dec = rcv(vk,'sentimentColors','decreaseFill','#E76F51');
+    const tot = rcv(vk,'sentimentColors','totalFill','#0F4C81');
+    const vals = [40,-15,25,-10,30,null];
+    const bgs  = [inc,dec,inc,dec,inc,tot];
+    return new Chart(ctx,{
+      type:'bar',
+      data:{ labels:['Start','Feb','Mar','Apr','May','Total'], datasets:[
+        { data:[0,40,25,50,40,0], backgroundColor:'transparent', borderWidth:0 },
+        { data:[40,15,25,10,30,70], backgroundColor:bgs, borderRadius:2 }
+      ]},
+      options:{ ...baseOpts, scales:{
+        x:{stacked:true,ticks:{color:axisCol,font:{size:fontSize}},grid:{display:false}},
+        y:{stacked:true,ticks:{color:axisCol,font:{size:fontSize}},grid:{display:gridShow,color:gridCol}}
+      }}
+    });
+  }
+
+  // ── Scatter ──
+  if (vk==='scatterChart') {
+    return new Chart(ctx,{
+      type:'scatter',
+      data:{ datasets:[
+        { label:'A', backgroundColor:col(0)+'cc', data:[{x:10,y:42},{x:25,y:68},{x:40,y:55},{x:55,y:80},{x:70,y:63},{x:85,y:91}] },
+        { label:'B', backgroundColor:col(1)+'cc', data:[{x:15,y:30},{x:30,y:45},{x:45,y:60},{x:60,y:35},{x:75,y:70},{x:90,y:50}] },
+      ]},
+      options:{ ...baseOpts, scales:{
+        x:{ticks:{color:axisCol,font:{size:fontSize}},grid:{display:gridShow,color:gridCol}},
+        y:{ticks:{color:axisCol,font:{size:fontSize}},grid:{display:gridShow,color:gridCol}}
+      }}
+    });
+  }
+
+  // ── Pie ──
+  if (vk==='pieChart') {
+    return new Chart(ctx,{
+      type:'pie',
+      data:{ labels:SL, datasets:[{ data:SD1, backgroundColor:colors }] },
+      options:{ ...baseOpts, cutout:0 }
+    });
+  }
+
+  // ── Donut ──
+  if (vk==='donutChart') {
+    const ir = rcv(vk,'innerRadius','innerRadiusRatio',50);
+    return new Chart(ctx,{
+      type:'doughnut',
+      data:{ labels:SL, datasets:[{ data:SD1, backgroundColor:colors }] },
+      options:{ ...baseOpts, cutout:`${ir}%` }
+    });
+  }
+
+  // ── Combo charts ──
+  if (vk==='lineClusteredColumnComboChart'||vk==='lineStackedColumnComboChart') {
+    const stacked = vk==='lineStackedColumnComboChart';
+    return new Chart(ctx,{
+      type:'bar',
+      data:{ labels:SL, datasets:[
+        { type:'bar',  label:'Col A', data:SD1, backgroundColor:col(0), yAxisID:'y',  borderRadius:2 },
+        { type:'bar',  label:'Col B', data:SD2, backgroundColor:col(1), yAxisID:'y',  borderRadius:2 },
+        { type:'line', label:'Line',  data:[60,72,65,85,70,95], borderColor:col(2), backgroundColor:'transparent', borderWidth:2, pointRadius:3, yAxisID:'y2', tension:.4 },
+      ]},
+      options:{ ...baseOpts, scales:{
+        x:{stacked,ticks:{color:axisCol,font:{size:fontSize}},grid:{display:false}},
+        y:{stacked,ticks:{color:axisCol,font:{size:fontSize}},grid:{display:gridShow,color:gridCol},position:'left'},
+        y2:{ticks:{color:col(2),font:{size:fontSize}},grid:{display:false},position:'right'}
+      }}
+    });
+  }
+
+  // ── Gauge (canvas 2D) ──
+  if (vk==='gauge') {
+    const fg = rcv(vk,'gauge','foregroundColor','#1F8AC0');
+    const bg = rcv(vk,'gauge','backgroundColor','#E0E0E0');
+    const tg = rcv(vk,'gauge','targetColor','#E76F51');
+    const pct = 0.65;
+    const cx=W/2, cy=H*0.72, r=Math.min(W,H)*0.38;
+    ctx.beginPath(); ctx.arc(cx,cy,r,Math.PI,2*Math.PI); ctx.strokeStyle=bg; ctx.lineWidth=r*0.28; ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx,cy,r,Math.PI,Math.PI+Math.PI*pct); ctx.strokeStyle=fg; ctx.lineWidth=r*0.28; ctx.stroke();
+    ctx.beginPath(); const ta=Math.PI+Math.PI*0.8; ctx.moveTo(cx+Math.cos(ta)*(r*0.72),cy+Math.sin(ta)*(r*0.72));
+    ctx.lineTo(cx+Math.cos(ta)*(r*1.05),cy+Math.sin(ta)*(r*1.05)); ctx.strokeStyle=tg; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle=rcv(vk,'dataLabels','color','#0F4C81'); ctx.font=`bold ${r*0.38}px Segoe UI`; ctx.textAlign='center';
+    ctx.fillText('65%',cx,cy-r*0.05);
+    return null;
+  }
+
+  // ── Funnel (canvas 2D) ──
+  if (vk==='funnel') {
+    const steps=[['Leads',100],['Qualified',75],['Proposal',50],['Closed',28]];
+    const sh=H*0.18, gap=4, tw=W*0.8;
+    steps.forEach(([lbl,pct],i)=>{
+      const w=tw*(pct/100), x=(W-w)/2, y=i*(sh+gap)+H*0.06;
+      ctx.fillStyle=col(i); ctx.beginPath();
+      ctx.roundRect(x,y,w,sh,4); ctx.fill();
+      ctx.fillStyle='#fff'; ctx.font=`${fontSize+1}px Segoe UI`; ctx.textAlign='center';
+      ctx.fillText(`${lbl} (${pct}%)`,W/2,y+sh/2+4);
+    });
+    return null;
+  }
+
+  // ── Treemap (canvas 2D) ──
+  if (vk==='treemap') {
+    const rects=[{x:0,y:0,w:.55,h:.55},{x:.55,y:0,w:.45,h:.55},{x:0,y:.55,w:.35,h:.45},{x:.35,y:.55,w:.35,h:.45},{x:.7,y:.55,w:.3,h:.45}];
+    const labels=['Category A','Category B','C','D','E'];
+    const pad=3;
+    rects.forEach(({x,y,w,h},i)=>{
+      ctx.fillStyle=col(i);
+      ctx.fillRect(x*W+pad,y*H+pad,(w*W-pad*2),(h*H-pad*2));
+      ctx.fillStyle='#fff'; ctx.font=`bold ${fontSize+1}px Segoe UI`; ctx.textAlign='center';
+      const cx=(x+w/2)*W, cy=(y+h/2)*H;
+      ctx.fillText(labels[i],cx,cy+4);
+    });
+    return null;
+  }
+
+  // ── Card (canvas 2D) ──
+  if (vk==='card'||vk==='cardVisual') {
+    const fc = rcv(vk,'dataLabels','color','#0F4C81');
+    const fs = Math.min(rcv(vk,'dataLabels','fontSize',32),H*0.45);
+    ctx.fillStyle=fc; ctx.font=`300 ${fs}px Segoe UI`; ctx.textAlign='center';
+    ctx.fillText('$1,284',W/2,H/2+fs*0.35);
+    ctx.fillStyle='#888'; ctx.font=`${fontSize+2}px Segoe UI`;
+    ctx.fillText('Total Revenue',W/2,H/2+fs*0.35+20);
+    return null;
+  }
+
+  // ── Multi-row card (canvas 2D) ──
+  if (vk==='multiRowCard') {
+    const barColor = rcv(vk,'bar','color','#1F8AC0');
+    const rows=[['Revenue','$1,284'],['Customers','842'],['Orders','1,203']];
+    const rh=H/rows.length;
+    rows.forEach(([lbl,val],i)=>{
+      const y=i*rh;
+      ctx.fillStyle=barColor; ctx.fillRect(0,y+2,4,rh-4);
+      ctx.fillStyle='#888'; ctx.font=`${fontSize}px Segoe UI`; ctx.textAlign='left';
+      ctx.fillText(lbl,12,y+rh*0.42);
+      ctx.fillStyle=rcv(vk,'dataLabels','color','#0F4C81'); ctx.font=`bold ${fontSize+3}px Segoe UI`;
+      ctx.fillText(val,12,y+rh*0.78);
+      if(i<rows.length-1){ ctx.strokeStyle='#eee'; ctx.beginPath(); ctx.moveTo(0,y+rh); ctx.lineTo(W,y+rh); ctx.stroke(); }
+    });
+    return null;
+  }
+
+  // ── KPI (canvas 2D) ──
+  if (vk==='kpi') {
+    const fc = rcv(vk,'dataLabels','color','#0F4C81');
+    const tc = rcv(vk,'trendline','color','#1F8AC0');
+    ctx.fillStyle=fc; ctx.font=`300 ${H*0.32}px Segoe UI`; ctx.textAlign='center';
+    ctx.fillText('84.2%',W/2,H*0.48);
+    ctx.fillStyle='#2A9D8F'; ctx.font=`bold ${fontSize+2}px Segoe UI`;
+    ctx.fillText('▲ +5.3%  vs target',W/2,H*0.65);
+    // mini trend line
+    const pts=[0.4,0.55,0.45,0.6,0.5,0.7,0.6,0.8,0.75,0.9];
+    ctx.beginPath(); ctx.strokeStyle=tc; ctx.lineWidth=2;
+    pts.forEach((v,i)=>{ const x=W*0.1+i*(W*0.8/9), y=H*(1-v*0.25); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+    ctx.stroke();
+    return null;
+  }
+
+  // ── Slicer (canvas 2D) ──
+  if (['slicer','advancedSlicerVisual','listSlicer'].includes(vk)) {
+    const hc = rcv(vk,'header','fontColor','#0F4C81');
+    const ic = rcv(vk,'items','fontColor','#333333');
+    ctx.fillStyle=hc; ctx.font=`bold ${fontSize+2}px Segoe UI`; ctx.textAlign='left';
+    ctx.fillText('Region',8,22);
+    ctx.strokeStyle='#e0e0e0'; ctx.beginPath(); ctx.moveTo(0,28); ctx.lineTo(W,28); ctx.stroke();
+    const items=['North','South','East','West','Central'];
+    items.slice(0,4).forEach((item,i)=>{
+      const y=38+i*26;
+      ctx.strokeStyle='#1f8ac0'; ctx.strokeRect(10,y-11,13,13);
+      if(i<2){ ctx.fillStyle='#1f8ac0'; ctx.fillRect(12,y-9,9,9); }
+      ctx.fillStyle=ic; ctx.font=`${fontSize+1}px Segoe UI`; ctx.textAlign='left';
+      ctx.fillText(item,30,y);
+    });
+    return null;
+  }
+
+  // ── Table (canvas 2D) ──
+  if (vk==='tableEx'||vk==='pivotTable') {
+    const hbg = rcv(vk,'columnHeaders','background','#0F4C81');
+    const hfc = rcv(vk,'columnHeaders','fontColor','#FFFFFF');
+    const banded = rcv(vk,'values','bandedRowColor','#F0F6FB');
+    const cols=['Name','Region','Sales','Growth'];
+    const rows=[['Adams','North','$1,284','▲ 12%'],['Brown','South','$942','▼ 3%'],['Clark','East','$1,830','▲ 8%']];
+    const cw=W/cols.length, rh=H/(rows.length+1);
+    ctx.fillStyle=hbg;
+    ctx.fillRect(0,0,W,rh);
+    cols.forEach((c,i)=>{ ctx.fillStyle=hfc; ctx.font=`bold ${fontSize}px Segoe UI`; ctx.textAlign='center'; ctx.fillText(c,cw*i+cw/2,rh*0.68); });
+    rows.forEach((row,ri)=>{
+      if(ri%2===1){ ctx.fillStyle=banded; ctx.fillRect(0,(ri+1)*rh,W,rh); }
+      row.forEach((cell,ci)=>{
+        ctx.fillStyle=cell.includes('▲')?'#2A9D8F':cell.includes('▼')?'#E76F51':'#333';
+        ctx.font=`${fontSize}px Segoe UI`; ctx.textAlign='center';
+        ctx.fillText(cell,cw*ci+cw/2,(ri+1)*rh+rh*0.65);
+      });
+    });
+    ctx.strokeStyle='#e0e0e0'; ctx.lineWidth=1;
+    for(let r=0;r<=rows.length+1;r++){ ctx.beginPath(); ctx.moveTo(0,r*rh); ctx.lineTo(W,r*rh); ctx.stroke(); }
+    return null;
+  }
+
+  // ── Matrix (canvas 2D) ──
+  if (vk==='matrix') {
+    const hbg = rcv(vk,'columnHeaders','background','#0F4C81');
+    const hfc = rcv(vk,'columnHeaders','fontColor','#FFFFFF');
+    const rbg = rcv(vk,'rowHeaders','background','#FFFFFF');
+    const cols=['','Q1','Q2','Q3']; const rows=[['North',42,68,55],['South',30,45,60],['East',20,38,49],['Total',92,151,164]];
+    const cw=W/cols.length, rh=H/(rows.length+1);
+    ctx.fillStyle=hbg; ctx.fillRect(0,0,W,rh);
+    cols.forEach((c,i)=>{ ctx.fillStyle=hfc; ctx.font=`bold ${fontSize}px Segoe UI`; ctx.textAlign='center'; ctx.fillText(c,cw*i+cw/2,rh*0.7); });
+    rows.forEach((row,ri)=>{
+      const isTot = ri===rows.length-1;
+      ctx.fillStyle=isTot?'#E8F0F7':rbg; ctx.fillRect(0,(ri+1)*rh,W,rh);
+      row.forEach((cell,ci)=>{
+        ctx.fillStyle=isTot?'#0F4C81':'#333'; ctx.font=`${isTot?'bold ':''}${fontSize}px Segoe UI`;
+        ctx.textAlign=ci===0?'left':'right';
+        ctx.fillText(cell,ci===0?6:cw*(ci+1)-4,(ri+1)*rh+rh*0.68);
+      });
+    });
+    ctx.strokeStyle='#e0e0e0'; ctx.lineWidth=1;
+    for(let r=0;r<=rows.length+1;r++){ ctx.beginPath(); ctx.moveTo(0,r*rh); ctx.lineTo(W,r*rh); ctx.stroke(); }
+    return null;
+  }
+
+  // ── Map / Filled Map (canvas 2D placeholder) ──
+  if (vk==='map'||vk==='filledMap'||vk==='azureMap'||vk==='shapeMap') {
+    ctx.fillStyle='#e8f0f7'; ctx.fillRect(0,0,W,H);
+    const dots=[{x:.2,y:.35,r:8},{x:.45,y:.3,r:14},{x:.65,y:.45,r:10},{x:.35,y:.6,r:6},{x:.75,y:.25,r:5}];
+    dots.forEach(({x,y,r},i)=>{ ctx.fillStyle=col(i)+'cc'; ctx.beginPath(); ctx.arc(x*W,y*H,r,0,Math.PI*2); ctx.fill(); });
+    ctx.fillStyle='#888'; ctx.font=`${fontSize+1}px Segoe UI`; ctx.textAlign='center';
+    ctx.fillText('Map Visual',W/2,H*0.88);
+    return null;
+  }
+
+  // ── Decomposition tree (canvas 2D) ──
+  if (['decompositionTree','decompositionTreeVisual'].includes(vk)) {
+    const hbg = rcv(vk,'header','fill','#0F4C81');
+    const nodes=[{x:.1,y:.45,w:.22,h:.22,lbl:'Total'},{x:.45,y:.25,w:.2,h:.15,lbl:'North'},{x:.45,y:.5,w:.2,h:.15,lbl:'South'},{x:.45,y:.72,w:.2,h:.15,lbl:'East'},{x:.75,y:.2,w:.2,h:.15,lbl:'A'},{x:.75,y:.42,w:.2,h:.15,lbl:'B'}];
+    const edges=[[0,1],[0,2],[0,3],[1,4],[1,5]];
+    edges.forEach(([a,b])=>{ const na=nodes[a],nb=nodes[b]; ctx.strokeStyle='#c0d4e8'; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.moveTo((na.x+na.w)*W,na.y*H+na.h*H/2); ctx.lineTo(nb.x*W,nb.y*H+nb.h*H/2); ctx.stroke(); });
+    nodes.forEach(({x,y,w,h,lbl},i)=>{ ctx.fillStyle=i===0?hbg:col(i); ctx.beginPath(); ctx.roundRect(x*W,y*H,w*W,h*H,4); ctx.fill();
+      ctx.fillStyle='#fff'; ctx.font=`${fontSize}px Segoe UI`; ctx.textAlign='center'; ctx.fillText(lbl,(x+w/2)*W,(y+h/2)*H+4); });
+    return null;
+  }
+
+  // ── Shape (canvas 2D) ──
+  if (vk==='shape') {
+    const fc = rcv(vk,'fill','fillColor','#1F8AC0');
+    const tr = rcv(vk,'fill','transparency',0)/100;
+    ctx.globalAlpha=1-tr; ctx.fillStyle=fc;
+    ctx.beginPath(); ctx.roundRect(W*0.1,H*0.15,W*0.8,H*0.7,8); ctx.fill();
+    ctx.globalAlpha=1;
+    return null;
+  }
+
+  // ── Button (canvas 2D) ──
+  if (vk==='actionButton') {
+    const bc=rcv(vk,'fill','color','#1F8AC0'); const tc=rcv(vk,'text','fontColor','#FFFFFF');
+    ctx.fillStyle=bc; ctx.beginPath(); ctx.roundRect(W*0.15,H*0.3,W*0.7,H*0.4,6); ctx.fill();
+    ctx.fillStyle=tc; ctx.font=`bold ${fontSize+3}px Segoe UI`; ctx.textAlign='center';
+    ctx.fillText('Click me',W/2,H*0.57);
+    return null;
+  }
+
+  // ── Text box (canvas 2D) ──
+  if (vk==='textbox') {
+    ctx.fillStyle='#f8f8f8'; ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='#e0e0e0'; ctx.strokeRect(2,2,W-4,H-4);
+    const lines=['Lorem ipsum dolor sit','amet, consectetur','adipiscing elit.'];
+    ctx.fillStyle='#333'; ctx.font=`${fontSize+1}px Segoe UI`; ctx.textAlign='left';
+    lines.forEach((l,i)=>ctx.fillText(l,12,24+i*18));
+    return null;
+  }
+
+  // ── Image (canvas 2D) ──
+  if (vk==='image') {
+    ctx.fillStyle='#f0f0f0'; ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='#ccc'; ctx.strokeRect(W*0.1,H*0.1,W*0.8,H*0.8);
+    ctx.fillStyle='#bbb'; ctx.font=`${H*0.25}px Segoe UI`; ctx.textAlign='center';
+    ctx.fillText('🖼',W/2,H*0.62);
+    return null;
+  }
+
+  // ── Scorecard (canvas 2D) ──
+  if (vk==='scorecard') {
+    const goals=[{n:'Revenue',v:'$1.2M',s:'▲',c:'#2A9D8F'},{n:'Customers',v:'842',s:'▼',c:'#E76F51'},{n:'NPS',v:'72',s:'▲',c:'#2A9D8F'}];
+    const rh=H/goals.length;
+    goals.forEach(({n,v,s,c},i)=>{
+      const y=i*rh;
+      ctx.fillStyle=c+'22'; ctx.fillRect(0,y,W,rh-2);
+      ctx.fillStyle=c; ctx.font=`bold ${fontSize+1}px Segoe UI`; ctx.textAlign='left'; ctx.fillText(s+' '+v,8,y+rh*0.68);
+      ctx.fillStyle='#666'; ctx.font=`${fontSize}px Segoe UI`; ctx.fillText(n,8,y+rh*0.32);
+    });
+    return null;
+  }
+
+  // ── KPI visual, QnA, AI Narratives, Key Influencers, navigators — simple placeholders ──
+  ctx.fillStyle='#f4f6f9'; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#aaa'; ctx.font=`${fontSize+2}px Segoe UI`; ctx.textAlign='center';
+  const shortName = (VISUAL_LABELS[vk]||vk).split(' ').slice(0,2).join(' ');
+  ctx.fillText(shortName, W/2, H/2-8);
+  ctx.fillStyle='#1f8ac0'; ctx.font=`${fontSize}px Segoe UI`;
+  ctx.fillText('Click to configure', W/2, H/2+10);
+  return null;
 }
+
+// ── track grid chart instances ──
+const _gridCharts = {};
 
 // ── Visual cards grid ──
 function buildGrid(filter) {
   const grid = document.getElementById('visual-grid');
+  // destroy old chart instances
+  Object.values(_gridCharts).forEach(c => { try { c.destroy(); } catch(e){} });
+  Object.keys(_gridCharts).forEach(k => delete _gridCharts[k]);
   grid.innerHTML = '';
   const term = (filter || '').toLowerCase();
 
   Object.entries(VISUAL_LABELS).forEach(([key, label]) => {
     if (term && !label.toLowerCase().includes(term) && !key.toLowerCase().includes(term)) return;
-    const style = THEME.visualStyles[key];
-    const cards = style && style['*'] ? Object.keys(style['*']) : [];
 
     const card = document.createElement('div');
     card.className = 'vis-card';
-    card.innerHTML = `
-      <div class="vc-name">${label}</div>
-      <div class="vc-key">${key}</div>
-      <div class="vc-tags">${cards.map(c => {
-        const props = style['*'][c][0] || {};
-        const isOff = props.show === false;
-        return `<span class="vc-tag${isOff ? ' off' : ''}">${c}</span>`;
-      }).join('')}</div>`;
+
+    const previewWrap = document.createElement('div');
+    previewWrap.className = 'vc-preview-wrap';
+    const canvas = document.createElement('canvas');
+    canvas.className = 'vc-canvas';
+    canvas.width = 236; canvas.height = 148;
+    canvas.id = 'grid-canvas-' + key;
+    previewWrap.appendChild(canvas);
+
+    const info = document.createElement('div');
+    info.className = 'vc-info';
+    info.innerHTML = `<div class="vc-name">${label}</div><div class="vc-key">${key}</div>`;
+
+    card.appendChild(previewWrap);
+    card.appendChild(info);
     card.addEventListener('click', () => openEditModal(key, label));
     grid.appendChild(card);
+
+    // render after DOM insertion (requestAnimationFrame ensures canvas is ready)
+    requestAnimationFrame(() => {
+      const instance = renderVisualPreview(key, canvas, false);
+      if (instance) _gridCharts[key] = instance;
+    });
   });
+}
+
+// refresh a single grid card after settings change
+function refreshGridCard(visualKey) {
+  const canvas = document.getElementById('grid-canvas-' + visualKey);
+  if (!canvas) return;
+  if (_gridCharts[visualKey]) { try { _gridCharts[visualKey].destroy(); } catch(e){} }
+  const instance = renderVisualPreview(visualKey, canvas, false);
+  if (instance) _gridCharts[visualKey] = instance;
 }
 
 // Sync sidebar search to grid
