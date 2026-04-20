@@ -92,6 +92,80 @@
     text-align: center;
   }
 
+  /* ── SETTINGS PANEL ── */
+  .card {
+    background: #fff;
+    border-radius: 8px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.07);
+    overflow: hidden;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: #eaf2fb;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f4c81;
+    user-select: none;
+  }
+  .card-header:hover { background: #d6e8f7; }
+  .card-header .arrow { font-size: 10px; transition: transform .2s; }
+  .card-header.open .arrow { transform: rotate(90deg); }
+  .card-body { padding: 12px 16px; display: none; }
+  .card-body.open { display: block; }
+  .prop-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid #f0f0f0;
+    gap: 12px;
+  }
+  .prop-row:last-child { border-bottom: none; }
+  .prop-label {
+    font-size: 12px;
+    color: #444;
+    flex: 1;
+    min-width: 0;
+  }
+  .prop-control { display: flex; align-items: center; gap: 6px; }
+  /* Toggle */
+  .toggle { position: relative; width: 36px; height: 20px; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; inset: 0;
+    background: #ccc; border-radius: 20px; cursor: pointer;
+    transition: background .2s;
+  }
+  .toggle-slider:before {
+    content: ""; position: absolute;
+    width: 14px; height: 14px; left: 3px; top: 3px;
+    background: #fff; border-radius: 50%; transition: transform .2s;
+  }
+  .toggle input:checked + .toggle-slider { background: #1f8ac0; }
+  .toggle input:checked + .toggle-slider:before { transform: translateX(16px); }
+  /* Number */
+  input[type=number].prop-num {
+    width: 64px; padding: 4px 6px; border: 1px solid #ddd;
+    border-radius: 5px; font-size: 12px; text-align: right;
+  }
+  /* Text / select */
+  input[type=text].prop-text, select.prop-select {
+    padding: 4px 6px; border: 1px solid #ddd;
+    border-radius: 5px; font-size: 12px; max-width: 140px;
+  }
+  /* Color */
+  .color-wrap { display: flex; align-items: center; gap: 6px; }
+  .color-wrap input[type=color] { width: 28px; height: 28px; border: none; padding: 0; cursor: pointer; border-radius: 4px; }
+  .color-hex { font-size: 11px; color: #666; font-family: monospace; }
+  /* Nested sub-card */
+  .sub-card { background: #f8fafd; border: 1px solid #e0eaf5; border-radius: 6px; padding: 8px 12px; margin-top: 4px; }
+  .sub-card-title { font-size: 11px; font-weight: 600; color: #1f8ac0; margin-bottom: 6px; }
+
   /* JSON preview placeholder */
   #json-panel {
     width: 380px;
@@ -111,6 +185,11 @@
     letter-spacing: .05em;
     text-transform: uppercase;
   }
+  .json-key  { color: #89b4fa; }
+  .json-str  { color: #a6e3a1; }
+  .json-num  { color: #fab387; }
+  .json-bool { color: #f38ba8; }
+  .json-null { color: #6c7086; }
   #json-output {
     flex: 1;
     overflow-y: auto;
@@ -134,18 +213,45 @@
 <!-- MAIN -->
 <div id="main">
   <section id="settings-panel">
+    <!-- Global settings bar -->
+    <div id="global-bar" style="background:#fff;border-radius:8px;padding:12px 16px;margin-bottom:18px;box-shadow:0 1px 4px rgba(0,0,0,.07);display:flex;flex-wrap:wrap;gap:16px;align-items:center;">
+      <span style="font-size:12px;font-weight:700;color:#0f4c81;min-width:80px;">Theme Globals</span>
+      <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;">
+        Background
+        <input type="color" id="g-background" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;">
+      </label>
+      <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;">
+        Foreground
+        <input type="color" id="g-foreground" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;">
+      </label>
+      <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;">
+        Table Accent
+        <input type="color" id="g-tableAccent" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;">
+      </label>
+      <span style="font-size:12px;color:#444;">Data Colors:</span>
+      <div id="data-colors" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
+    </div>
     <h1 id="panel-title">Select a Visual</h1>
     <p class="subtitle" id="panel-subtitle">Choose a visual from the sidebar to edit its theme settings.</p>
     <p class="placeholder-msg" id="panel-placeholder">← Pick a visual to get started</p>
   </section>
 
   <aside id="json-panel">
-    <div id="json-panel-header">Live JSON Preview</div>
+    <div id="json-panel-header">
+    Live JSON Preview
+    <span style="float:right;display:flex;gap:6px;">
+      <button onclick="copyJSON()" style="font-size:11px;padding:3px 8px;border-radius:4px;border:none;background:#313244;color:#cdd6f4;cursor:pointer;">Copy</button>
+      <button onclick="downloadJSON()" style="font-size:11px;padding:3px 8px;border-radius:4px;border:none;background:#313244;color:#cdd6f4;cursor:pointer;">Download</button>
+    </span>
+  </div>
     <div id="json-output">{}</div>
   </aside>
 </div>
 
 <script>
+// ── Embedded theme state ──
+const THEME = {"name":"Customer360 Theme","dataColors":["#0F4C81","#1F8AC0","#3BBFCE","#70C1B3","#F4A261","#E76F51","#264653","#2A9D8F"],"background":"#FFFFFF","foreground":"#0F4C81","tableAccent":"#1F8AC0","visualStyles":{"*":{"*":{"background":[{"show":false}],"border":[{"show":false}],"dropShadow":[{"show":false}],"visualHeader":[{"show":true}],"title":[{"show":true,"fontFamily":"Segoe UI","fontSize":14,"fontBold":true,"fontColor":{"solid":{"color":"#0F4C81"}},"alignment":"left","background":{"solid":{"color":"#FFFFFF"}}}]}},"barChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":false}]}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}}}]}],"dataLabels":[{"show":false,"fontSize":9,"fontFamily":"Segoe UI","color":{"solid":{"color":"#FFFFFF"}}}],"plotArea":[{"transparency":0}]}},"clusteredBarChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}}}]}],"dataLabels":[{"show":false,"fontSize":9,"fontFamily":"Segoe UI"}]}},"stackedBarChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}}}]}],"dataLabels":[{"show":false,"fontSize":9,"fontFamily":"Segoe UI","color":{"solid":{"color":"#FFFFFF"}}}]}},"hundredPercentStackedBarChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false}],"dataLabels":[{"show":true,"fontSize":9,"fontFamily":"Segoe UI","color":{"solid":{"color":"#FFFFFF"}}}]}},"columnChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":false}]}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}}}]}],"dataLabels":[{"show":false,"fontSize":9,"fontFamily":"Segoe UI","color":{"solid":{"color":"#FFFFFF"}}}]}},"clusteredColumnChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}}}]}],"dataLabels":[{"show":false,"fontSize":9,"fontFamily":"Segoe UI"}]}},"stackedColumnChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}}}]}],"dataLabels":[{"show":false,"fontSize":9,"fontFamily":"Segoe UI","color":{"solid":{"color":"#FFFFFF"}}}]}},"hundredPercentStackedColumnChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false}],"dataLabels":[{"show":true,"fontSize":9,"fontFamily":"Segoe UI","color":{"solid":{"color":"#FFFFFF"}}}]}},"lineChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}}}]}],"dataLabels":[{"show":false,"fontSize":9,"fontFamily":"Segoe UI"}],"shapes":[{"strokeWidth":2,"showMarker":false,"markerSize":3}]}},"areaChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}}}]}],"dataLabels":[{"show":false,"fontSize":9,"fontFamily":"Segoe UI"}]}},"stackedAreaChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}}}]}],"dataLabels":[{"show":false,"fontSize":9,"fontFamily":"Segoe UI","color":{"solid":{"color":"#FFFFFF"}}}]}},"ribbonChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}}}]}],"dataLabels":[{"show":false,"fontSize":9,"fontFamily":"Segoe UI"}]}},"waterfallChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}}}]}],"dataLabels":[{"show":true,"fontSize":9,"fontFamily":"Segoe UI","color":{"solid":{"color":"#FFFFFF"}}}],"sentimentColors":[{"increaseFill":{"solid":{"color":"#2A9D8F"}},"decreaseFill":{"solid":{"color":"#E76F51"}},"totalFill":{"solid":{"color":"#0F4C81"}}}]}},"scatterChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}}}]}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}}}]}],"dataLabels":[{"show":false,"fontSize":9,"fontFamily":"Segoe UI"}],"fillPoint":[{"show":true}]}},"pieChart":{"*":{"legend":[{"show":true,"position":"Right","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"dataLabels":[{"show":true,"fontSize":10,"fontFamily":"Segoe UI","color":{"solid":{"color":"#FFFFFF"}},"labelDisplayUnits":0,"labelStyle":"category"}],"detail":[{"show":false}]}},"donutChart":{"*":{"legend":[{"show":true,"position":"Right","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"dataLabels":[{"show":true,"fontSize":10,"fontFamily":"Segoe UI","color":{"solid":{"color":"#FFFFFF"}},"labelStyle":"category"}],"innerRadius":[{"innerRadiusRatio":50}]}},"treemap":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"dataLabels":[{"show":true,"fontSize":10,"fontFamily":"Segoe UI","color":{"solid":{"color":"#FFFFFF"}}}],"categoryLabels":[{"show":true,"fontSize":10,"fontFamily":"Segoe UI","color":{"solid":{"color":"#FFFFFF"}}}]}},"map":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"dataLabels":[{"show":false,"fontSize":9,"fontFamily":"Segoe UI"}],"bubbles":[{"minBubbleSize":10,"maxBubbleSize":40}]}},"filledMap":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"dataLabels":[{"show":false,"fontSize":9,"fontFamily":"Segoe UI"}]}},"funnel":{"*":{"legend":[{"show":false}],"dataLabels":[{"show":true,"fontSize":10,"fontFamily":"Segoe UI","color":{"solid":{"color":"#FFFFFF"}},"labelStyle":"both"}]}},"gauge":{"*":{"dataLabels":[{"show":true,"fontSize":24,"fontFamily":"Segoe UI","color":{"solid":{"color":"#0F4C81"}}}],"gauge":[{"arcAngle":150,"startAngle":-150,"pinNeedle":false,"targetColor":{"solid":{"color":"#E76F51"}},"foregroundColor":{"solid":{"color":"#1F8AC0"}},"backgroundColor":{"solid":{"color":"#E0E0E0"}}}],"target":[{"show":true,"fontSize":12,"fontFamily":"Segoe UI","color":{"solid":{"color":"#666666"}}}]}},"card":{"*":{"dataLabels":[{"show":true,"fontSize":32,"fontFamily":"Segoe UI Light","color":{"solid":{"color":"#0F4C81"}},"labelDisplayUnits":0}],"categoryLabels":[{"show":true,"fontSize":12,"fontFamily":"Segoe UI","color":{"solid":{"color":"#666666"}}}],"wordWrap":[{"show":false}]}},"multiRowCard":{"*":{"dataLabels":[{"fontSize":14,"fontFamily":"Segoe UI","color":{"solid":{"color":"#0F4C81"}}}],"categoryLabels":[{"show":true,"fontSize":10,"fontFamily":"Segoe UI","color":{"solid":{"color":"#666666"}}}],"cardTitle":[{"show":true,"fontSize":12,"fontFamily":"Segoe UI Semibold","color":{"solid":{"color":"#0F4C81"}}}],"outline":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}},"weight":1}],"bar":[{"show":true,"color":{"solid":{"color":"#1F8AC0"}},"weight":4}]}},"kpi":{"*":{"indicator":[{"show":true,"thickness":3}],"trendline":[{"show":true,"color":{"solid":{"color":"#1F8AC0"}}}],"dataLabels":[{"show":true,"fontSize":28,"fontFamily":"Segoe UI Light","color":{"solid":{"color":"#0F4C81"}}}],"goals":[{"show":true,"fontSize":12,"fontFamily":"Segoe UI","color":{"solid":{"color":"#666666"}}}],"statusGraphic":[{"show":true}]}},"slicer":{"*":{"data":[{"fontFamily":"Segoe UI","fontSize":12,"fontColor":{"solid":{"color":"#333333"}}}],"selection":[{"selectAllCheckboxEnabled":false,"singleSelect":true}],"header":[{"show":true,"fontFamily":"Segoe UI Semibold","fontSize":12,"fontColor":{"solid":{"color":"#0F4C81"}},"background":{"solid":{"color":"#FFFFFF"}},"outline":"None"}],"items":[{"fontFamily":"Segoe UI","fontSize":11,"fontColor":{"solid":{"color":"#333333"}},"background":{"solid":{"color":"#FFFFFF"}},"outline":"Frame"}]}},"tableEx":{"*":{"grid":[{"outlineColor":{"solid":{"color":"#E0E0E0"}},"outlineWeight":1,"gridVertical":false,"gridHorizontal":true,"gridHorizontalColor":{"solid":{"color":"#E0E0E0"}},"gridHorizontalWeight":1,"rowPadding":4}],"columnHeaders":[{"fontFamily":"Segoe UI Semibold","fontSize":11,"fontColor":{"solid":{"color":"#FFFFFF"}},"background":{"solid":{"color":"#0F4C81"}},"outline":"None","alignment":"left"}],"values":[{"fontFamily":"Segoe UI","fontSize":11,"fontColor":{"solid":{"color":"#333333"}},"background":{"solid":{"color":"#FFFFFF"}},"bandedRowColor":{"solid":{"color":"#F0F6FB"}},"alignment":"left"}],"total":[{"totals":true,"fontFamily":"Segoe UI Semibold","fontSize":11,"fontColor":{"solid":{"color":"#0F4C81"}},"background":{"solid":{"color":"#E8F0F7"}},"outline":"Top","outlineColor":{"solid":{"color":"#0F4C81"}}}]}},"matrix":{"*":{"grid":[{"outlineColor":{"solid":{"color":"#E0E0E0"}},"outlineWeight":1,"gridVertical":false,"gridHorizontal":true,"gridHorizontalColor":{"solid":{"color":"#E0E0E0"}},"gridHorizontalWeight":1,"rowPadding":4}],"rowHeaders":[{"fontFamily":"Segoe UI","fontSize":11,"fontColor":{"solid":{"color":"#333333"}},"background":{"solid":{"color":"#FFFFFF"}},"outline":"None","stepped":true,"steppedLayoutIndentation":20,"expandCollapse":true}],"columnHeaders":[{"fontFamily":"Segoe UI Semibold","fontSize":11,"fontColor":{"solid":{"color":"#FFFFFF"}},"background":{"solid":{"color":"#0F4C81"}},"outline":"None","alignment":"left"}],"values":[{"fontFamily":"Segoe UI","fontSize":11,"fontColor":{"solid":{"color":"#333333"}},"background":{"solid":{"color":"#FFFFFF"}},"bandedRowColor":{"solid":{"color":"#F0F6FB"}},"alignment":"right"}],"subtotals":[{"rowSubtotals":true,"columnSubtotals":true,"fontFamily":"Segoe UI Semibold","fontSize":11,"fontColor":{"solid":{"color":"#0F4C81"}},"background":{"solid":{"color":"#E8F0F7"}},"outline":"TopBottom","outlineColor":{"solid":{"color":"#0F4C81"}},"perRowLevel":true,"perColumnLevel":true}]}},"lineClusteredColumnComboChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}}}]}],"y2AxisReferenceLine":[{"show":false}],"dataLabels":[{"show":false,"fontSize":9,"fontFamily":"Segoe UI"}]}},"lineStackedColumnComboChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}}}]}],"dataLabels":[{"show":false,"fontSize":9,"fontFamily":"Segoe UI"}]}},"decompositionTree":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"dataLabels":[{"show":true,"fontSize":11,"fontFamily":"Segoe UI","color":{"solid":{"color":"#333333"}}}],"header":[{"fontFamily":"Segoe UI Semibold","fontSize":11,"fontColor":{"solid":{"color":"#FFFFFF"}},"fill":{"solid":{"color":"#0F4C81"}}}]}},"shape":{"*":{"fill":[{"show":true,"fillColor":{"solid":{"color":"#1F8AC0"}},"transparency":0}],"line":[{"show":false,"strokeColor":{"solid":{"color":"#0F4C81"}},"strokeWidth":1}]}},"textbox":{"*":{"background":[{"show":false}],"border":[{"show":false}]}},"image":{"*":{"imageScaling":[{"imageScalingType":"Fit"}],"background":[{"show":false}]}},"actionButton":{"*":{"text":[{"show":true,"fontFamily":"Segoe UI","fontSize":12,"fontBold":false,"fontColor":{"solid":{"color":"#FFFFFF"}},"alignment":"center","verticalAlignment":"middle"}],"fill":[{"show":true,"color":{"solid":{"color":"#1F8AC0"}},"transparency":0}],"outline":[{"show":false}],"shadow":[{"show":false}]}}}};
+
 // ── Visual display names ──
 const VISUAL_LABELS = {
   "*":                            "Global (All Visuals)",
@@ -185,6 +291,27 @@ const VISUAL_LABELS = {
   "actionButton":                 "Button"
 };
 
+let currentVisual = null;
+
+function syntaxHL(json) {
+  return json
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/("(\\u[0-9a-fA-F]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, m => {
+      let cls = 'json-num';
+      if (/^"/.test(m)) cls = /:$/.test(m) ? 'json-key' : 'json-str';
+      else if (/true|false/.test(m)) cls = 'json-bool';
+      else if (/null/.test(m)) cls = 'json-null';
+      return `<span class="${cls}">${m}</span>`;
+    });
+}
+
+function updateJSON() {
+  const out = document.getElementById('json-output');
+  if (!currentVisual) { out.innerHTML = syntaxHL('{}'); return; }
+  const snippet = { [currentVisual]: THEME.visualStyles[currentVisual] };
+  out.innerHTML = syntaxHL(JSON.stringify(snippet, null, 2));
+}
+
 // ── Build sidebar from label map ──
 function buildSidebar(filter = "") {
   const list = document.getElementById("visual-list");
@@ -207,20 +334,235 @@ function buildSidebar(filter = "") {
   });
 }
 
+const ENUMS = {
+  position: ["Top","Bottom","Left","Right","TopLeft","TopRight","BottomLeft","BottomRight"],
+  alignment: ["left","center","right"],
+  verticalAlignment: ["top","middle","bottom"],
+  fontFamily: ["Segoe UI","Segoe UI Semibold","Segoe UI Light","Arial","Calibri","Trebuchet MS","Times New Roman","Courier New"],
+  outline: ["None","Frame","Top","Bottom","Left","Right","TopBottom"],
+  imageScalingType: ["Fit","Fill","Normal"],
+  labelStyle: ["category","data","both","percent","percentOfTotal"],
+};
+
+function isSolidColor(v) {
+  return v && typeof v === 'object' && v.solid && v.solid.color;
+}
+
+function getSolidColor(v) { return v.solid.color; }
+
+function setSolidColor(obj, key, hex) {
+  obj[key] = { solid: { color: hex } };
+}
+
+function setNestedPath(obj, path, value) {
+  const keys = path.split('.');
+  let cur = obj;
+  for (let i = 0; i < keys.length - 1; i++) cur = cur[keys[i]];
+  cur[keys[keys.length - 1]] = value;
+}
+
+function renderControl(val, onChange) {
+  const wrap = document.createElement('div');
+  wrap.className = 'prop-control';
+
+  if (typeof val === 'boolean') {
+    const label = document.createElement('label');
+    label.className = 'toggle';
+    const inp = document.createElement('input');
+    inp.type = 'checkbox';
+    inp.checked = val;
+    inp.addEventListener('change', () => onChange(inp.checked));
+    const slider = document.createElement('span');
+    slider.className = 'toggle-slider';
+    label.appendChild(inp);
+    label.appendChild(slider);
+    wrap.appendChild(label);
+
+  } else if (isSolidColor(val)) {
+    const cw = document.createElement('div');
+    cw.className = 'color-wrap';
+    const inp = document.createElement('input');
+    inp.type = 'color';
+    inp.value = getSolidColor(val).toLowerCase();
+    const hex = document.createElement('span');
+    hex.className = 'color-hex';
+    hex.textContent = inp.value.toUpperCase();
+    inp.addEventListener('input', () => {
+      hex.textContent = inp.value.toUpperCase();
+      onChange({ solid: { color: inp.value.toUpperCase() } });
+    });
+    cw.appendChild(inp);
+    cw.appendChild(hex);
+    wrap.appendChild(cw);
+
+  } else if (typeof val === 'number') {
+    const inp = document.createElement('input');
+    inp.type = 'number';
+    inp.className = 'prop-num';
+    inp.value = val;
+    inp.addEventListener('change', () => onChange(Number(inp.value)));
+    wrap.appendChild(inp);
+
+  } else if (typeof val === 'string') {
+    const enumKey = Object.keys(ENUMS).find(k => ENUMS[k].includes(val));
+    if (enumKey) {
+      const sel = document.createElement('select');
+      sel.className = 'prop-select';
+      ENUMS[enumKey].forEach(opt => {
+        const o = document.createElement('option');
+        o.value = opt; o.textContent = opt;
+        if (opt === val) o.selected = true;
+        sel.appendChild(o);
+      });
+      sel.addEventListener('change', () => onChange(sel.value));
+      wrap.appendChild(sel);
+    } else {
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.className = 'prop-text';
+      inp.value = val;
+      inp.addEventListener('change', () => onChange(inp.value));
+      wrap.appendChild(inp);
+    }
+  }
+  return wrap;
+}
+
+function renderProps(props, onChange) {
+  const frag = document.createDocumentFragment();
+  Object.entries(props).forEach(([key, val]) => {
+    // nested array (e.g. gridlines)
+    if (Array.isArray(val) && val.length > 0 && typeof val[0] === 'object') {
+      const sub = document.createElement('div');
+      const title = document.createElement('div');
+      title.className = 'sub-card-title';
+      title.textContent = key;
+      sub.className = 'sub-card';
+      sub.appendChild(title);
+      sub.appendChild(renderProps(val[0], (subKey, newVal) => {
+        val[0][subKey] = newVal;
+        onChange(key, val);
+        updateJSON();
+      }));
+      const row = document.createElement('div');
+      row.className = 'prop-row';
+      const lbl = document.createElement('span');
+      lbl.className = 'prop-label';
+      lbl.textContent = key;
+      row.appendChild(sub);
+      frag.appendChild(row);
+      return;
+    }
+
+    if (isSolidColor(val) || typeof val === 'boolean' || typeof val === 'number' || typeof val === 'string') {
+      const row = document.createElement('div');
+      row.className = 'prop-row';
+      const lbl = document.createElement('span');
+      lbl.className = 'prop-label';
+      lbl.textContent = key;
+      const ctrl = renderControl(val, newVal => {
+        onChange(key, newVal);
+        updateJSON();
+      });
+      row.appendChild(lbl);
+      row.appendChild(ctrl);
+      frag.appendChild(row);
+    }
+  });
+  return frag;
+}
+
+function renderCards(visualKey) {
+  const panel = document.getElementById('settings-panel');
+  const title = document.getElementById('panel-title');
+  const sub = document.getElementById('panel-subtitle');
+  const placeholder = document.getElementById('panel-placeholder');
+
+  placeholder.style.display = 'none';
+
+  // Remove old cards
+  panel.querySelectorAll('.card').forEach(c => c.remove());
+
+  const style = THEME.visualStyles[visualKey];
+  if (!style) return;
+  const cards = style['*'];
+  if (!cards) return;
+
+  Object.entries(cards).forEach(([cardName, cardArr]) => {
+    if (!Array.isArray(cardArr) || cardArr.length === 0) return;
+    const props = cardArr[0];
+
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const header = document.createElement('div');
+    header.className = 'card-header';
+    header.innerHTML = `${cardName} <span class="arrow">▶</span>`;
+    header.addEventListener('click', () => {
+      header.classList.toggle('open');
+      body.classList.toggle('open');
+    });
+
+    const body = document.createElement('div');
+    body.className = 'card-body';
+    body.appendChild(renderProps(props, (propKey, newVal) => {
+      props[propKey] = newVal;
+      updateJSON();
+    }));
+
+    card.appendChild(header);
+    card.appendChild(body);
+    panel.appendChild(card);
+  });
+}
+
 function selectVisual(key, label, el) {
   document.querySelectorAll("#visual-list li").forEach(l => l.classList.remove("active"));
   el.classList.add("active");
   document.getElementById("panel-title").textContent = label;
   document.getElementById("panel-subtitle").textContent = `JSON key: "${key}"`;
-  document.getElementById("panel-placeholder").textContent = "Settings panel coming in next step…";
-  document.getElementById("json-output").textContent = JSON.stringify({ [key]: {} }, null, 2);
+  currentVisual = key;
+  renderCards(key);
+  updateJSON();
+}
+
+function copyJSON() {
+  const text = JSON.stringify(THEME, null, 2);
+  navigator.clipboard.writeText(text).then(() => alert('Full theme JSON copied!'));
+}
+function downloadJSON() {
+  const blob = new Blob([JSON.stringify(THEME, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'Customer360_Theme.json';
+  a.click();
 }
 
 // ── Search ──
 document.getElementById("sidebar-search").addEventListener("input", e => buildSidebar(e.target.value));
 
+// ── Global bar init ──
+function initGlobalBar() {
+  ['background','foreground','tableAccent'].forEach(key => {
+    const inp = document.getElementById('g-' + key);
+    inp.value = THEME[key].toLowerCase();
+    inp.addEventListener('input', () => { THEME[key] = inp.value.toUpperCase(); updateJSON(); });
+  });
+  const dc = document.getElementById('data-colors');
+  THEME.dataColors.forEach((col, i) => {
+    const inp = document.createElement('input');
+    inp.type = 'color';
+    inp.value = col.toLowerCase();
+    inp.title = `Color ${i+1}`;
+    inp.style.cssText = 'width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;';
+    inp.addEventListener('input', () => { THEME.dataColors[i] = inp.value.toUpperCase(); updateJSON(); });
+    dc.appendChild(inp);
+  });
+}
+
 // ── Init ──
 buildSidebar();
+initGlobalBar();
 </script>
 </body>
 </html>
