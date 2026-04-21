@@ -983,6 +983,7 @@ const CARD_DEFS = {
     { key:'labelPrecision', type:'number', label:'Decimal Places', def:0, min:0, max:10 },
   ],
   data: [
+    { key:'mode',       type:'enum',   label:'Slicer Mode',  def:'VerticalList', options:['VerticalList','HorizontalList','Dropdown','Between','Before','After','Basic','Relative','RelativeTime','Single'] },
     { key:'fontFamily', type:'enum',   label:'Font Family', def:'Segoe UI', options:FONTS },
     { key:'fontSize',   type:'number', label:'Font Size',   def:12, min:6, max:40 },
     { key:'fontColor',  type:'color',  label:'Font Color',  def:'#333333' },
@@ -2000,12 +2001,13 @@ function renderVisualPreview(vk, canvas, isModal) {
   const valAxisTitleText  = rcv(vk,'valueAxis','titleText', '');
   const valAxisTitleColor = rcv(vk,'valueAxis','titleColor', '#666666');
 
-  const baseScales = {
-    x: { display:catShow, ticks:{color:catColor, font:{size:catFontSz}}, grid:{display:catGridShow, color:catGridCol}, border:{display:false},
-         title:{display:catAxisTitleShow && isModal, text:catAxisTitleText, color:catAxisTitleColor, font:{size:catFontSz}} },
-    y: { display:valShow, ticks:{color:valColor,  font:{size:valFontSz}}, grid:{display:gridShow,   color:gridCol},    border:{display:false},
-         title:{display:valAxisTitleShow && isModal, text:valAxisTitleText, color:valAxisTitleColor, font:{size:valFontSz}} }
-  };
+  // bx = base CATEGORY axis, by = base VALUE axis — spread into each chart's scales
+  const bx = { display:catShow, ticks:{color:catColor, font:{size:catFontSz}},
+               grid:{display:catGridShow, color:catGridCol}, border:{display:false},
+               title:{display:catAxisTitleShow && isModal, text:catAxisTitleText, color:catAxisTitleColor} };
+  const by = { display:valShow, ticks:{color:valColor, font:{size:valFontSz}},
+               grid:{display:gridShow, color:gridCol}, border:{display:false},
+               title:{display:valAxisTitleShow && isModal, text:valAxisTitleText, color:valAxisTitleColor} };
   // Chart.js plugins.title handles title rendering so Chart.js canvas-clear doesn't erase it
   const basePlugins = {
     legend:{ display:legendShow && isModal, position:legendPos, labels:{font:{size:legendFontSz}, color:legendColor, boxWidth:10} },
@@ -2021,7 +2023,7 @@ function renderVisualPreview(vk, canvas, isModal) {
   };
   const baseOpts = { responsive:false, animation:{duration:150}, plugins:basePlugins };
 
-  // ── Horizontal bar charts ──
+  // ── Horizontal bar charts (indexAxis y: cat=y, val=x) ──
   if (['barChart','clusteredBarChart','stackedBarChart','hundredPercentStackedBarChart'].includes(vk)) {
     const stacked  = vk==='stackedBarChart'||vk==='hundredPercentStackedBarChart';
     const pct      = vk==='hundredPercentStackedBarChart';
@@ -2036,12 +2038,12 @@ function renderVisualPreview(vk, canvas, isModal) {
       type:'bar',
       data:{ labels:SL, datasets },
       options:{ ...baseOpts, indexAxis:'y',
-        scales:{ x:{stacked, display:valShow, ticks:{color:valColor,font:{size:valFontSz}}, grid:{display:gridShow,color:gridCol}, border:{display:false}, max:pct?100:undefined},
-                 y:{stacked, display:catShow, ticks:{color:catColor,font:{size:catFontSz}}, grid:{display:false}, border:{display:false}} } }
+        scales:{ x:{...by, stacked, max:pct?100:undefined},
+                 y:{...bx, stacked} } }
     });
   }
 
-  // ── Vertical column charts ──
+  // ── Vertical column charts (cat=x, val=y) ──
   if (['columnChart','clusteredColumnChart','stackedColumnChart','hundredPercentStackedColumnChart'].includes(vk)) {
     const stacked  = vk==='stackedColumnChart'||vk==='hundredPercentStackedColumnChart';
     const pct      = vk==='hundredPercentStackedColumnChart';
@@ -2056,8 +2058,8 @@ function renderVisualPreview(vk, canvas, isModal) {
       type:'bar',
       data:{ labels:SL, datasets },
       options:{ ...baseOpts,
-        scales:{ x:{stacked, display:catShow, ticks:{color:catColor,font:{size:catFontSz}}, grid:{display:false}, border:{display:false}},
-                 y:{stacked, display:valShow, ticks:{color:valColor,font:{size:valFontSz}}, grid:{display:gridShow,color:gridCol}, border:{display:false}, max:pct?100:undefined} } }
+        scales:{ x:{...bx, stacked},
+                 y:{...by, stacked, max:pct?100:undefined} } }
     });
   }
 
@@ -2072,8 +2074,8 @@ function renderVisualPreview(vk, canvas, isModal) {
         { label:'B', data:SD2, borderColor:sc(1), backgroundColor:'transparent', borderWidth:sw, pointRadius:pm, tension:0 },
       ]},
       options:{ ...baseOpts, scales:{
-        x:{display:catShow,ticks:{color:catColor,font:{size:catFontSz}},grid:{display:false},border:{display:true,color:'#ccc'}},
-        y:{display:valShow,ticks:{color:valColor,font:{size:valFontSz}},grid:{display:gridShow,color:gridCol},border:{display:false}}
+        x:{...bx, grid:{display:false}, border:{display:true,color:'#ccc'}},
+        y:{...by}
       }}
     });
   }
@@ -2088,8 +2090,8 @@ function renderVisualPreview(vk, canvas, isModal) {
         { label:'B', data:SD2, borderColor:sc(1), backgroundColor:hexAlpha(col(1),0.25), borderWidth:sw, fill:true, tension:0, pointRadius:0 },
       ]},
       options:{ ...baseOpts, scales:{
-        x:{display:catShow,ticks:{color:catColor,font:{size:catFontSz}},grid:{display:false},border:{display:true,color:'#ccc'}},
-        y:{display:valShow,ticks:{color:valColor,font:{size:valFontSz}},grid:{display:gridShow,color:gridCol},border:{display:false}}
+        x:{...bx, grid:{display:false}, border:{display:true,color:'#ccc'}},
+        y:{...by}
       }}
     });
   }
@@ -2105,8 +2107,8 @@ function renderVisualPreview(vk, canvas, isModal) {
         { label:'C', data:SD3, borderColor:sc(2), backgroundColor:hexAlpha(col(2),0.45), fill:true, tension:0, pointRadius:0, borderWidth:1.5 },
       ]},
       options:{ ...baseOpts, scales:{
-        x:{stacked:true,display:catShow,ticks:{color:catColor,font:{size:catFontSz}},grid:{display:false},border:{display:true,color:'#ccc'}},
-        y:{stacked:true,display:valShow,ticks:{color:valColor,font:{size:valFontSz}},grid:{display:gridShow,color:gridCol},border:{display:false},max:pct?100:undefined}
+        x:{...bx, stacked:true, grid:{display:false}, border:{display:true,color:'#ccc'}},
+        y:{...by, stacked:true, max:pct?100:undefined}
       }}
     });
   }
@@ -2121,8 +2123,8 @@ function renderVisualPreview(vk, canvas, isModal) {
         { label:'C', data:SD3, backgroundColor:sc(2), stack:'s' },
       ]},
       options:{ ...baseOpts, scales:{
-        x:{stacked:true,display:catShow,ticks:{color:catColor,font:{size:catFontSz}},grid:{display:false},border:{display:false}},
-        y:{stacked:true,display:valShow,ticks:{color:valColor,font:{size:valFontSz}},grid:{display:gridShow,color:gridCol},border:{display:false}}
+        x:{...bx, stacked:true, grid:{display:false}},
+        y:{...by, stacked:true}
       }}
     });
   }
@@ -2140,8 +2142,8 @@ function renderVisualPreview(vk, canvas, isModal) {
         { data:[40,15,25,10,30,70], backgroundColor:bgs }
       ]},
       options:{ ...baseOpts, scales:{
-        x:{stacked:true,display:catShow,ticks:{color:catColor,font:{size:catFontSz}},grid:{display:false},border:{display:false}},
-        y:{stacked:true,display:valShow,ticks:{color:valColor,font:{size:valFontSz}},grid:{display:gridShow,color:gridCol},border:{display:false}}
+        x:{...bx, stacked:true, grid:{display:false}},
+        y:{...by, stacked:true}
       }}
     });
   }
@@ -2155,8 +2157,8 @@ function renderVisualPreview(vk, canvas, isModal) {
         { label:'B', backgroundColor:sc(1), data:[{x:15,y:30},{x:30,y:45},{x:45,y:60},{x:60,y:35},{x:75,y:70},{x:90,y:50}] },
       ]},
       options:{ ...baseOpts, scales:{
-        x:{display:catShow,ticks:{color:catColor,font:{size:catFontSz}},grid:{display:gridShow,color:gridCol}},
-        y:{display:valShow,ticks:{color:valColor,font:{size:valFontSz}},grid:{display:gridShow,color:gridCol}}
+        x:{...bx, grid:{display:gridShow,color:gridCol}},
+        y:{...by}
       }}
     });
   }
@@ -2191,8 +2193,8 @@ function renderVisualPreview(vk, canvas, isModal) {
         { type:'line', label:'Line',  data:[60,72,65,85,70,95], borderColor:sc(2), backgroundColor:'transparent', borderWidth:2, pointRadius:3, yAxisID:'y2', tension:0 },
       ]},
       options:{ ...baseOpts, scales:{
-        x:{stacked,display:catShow,ticks:{color:catColor,font:{size:catFontSz}},grid:{display:false},border:{display:false}},
-        y:{stacked,display:valShow,ticks:{color:valColor,font:{size:valFontSz}},grid:{display:gridShow,color:gridCol},border:{display:false},position:'left'},
+        x:{...bx, stacked, grid:{display:false}},
+        y:{...by, stacked, position:'left'},
         y2:{display:valShow,ticks:{color:sc(2),font:{size:valFontSz}},grid:{display:false},border:{display:false},position:'right'}
       }}
     });
@@ -2281,35 +2283,48 @@ function renderVisualPreview(vk, canvas, isModal) {
   if (vk==='kpi') {
     const fc2 = rcv(vk,'dataLabels','color','#0F4C81');
     const tc2 = rcv(vk,'trendline','color','#1F8AC0');
-    ctx.fillStyle=fc2; ctx.font=`300 ${H*0.32}px Segoe UI`; ctx.textAlign='center';
-    ctx.fillText('84.2%',W/2,H*0.48);
+    const kpiFontSz = rcv(vk,'dataLabels','fontSize', 28);
+    ctx.fillStyle=fc2; ctx.font=`300 ${kpiFontSz}px Segoe UI`; ctx.textAlign='center';
+    ctx.fillText('84.2%',W/2,titleH + kpiFontSz + 4);
     ctx.fillStyle='#2A9D8F'; ctx.font=`bold ${fontSize+2}px Segoe UI`;
-    ctx.fillText('▲ +5.3%  vs target',W/2,H*0.65);
-    const pts=[0.4,0.55,0.45,0.6,0.5,0.7,0.6,0.8,0.75,0.9];
-    ctx.beginPath(); ctx.strokeStyle=tc2; ctx.lineWidth=2;
-    pts.forEach((v,i)=>{ const x=W*0.1+i*(W*0.8/9), y=H*(1-v*0.25); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
-    ctx.stroke();
+    ctx.fillText('▲ +5.3%  vs target',W/2,titleH + kpiFontSz + 22);
+    if (rcv(vk,'trendline','show', true)) {
+      const pts=[0.4,0.55,0.45,0.6,0.5,0.7,0.6,0.8,0.75,0.9];
+      ctx.beginPath(); ctx.strokeStyle=tc2; ctx.lineWidth=2;
+      pts.forEach((v,i)=>{ const x=W*0.1+i*(W*0.8/9), y=H*(1-v*0.22); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+      ctx.stroke();
+    }
     return null;
   }
 
   // ── Slicer (canvas 2D) ──
   if (['slicer','advancedSlicerVisual','listSlicer'].includes(vk)) {
-    const hc = rcv(vk,'header','fontColor','#0F4C81');
-    const hbg= rcv(vk,'header','background','#FFFFFF');
-    const ic = rcv(vk,'items','fontColor','#333333');
-    const selColor = rcv(vk,'items','background', col(0));
+    const hc    = rcv(vk,'header','fontColor','#0F4C81');
+    const hbg   = rcv(vk,'header','background','#FFFFFF');
+    const hFontSz = rcv(vk,'header','fontSize', 12);
+    const hShow = rcv(vk,'header','show', true);
+    const ic    = rcv(vk,'items','fontColor','#333333');
+    const ibg   = rcv(vk,'items','background','#FFFFFF');
+    const iFontSz = rcv(vk,'items','fontSize', 11);
+    const sliderCol = rcv(vk,'slider','color', col(0));
     const ty = titleH + 2;
-    if (hbg !== '#FFFFFF') { ctx.fillStyle=hbg; ctx.fillRect(0,ty,W,28); }
-    ctx.fillStyle=hc; ctx.font=`bold ${fontSize+2}px Segoe UI`; ctx.textAlign='left';
-    ctx.fillText('Region',8,ty+16);
-    ctx.strokeStyle='#e0e0e0'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(0,ty+22); ctx.lineTo(W,ty+22); ctx.stroke();
+    const headerH = hShow ? hFontSz + 10 : 0;
+    if (hShow) {
+      ctx.fillStyle=hbg; ctx.fillRect(0,ty,W,headerH);
+      ctx.fillStyle=hc; ctx.font=`bold ${hFontSz}px Segoe UI`; ctx.textAlign='left';
+      ctx.fillText('Region',8,ty+hFontSz+1);
+      ctx.strokeStyle='#e0e0e0'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(0,ty+headerH); ctx.lineTo(W,ty+headerH); ctx.stroke();
+    }
+    const rowH = iFontSz + 10;
     const items=['North','South','East','West','Central'];
-    items.slice(0,4).forEach((item,i)=>{
-      const y=ty+34+i*24;
-      ctx.strokeStyle=col(0); ctx.lineWidth=1.5; ctx.strokeRect(10,y-11,13,13);
-      if(i<2){ ctx.fillStyle=col(0); ctx.fillRect(12,y-9,9,9); }
-      ctx.fillStyle=ic; ctx.font=`${fontSize+1}px Segoe UI`; ctx.textAlign='left';
-      ctx.fillText(item,30,y);
+    items.slice(0,Math.floor((H-ty-headerH-4)/rowH)).forEach((item,i)=>{
+      const y=ty+headerH+4+i*rowH;
+      ctx.fillStyle=ibg; ctx.fillRect(0,y-1,W,rowH-1);
+      const boxSz = Math.max(10, iFontSz);
+      ctx.strokeStyle=sliderCol; ctx.lineWidth=1.5; ctx.strokeRect(8,y,boxSz,boxSz);
+      if (i<2) { ctx.fillStyle=sliderCol; ctx.fillRect(10,y+2,boxSz-4,boxSz-4); }
+      ctx.fillStyle=ic; ctx.font=`${iFontSz}px Segoe UI`; ctx.textAlign='left';
+      ctx.fillText(item,8+boxSz+6,y+iFontSz-1);
     });
     return null;
   }
