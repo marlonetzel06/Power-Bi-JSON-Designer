@@ -405,6 +405,14 @@
       <button id="json-toggle-btn" onclick="toggleJSON()" style="font-size:12px;padding:5px 12px;border-radius:6px;border:1px solid #1f8ac0;background:#fff;color:#1f8ac0;cursor:pointer;font-weight:600;">{ } Show JSON</button>
     </div>
     <p class="subtitle" id="panel-subtitle" style="margin-bottom:16px;">Click any visual card to edit its theme settings.</p>
+    <!-- Page Settings section (outside visual grid) -->
+    <div style="background:#f0f5fb;border:1px solid #c8d8ea;border-radius:8px;padding:10px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <span style="font-size:13px;font-weight:700;color:#0f4c81;">Page Settings</span>
+        <span style="font-size:11px;color:#666;margin-left:10px;">Canvas size, background, wallpaper, filter pane</span>
+      </div>
+      <button onclick="openEditModal('__page__','Page Settings')" style="font-size:12px;padding:5px 14px;border-radius:6px;border:1px solid #1f8ac0;background:#fff;color:#1f8ac0;cursor:pointer;font-weight:600;">Edit</button>
+    </div>
     <div id="visual-grid"></div>
   </section>
 
@@ -1021,14 +1029,9 @@ const VISUAL_SCHEMA = {
   cardVisual:                     ['general','title','cardVisualSettings','categoryLabels','background','border'],
   bookmarkNavigator:              ['general','title','text','fill','outline','shadow','border'],
   pageNavigator:                  ['general','title','text','fill','outline','shadow','border'],
-  keyDriversVisual:               ['general','title','subheader','legend','labels','dataPoint','background','border'],
-  qnaVisual:                      ['general','title','background','border'],
-  aiNarratives:                   ['general','title','background','border'],
   azureMap:                       ['general','title','legend','dataPoint','bubbles','background','border'],
   shapeMap:                       ['general','title','legend','dataPoint','labels','background','border'],
-  shape:                          ['fill','line','shadow','border'],
   textbox:                        ['background','border','shadow'],
-  image:                          ['imageScaling','background','border'],
   actionButton:                   ['text','fill','outline','shadow','border'],
   __page__:                       ['pageSize','pageBackground','pageWallpaper','filterPane'],
 };
@@ -1077,16 +1080,10 @@ const VISUAL_LABELS = {
   "cardVisual":                   "Card (New)",
   "bookmarkNavigator":            "Bookmark Navigator",
   "pageNavigator":                "Page Navigator",
-  "keyDriversVisual":             "Key Influencers",
-  "qnaVisual":                    "Q&A",
-  "aiNarratives":                 "Smart Narrative",
   "azureMap":                     "Azure Map",
   "shapeMap":                     "Shape Map",
-  "shape":                        "Shape",
   "textbox":                      "Text Box",
-  "image":                        "Image",
   "actionButton":                 "Button",
-  "__page__":                     "Page Settings"
 };
 
 let currentVisual = null;
@@ -1123,12 +1120,6 @@ function buildSidebar(filter = "") {
       const badge = document.createElement("span");
       badge.className = "badge";
       badge.textContent = "global";
-      li.appendChild(badge);
-    }
-    if (key === "__page__") {
-      const badge = document.createElement("span");
-      badge.className = "badge";
-      badge.textContent = "page";
       li.appendChild(badge);
     }
     li.addEventListener("click", () => selectVisual(key, label, li));
@@ -1502,8 +1493,14 @@ function openEditModal(key, label) {
     settingsPane.querySelectorAll('.card-header').forEach(h => { h.classList.remove('open'); h.querySelector('.arrow').style.transform=''; });
     settingsPane.querySelectorAll('.card-body').forEach(b => b.classList.remove('open'));
   };
+  const btnApply = document.createElement('button');
+  btnApply.textContent = '▶ Apply';
+  btnApply.title = 'Refresh preview with current settings';
+  btnApply.style.cssText = 'font-size:11px;padding:3px 10px;border-radius:4px;border:none;background:#1f8ac0;color:#fff;cursor:pointer;margin-left:auto;';
+  btnApply.onclick = () => { refreshModalPreview(key); refreshGridCard(key); };
   toolbar.appendChild(btnExpandAll);
   toolbar.appendChild(btnCollapseAll);
+  toolbar.appendChild(btnApply);
   settingsPane.appendChild(toolbar);
 
   const cardList = VISUAL_SCHEMA[key] || [];
@@ -1580,8 +1577,6 @@ function buildModalCard(cardName, data, visualKey, startOpen) {
     const ctrl = buildCtrl(def, val, newVal => {
       data[def.key] = storeVal(def, newVal);
       updateJSON();
-      refreshModalPreview(visualKey);
-      refreshGridCard(visualKey);
     });
     row.appendChild(lbl); row.appendChild(ctrl);
     body.appendChild(row);
@@ -1630,7 +1625,8 @@ function buildCtrl(def, val, onChange) {
     inp.value = (val || '#000000').toLowerCase();
     const hex = document.createElement('span');
     hex.className = 'color-hex'; hex.textContent = inp.value.toUpperCase();
-    inp.addEventListener('input', () => { hex.textContent = inp.value.toUpperCase(); onChange(inp.value.toUpperCase()); });
+    inp.addEventListener('input',  () => { hex.textContent = inp.value.toUpperCase(); });
+    inp.addEventListener('change', () => { hex.textContent = inp.value.toUpperCase(); onChange(inp.value.toUpperCase()); });
     cw.appendChild(inp); cw.appendChild(hex); wrap.appendChild(cw);
 
   } else if (def.type === 'number') {
@@ -2277,13 +2273,33 @@ function renderVisualPreview(vk, canvas, isModal) {
     return null;
   }
 
-  // ── Map / Filled Map (canvas 2D placeholder) ──
+  // ── Map / Filled Map ──
   if (vk==='map'||vk==='filledMap'||vk==='azureMap'||vk==='shapeMap') {
-    ctx.fillStyle='#e8f0f7'; ctx.fillRect(0,0,W,H);
-    const dots=[{x:.2,y:.35,r:8},{x:.45,y:.3,r:14},{x:.65,y:.45,r:10},{x:.35,y:.6,r:6},{x:.75,y:.25,r:5}];
-    dots.forEach(({x,y,r},i)=>{ ctx.fillStyle=col(i)+'cc'; ctx.beginPath(); ctx.arc(x*W,y*H,r,0,Math.PI*2); ctx.fill(); });
-    ctx.fillStyle='#888'; ctx.font=`${fontSize+1}px Segoe UI`; ctx.textAlign='center';
-    ctx.fillText('Map Visual',W/2,H*0.88);
+    const isChoro = vk==='filledMap'||vk==='shapeMap';
+    ctx.fillStyle='#cce8f7'; ctx.fillRect(0,0,W,H); // ocean
+    // Simplified continent polygons (relative coords 0..1)
+    const conts=[
+      [[.06,.17],[.28,.13],[.31,.38],[.25,.6],[.12,.55],[.07,.36]], // N.America
+      [[.17,.57],[.3,.57],[.33,.77],[.21,.9],[.14,.76]],            // S.America
+      [[.44,.12],[.57,.12],[.58,.35],[.44,.33]],                    // Europe
+      [[.44,.34],[.61,.34],[.61,.74],[.52,.88],[.44,.71]],          // Africa
+      [[.57,.09],[.95,.09],[.95,.51],[.78,.57],[.62,.46],[.57,.28]],// Asia
+      [[.76,.59],[.91,.59],[.92,.77],[.78,.81]],                    // Australia
+    ];
+    conts.forEach((pts,i)=>{
+      ctx.fillStyle = isChoro ? hexAlpha(col(i%THEME.dataColors.length),0.75) : '#b0c890';
+      ctx.beginPath();
+      pts.forEach(([x,y],j)=>j===0?ctx.moveTo(x*W,y*H):ctx.lineTo(x*W,y*H));
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle='#7a9a60'; ctx.lineWidth=0.6; ctx.stroke();
+    });
+    if (!isChoro) {
+      const bubbles=[{x:.2,y:.33,r:5},{x:.55,y:.24,r:9},{x:.52,y:.54,r:6},{x:.28,y:.71,r:4},{x:.83,y:.68,r:7}];
+      bubbles.forEach(({x,y,r},i)=>{ ctx.fillStyle=hexAlpha(col(i),0.8); ctx.beginPath(); ctx.arc(x*W,y*H,r*(isModal?1.6:1),0,Math.PI*2); ctx.fill(); });
+    }
+    const lbl=vk==='filledMap'?'Filled Map':vk==='azureMap'?'Azure Map':vk==='shapeMap'?'Shape Map':'Map';
+    ctx.fillStyle='#444'; ctx.font=`${fontSize}px Segoe UI`; ctx.textAlign='center';
+    ctx.fillText(lbl,W/2,H-4);
     return null;
   }
 
