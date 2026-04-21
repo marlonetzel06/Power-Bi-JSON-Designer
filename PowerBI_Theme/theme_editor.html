@@ -40,10 +40,15 @@
   #sidebar-search::placeholder { color: #7aadcc; }
   #visual-list {
     list-style: none;
-    overflow-y: auto;
+    overflow-y: scroll;
     flex: 1;
     padding-bottom: 12px;
+    scrollbar-width: thin;
+    scrollbar-color: #1a5f99 transparent;
   }
+  #visual-list::-webkit-scrollbar { width: 4px; }
+  #visual-list::-webkit-scrollbar-track { background: transparent; }
+  #visual-list::-webkit-scrollbar-thumb { background: #1a5f99; border-radius: 2px; }
   #visual-list li {
     padding: 9px 16px;
     cursor: pointer;
@@ -65,15 +70,22 @@
   #visual-list li.active .badge { background: #0f4c81; }
 
   /* ── MAIN CONTENT (settings + JSON) ── */
-  #main { flex: 1; display: flex; overflow: hidden; }
+  #main { flex: 1; display: flex; overflow: hidden; min-width: 0; }
 
-  /* Settings panel placeholder */
+  /* Settings panel */
   #settings-panel {
     flex: 1;
     padding: 24px;
-    overflow-y: auto;
+    overflow-y: scroll;
+    overflow-x: hidden;
     background: #f4f6f9;
+    min-width: 0;
+    scrollbar-width: thin;
+    scrollbar-color: #c0d4e8 transparent;
   }
+  #settings-panel::-webkit-scrollbar { width: 6px; }
+  #settings-panel::-webkit-scrollbar-track { background: transparent; }
+  #settings-panel::-webkit-scrollbar-thumb { background: #c0d4e8; border-radius: 3px; }
   #settings-panel h1 {
     font-size: 20px;
     font-weight: 700;
@@ -85,6 +97,82 @@
     color: #888;
     margin-bottom: 20px;
   }
+  /* Visual cards grid */
+  #visual-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(275px, 1fr));
+    gap: 16px;
+    margin-top: 4px;
+  }
+  .vis-card {
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color .15s, box-shadow .15s;
+    display: flex;
+    flex-direction: column;
+  }
+  .vis-card:hover { border-color: #1f8ac0; box-shadow: 0 3px 10px rgba(31,138,192,.15); }
+  .vis-card .vc-preview-wrap {
+    background: #f8fafd;
+    display: flex; align-items: center; justify-content: center;
+    height: 175px; overflow: hidden;
+  }
+  .vis-card canvas.vc-canvas { display: block; }
+  .vis-card .vc-info { padding: 10px 14px 12px; }
+  .vis-card .vc-name { font-size: 13px; font-weight: 700; color: #0f4c81; }
+  .vis-card .vc-key  { font-size: 10px; color: #aaa; font-family: monospace; margin-top: 2px; }
+
+  /* ── MODAL ── */
+  #modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.45); z-index: 100;
+    align-items: center; justify-content: center;
+  }
+  #modal-overlay.open { display: flex; }
+  #modal {
+    background: #fff; border-radius: 12px;
+    width: min(960px, 96vw); max-height: 90vh;
+    display: flex; flex-direction: column;
+    box-shadow: 0 8px 40px rgba(0,0,0,.25);
+    overflow: hidden;
+  }
+  #modal-header {
+    padding: 14px 20px; background: #0f4c81; color: #fff;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+  }
+  #modal-header h2 { font-size: 16px; margin: 0; }
+  #modal-header .modal-key { font-size: 11px; opacity: .7; font-family: monospace; margin-top: 2px; }
+  #modal-close {
+    background: none; border: none; color: #fff;
+    font-size: 22px; cursor: pointer; line-height: 1; padding: 0 4px;
+  }
+  #modal-body {
+    flex: 1; overflow: hidden; display: flex; flex-direction: row;
+  }
+  #modal-preview-pane {
+    width: 320px; min-width: 260px; flex-shrink: 0;
+    background: #f0f5fb; border-right: 1px solid #dce8f3;
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+    padding: 20px 16px; gap: 12px;
+  }
+  #modal-preview-pane canvas {
+    max-width: 100%; border-radius: 4px;
+  }
+  #modal-preview-label {
+    font-size: 12px; color: #555; font-style: italic; text-align: center;
+  }
+  #modal-settings-pane {
+    flex: 1; overflow-y: auto; padding: 16px 20px;
+    scrollbar-width: thin; scrollbar-color: #c0d4e8 transparent;
+  }
+  #modal-settings-pane::-webkit-scrollbar { width: 6px; }
+  #modal-settings-pane::-webkit-scrollbar-thumb { background: #c0d4e8; border-radius: 3px; }
+
   .placeholder-msg {
     color: #aaa;
     font-size: 14px;
@@ -92,14 +180,97 @@
     text-align: center;
   }
 
-  /* JSON preview placeholder */
+  /* ── SETTINGS PANEL ── */
+  .card {
+    background: #fff;
+    border-radius: 8px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.07);
+    overflow: hidden;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    background: #eaf2fb;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+    color: #0f4c81;
+    user-select: none;
+    border-left: 3px solid transparent;
+    transition: border-color .15s, background .15s;
+  }
+  .card-header:hover { background: #d6e8f7; border-left-color: #1f8ac0; }
+  .card-header.open { border-left-color: #1f8ac0; }
+  .card-header .arrow { font-size: 9px; transition: transform .18s; opacity: .7; }
+  .card-body { padding: 10px 14px; display: none; }
+  .card-body.open { display: block; }
+  .prop-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid #f0f0f0;
+    gap: 12px;
+  }
+  .prop-row:last-child { border-bottom: none; }
+  .prop-label {
+    font-size: 12px;
+    color: #444;
+    flex: 1;
+    min-width: 0;
+  }
+  .prop-control { display: flex; align-items: center; gap: 6px; }
+  /* Toggle */
+  .toggle { position: relative; width: 36px; height: 20px; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; inset: 0;
+    background: #ccc; border-radius: 20px; cursor: pointer;
+    transition: background .2s;
+  }
+  .toggle-slider:before {
+    content: ""; position: absolute;
+    width: 14px; height: 14px; left: 3px; top: 3px;
+    background: #fff; border-radius: 50%; transition: transform .2s;
+  }
+  .toggle input:checked + .toggle-slider { background: #1f8ac0; }
+  .toggle input:checked + .toggle-slider:before { transform: translateX(16px); }
+  /* Number */
+  input[type=number].prop-num {
+    width: 64px; padding: 4px 6px; border: 1px solid #ddd;
+    border-radius: 5px; font-size: 12px; text-align: right;
+  }
+  /* Text / select */
+  input[type=text].prop-text, select.prop-select {
+    padding: 4px 6px; border: 1px solid #ddd;
+    border-radius: 5px; font-size: 12px; max-width: 140px;
+  }
+  /* Color */
+  .color-wrap { display: flex; align-items: center; gap: 6px; }
+  .color-wrap input[type=color] { width: 28px; height: 28px; border: none; padding: 0; cursor: pointer; border-radius: 4px; }
+  .color-hex { font-size: 11px; color: #666; font-family: monospace; }
+  /* Nested sub-card */
+  .sub-card { background: #f8fafd; border: 1px solid #e0eaf5; border-radius: 6px; padding: 8px 12px; margin-top: 4px; }
+  .sub-card-title { font-size: 11px; font-weight: 600; color: #1f8ac0; margin-bottom: 6px; }
+
+  /* JSON panel — hidden by default, toggled via button */
   #json-panel {
-    width: 380px;
-    min-width: 280px;
+    width: 0;
+    min-width: 0;
+    overflow: hidden;
     background: #1e1e2e;
     color: #cdd6f4;
     display: flex;
     flex-direction: column;
+    border-left: none;
+    transition: width .25s ease, min-width .25s ease;
+  }
+  #json-panel.open {
+    width: 400px;
+    min-width: 300px;
     border-left: 1px solid #2a2a3e;
   }
   #json-panel-header {
@@ -110,7 +281,13 @@
     font-weight: 600;
     letter-spacing: .05em;
     text-transform: uppercase;
+    white-space: nowrap;
   }
+  .json-key  { color: #89b4fa; }
+  .json-str  { color: #a6e3a1; }
+  .json-num  { color: #fab387; }
+  .json-bool { color: #f38ba8; }
+  .json-null { color: #6c7086; }
   #json-output {
     flex: 1;
     overflow-y: auto;
@@ -121,6 +298,7 @@
     color: #cdd6f4;
   }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -131,21 +309,776 @@
   <ul id="visual-list"></ul>
 </nav>
 
+<!-- EDIT MODAL -->
+<div id="modal-overlay">
+  <div id="modal">
+    <div id="modal-header">
+      <div>
+        <h2 id="modal-title">Visual</h2>
+        <div class="modal-key" id="modal-key"></div>
+      </div>
+      <button id="modal-close" onclick="closeEditModal()">&#x2715;</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
 <!-- MAIN -->
 <div id="main">
   <section id="settings-panel">
-    <h1 id="panel-title">Select a Visual</h1>
-    <p class="subtitle" id="panel-subtitle">Choose a visual from the sidebar to edit its theme settings.</p>
-    <p class="placeholder-msg" id="panel-placeholder">← Pick a visual to get started</p>
+    <!-- Global settings bar -->
+    <div id="global-bar" style="background:#fff;border-radius:8px;padding:12px 16px;margin-bottom:18px;box-shadow:0 1px 4px rgba(0,0,0,.07);display:flex;flex-direction:column;gap:10px;">
+      <!-- Row 1: Colors + Palette -->
+      <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;">
+        <span style="font-size:12px;font-weight:700;color:#0f4c81;min-width:80px;">Colors</span>
+        <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;">
+          Background
+          <input type="color" id="g-background" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;">
+        </label>
+        <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;">
+          Foreground
+          <input type="color" id="g-foreground" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;">
+        </label>
+        <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;">
+          Table Accent
+          <input type="color" id="g-tableAccent" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;">
+        </label>
+        <span style="font-size:12px;color:#444;">Data Colors:</span>
+        <div id="data-colors" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
+      </div>
+      <!-- Row 2: Global Typography (textClasses) -->
+      <div style="display:grid;grid-template-columns:80px repeat(4,1fr);gap:8px 12px;align-items:center;border-top:1px solid #eef2f8;padding-top:10px;">
+        <span style="font-size:12px;font-weight:700;color:#0f4c81;">textClasses</span>
+        <span style="font-size:11px;color:#666;font-weight:600;text-align:center;">title</span>
+        <span style="font-size:11px;color:#666;font-weight:600;text-align:center;">header</span>
+        <span style="font-size:11px;color:#666;font-weight:600;text-align:center;">label</span>
+        <span style="font-size:11px;color:#666;font-weight:600;text-align:center;">callout</span>
+
+        <span style="font-size:11px;color:#555;">Font</span>
+        <select id="tc-title-font" style="font-size:10px;padding:2px 3px;border:1px solid #cdd;border-radius:3px;width:100%;"></select>
+        <select id="tc-header-font" style="font-size:10px;padding:2px 3px;border:1px solid #cdd;border-radius:3px;width:100%;"></select>
+        <select id="tc-label-font" style="font-size:10px;padding:2px 3px;border:1px solid #cdd;border-radius:3px;width:100%;"></select>
+        <select id="tc-callout-font" style="font-size:10px;padding:2px 3px;border:1px solid #cdd;border-radius:3px;width:100%;"></select>
+
+        <span style="font-size:11px;color:#555;">Size</span>
+        <input type="number" id="tc-title-size" min="6" max="96" style="width:100%;font-size:10px;padding:2px;border:1px solid #cdd;border-radius:3px;">
+        <input type="number" id="tc-header-size" min="6" max="96" style="width:100%;font-size:10px;padding:2px;border:1px solid #cdd;border-radius:3px;">
+        <input type="number" id="tc-label-size" min="6" max="40" style="width:100%;font-size:10px;padding:2px;border:1px solid #cdd;border-radius:3px;">
+        <input type="number" id="tc-callout-size" min="6" max="96" style="width:100%;font-size:10px;padding:2px;border:1px solid #cdd;border-radius:3px;">
+
+        <span style="font-size:11px;color:#555;">Color</span>
+        <div><input type="color" id="tc-title-color" style="width:28px;height:28px;border:none;border-radius:4px;cursor:pointer;"></div>
+        <div><input type="color" id="tc-header-color" style="width:28px;height:28px;border:none;border-radius:4px;cursor:pointer;"></div>
+        <div><input type="color" id="tc-label-color" style="width:28px;height:28px;border:none;border-radius:4px;cursor:pointer;"></div>
+        <div><input type="color" id="tc-callout-color" style="width:28px;height:28px;border:none;border-radius:4px;cursor:pointer;"></div>
+
+        <span style="font-size:11px;color:#555;">Bold</span>
+        <label style="display:flex;justify-content:center;"><input type="checkbox" id="tc-title-bold"></label>
+        <label style="display:flex;justify-content:center;"><input type="checkbox" id="tc-header-bold"></label>
+        <label style="display:flex;justify-content:center;"><input type="checkbox" id="tc-label-bold"></label>
+        <label style="display:flex;justify-content:center;"><input type="checkbox" id="tc-callout-bold"></label>
+      </div>
+      <!-- Row 3: Sentiment + Diverging colors -->
+      <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;border-top:1px solid #eef2f8;padding-top:10px;">
+        <span style="font-size:12px;font-weight:700;color:#0f4c81;min-width:80px;">Sentiment</span>
+        <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;">Good <input type="color" id="g-good" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;"></label>
+        <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;">Neutral <input type="color" id="g-neutral" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;"></label>
+        <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;">Bad <input type="color" id="g-bad" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;"></label>
+        <span style="font-size:12px;font-weight:700;color:#0f4c81;margin-left:12px;">Diverging</span>
+        <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;">Min <input type="color" id="g-minimum" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;"></label>
+        <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;">Center <input type="color" id="g-center" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;"></label>
+        <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;">Max <input type="color" id="g-maximum" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;"></label>
+        <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;">Null <input type="color" id="g-null" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;"></label>
+      </div>
+      <!-- Row 4: Structural colors -->
+      <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;border-top:1px solid #eef2f8;padding-top:10px;">
+        <span style="font-size:12px;font-weight:700;color:#0f4c81;min-width:80px;">Structural</span>
+        <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;" title="firstLevelElements — primary text: titles, main labels">Primary Text <input type="color" id="g-firstLevelElements" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;"></label>
+        <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;" title="secondLevelElements — secondary text: axis labels, subtitles">Secondary Text <input type="color" id="g-secondLevelElements" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;"></label>
+        <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;" title="thirdLevelElements — borders, gridlines, faint UI lines">Gridlines <input type="color" id="g-thirdLevelElements" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;"></label>
+        <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;" title="fourthLevelElements — disabled / dimmed elements">Disabled <input type="color" id="g-fourthLevelElements" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;"></label>
+        <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;" title="secondaryBackground — panel and card background">Panel Bg <input type="color" id="g-secondaryBackground" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;"></label>
+      </div>
+      <!-- Row 5: Extended Foreground variants -->
+      <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;border-top:1px solid #eef2f8;padding-top:10px;">
+        <span style="font-size:12px;font-weight:700;color:#0f4c81;min-width:80px;">FG Variants</span>
+        <label style="font-size:11px;color:#555;display:flex;align-items:center;gap:5px;" title="accent">Accent <input type="color" id="g-accent" style="width:22px;height:22px;border:none;border-radius:3px;cursor:pointer;"></label>
+        <label style="font-size:11px;color:#555;display:flex;align-items:center;gap:5px;" title="foregroundButton">FG Button <input type="color" id="g-foregroundButton" style="width:22px;height:22px;border:none;border-radius:3px;cursor:pointer;"></label>
+        <label style="font-size:11px;color:#555;display:flex;align-items:center;gap:5px;" title="foregroundLight">FG Light <input type="color" id="g-foregroundLight" style="width:22px;height:22px;border:none;border-radius:3px;cursor:pointer;"></label>
+        <label style="font-size:11px;color:#555;display:flex;align-items:center;gap:5px;" title="foregroundDark">FG Dark <input type="color" id="g-foregroundDark" style="width:22px;height:22px;border:none;border-radius:3px;cursor:pointer;"></label>
+        <label style="font-size:11px;color:#555;display:flex;align-items:center;gap:5px;" title="foregroundNeutralLight">FG N.Light <input type="color" id="g-foregroundNeutralLight" style="width:22px;height:22px;border:none;border-radius:3px;cursor:pointer;"></label>
+        <label style="font-size:11px;color:#555;display:flex;align-items:center;gap:5px;" title="foregroundNeutralDark">FG N.Dark <input type="color" id="g-foregroundNeutralDark" style="width:22px;height:22px;border:none;border-radius:3px;cursor:pointer;"></label>
+        <label style="font-size:11px;color:#555;display:flex;align-items:center;gap:5px;" title="foregroundNeutralSecondary">FG N.Sec <input type="color" id="g-foregroundNeutralSecondary" style="width:22px;height:22px;border:none;border-radius:3px;cursor:pointer;"></label>
+        <label style="font-size:11px;color:#555;display:flex;align-items:center;gap:5px;" title="foregroundNeutralSecondaryAlt">FG N.SecAlt <input type="color" id="g-foregroundNeutralSecondaryAlt" style="width:22px;height:22px;border:none;border-radius:3px;cursor:pointer;"></label>
+        <label style="font-size:11px;color:#555;display:flex;align-items:center;gap:5px;" title="foregroundNeutralSecondaryAlt2">FG N.SecAlt2 <input type="color" id="g-foregroundNeutralSecondaryAlt2" style="width:22px;height:22px;border:none;border-radius:3px;cursor:pointer;"></label>
+        <label style="font-size:11px;color:#555;display:flex;align-items:center;gap:5px;" title="foregroundNeutralTertiary">FG N.Ter <input type="color" id="g-foregroundNeutralTertiary" style="width:22px;height:22px;border:none;border-radius:3px;cursor:pointer;"></label>
+        <label style="font-size:11px;color:#555;display:flex;align-items:center;gap:5px;" title="foregroundNeutralTertiaryAlt">FG N.TerAlt <input type="color" id="g-foregroundNeutralTertiaryAlt" style="width:22px;height:22px;border:none;border-radius:3px;cursor:pointer;"></label>
+        <label style="font-size:11px;color:#555;display:flex;align-items:center;gap:5px;" title="foregroundSelected">FG Selected <input type="color" id="g-foregroundSelected" style="width:22px;height:22px;border:none;border-radius:3px;cursor:pointer;"></label>
+      </div>
+      <!-- Row 6: Background variants + specialty -->
+      <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;border-top:1px solid #eef2f8;padding-top:10px;">
+        <span style="font-size:12px;font-weight:700;color:#0f4c81;min-width:80px;">BG / Misc</span>
+        <label style="font-size:11px;color:#555;display:flex;align-items:center;gap:5px;" title="backgroundLight">BG Light <input type="color" id="g-backgroundLight" style="width:22px;height:22px;border:none;border-radius:3px;cursor:pointer;"></label>
+        <label style="font-size:11px;color:#555;display:flex;align-items:center;gap:5px;" title="backgroundNeutral">BG Neutral <input type="color" id="g-backgroundNeutral" style="width:22px;height:22px;border:none;border-radius:3px;cursor:pointer;"></label>
+        <label style="font-size:11px;color:#555;display:flex;align-items:center;gap:5px;" title="backgroundDark">BG Dark <input type="color" id="g-backgroundDark" style="width:22px;height:22px;border:none;border-radius:3px;cursor:pointer;"></label>
+        <label style="font-size:11px;color:#555;display:flex;align-items:center;gap:5px;" title="disabledText">Disabled Text <input type="color" id="g-disabledText" style="width:22px;height:22px;border:none;border-radius:3px;cursor:pointer;"></label>
+        <label style="font-size:11px;color:#555;display:flex;align-items:center;gap:5px;" title="hyperlink">Hyperlink <input type="color" id="g-hyperlink" style="width:22px;height:22px;border:none;border-radius:3px;cursor:pointer;"></label>
+        <label style="font-size:11px;color:#555;display:flex;align-items:center;gap:5px;" title="visitedHyperlink">Visited Link <input type="color" id="g-visitedHyperlink" style="width:22px;height:22px;border:none;border-radius:3px;cursor:pointer;"></label>
+        <label style="font-size:11px;color:#555;display:flex;align-items:center;gap:5px;" title="shapeStroke">Shape Stroke <input type="color" id="g-shapeStroke" style="width:22px;height:22px;border:none;border-radius:3px;cursor:pointer;"></label>
+        <label style="font-size:11px;color:#555;display:flex;align-items:center;gap:5px;" title="mapPushpin">Map Pushpin <input type="color" id="g-mapPushpin" style="width:22px;height:22px;border:none;border-radius:3px;cursor:pointer;"></label>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <h1 id="panel-title" style="margin:0;">All Visuals</h1>
+      <button id="json-toggle-btn" onclick="toggleJSON()" style="font-size:12px;padding:5px 12px;border-radius:6px;border:1px solid #1f8ac0;background:#fff;color:#1f8ac0;cursor:pointer;font-weight:600;">{ } Show JSON</button>
+    </div>
+    <p class="subtitle" id="panel-subtitle" style="margin-bottom:16px;">Click any visual card to edit its theme settings.</p>
+    <!-- Page Settings section (outside visual grid) -->
+    <div style="background:#f0f5fb;border:1px solid #c8d8ea;border-radius:8px;padding:10px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <span style="font-size:13px;font-weight:700;color:#0f4c81;">Page Settings</span>
+        <span style="font-size:11px;color:#666;margin-left:10px;">Canvas size, background, wallpaper, filter pane</span>
+      </div>
+      <button onclick="openEditModal('__page__','Page Settings')" style="font-size:12px;padding:5px 14px;border-radius:6px;border:1px solid #1f8ac0;background:#fff;color:#1f8ac0;cursor:pointer;font-weight:600;">Edit</button>
+    </div>
+    <div id="visual-grid"></div>
   </section>
 
   <aside id="json-panel">
-    <div id="json-panel-header">Live JSON Preview</div>
+    <div id="json-panel-header">
+    Live JSON Preview
+    <span style="float:right;display:flex;gap:6px;">
+      <button onclick="copyJSON()" style="font-size:11px;padding:3px 8px;border-radius:4px;border:none;background:#313244;color:#cdd6f4;cursor:pointer;">Copy</button>
+      <button onclick="downloadJSON()" style="font-size:11px;padding:3px 8px;border-radius:4px;border:none;background:#313244;color:#cdd6f4;cursor:pointer;">Download</button>
+    </span>
+  </div>
     <div id="json-output">{}</div>
   </aside>
 </div>
 
 <script>
+// ── Font options ──
+const FONTS = ['Segoe UI','Segoe UI Semibold','Segoe UI Light','Arial','Calibri','Trebuchet MS','Times New Roman','Courier New','Georgia','Verdana'];
+
+// ── Complete card property definitions (schema-driven) ──
+const CARD_DEFS = {
+  general: [
+    { key:'responsive',    type:'boolean', label:'Responsive',     def:true },
+    { key:'outlineColor',  type:'color',   label:'Outline Color',  def:'#E0E0E0' },
+    { key:'outlineWeight', type:'number',  label:'Outline Weight', def:1, min:0, max:10 },
+    { key:'formatString',  type:'string',  label:'Format String',  def:'' },
+  ],
+  title: [
+    { key:'show',        type:'boolean',  label:'Show Title',    def:true },
+    { key:'text',        type:'string',   label:'Title Text',    def:'' },
+    { key:'fontFamily',  type:'enum',     label:'Font Family',   def:'Segoe UI',  options:FONTS },
+    { key:'fontSize',    type:'number',   label:'Font Size',     def:14, min:6, max:96 },
+    { key:'fontColor',   type:'color',    label:'Font Color',    def:'#0F4C81' },
+    { key:'bold',        type:'boolean',  label:'Bold',          def:true },
+    { key:'italic',      type:'boolean',  label:'Italic',        def:false },
+    { key:'underline',   type:'boolean',  label:'Underline',     def:false },
+    { key:'titleWrap',   type:'boolean',  label:'Word Wrap',     def:false },
+    { key:'alignment',   type:'enum',     label:'Alignment',     def:'left', options:['left','center','right'] },
+    { key:'background',  type:'color',    label:'Background',    def:'#FFFFFF' },
+    { key:'heading',     type:'enum',     label:'Heading Style', def:'None', options:['None','H1','H2','H3','H4'] },
+  ],
+  subheader: [
+    { key:'show',       type:'boolean', label:'Show Subtitle', def:false },
+    { key:'text',       type:'string',  label:'Subtitle Text', def:'' },
+    { key:'fontFamily', type:'enum',    label:'Font Family',   def:'Segoe UI', options:FONTS },
+    { key:'fontSize',   type:'number',  label:'Font Size',     def:11, min:6, max:96 },
+    { key:'fontColor',  type:'color',   label:'Font Color',    def:'#666666' },
+    { key:'bold',       type:'boolean', label:'Bold',          def:false },
+    { key:'italic',     type:'boolean', label:'Italic',        def:false },
+    { key:'alignment',  type:'enum',    label:'Alignment',     def:'left', options:['left','center','right'] },
+  ],
+  legend: [
+    { key:'show',       type:'boolean', label:'Show Legend',  def:true },
+    { key:'position',   type:'enum',    label:'Position',     def:'Top', options:['Top','TopCenter','TopRight','Bottom','BottomCenter','BottomRight','Left','LeftCenter','Right','RightCenter'] },
+    { key:'showTitle',          type:'boolean', label:'Show Title',        def:false },
+    { key:'titleText',          type:'string',  label:'Title Text',        def:'' },
+    { key:'labelColor',         type:'color',   label:'Label Color',       def:'#444444' },
+    { key:'fontFamily',         type:'enum',    label:'Font Family',       def:'Segoe UI', options:FONTS },
+    { key:'fontSize',           type:'number',  label:'Font Size',         def:10, min:6, max:40 },
+    { key:'bold',               type:'boolean', label:'Bold',              def:false },
+    { key:'italic',             type:'boolean', label:'Italic',            def:false },
+    { key:'underline',          type:'boolean', label:'Underline',         def:false },
+    { key:'matchLineColor',     type:'boolean', label:'Match Line Color',  def:false },
+    { key:'legendMarkerRendering', type:'enum', label:'Marker Style',      def:'markerOnly', options:['markerOnly','lineAndMarker','lineOnly'] },
+    { key:'showGradientLegend', type:'boolean', label:'Gradient Legend',   def:false },
+  ],
+  categoryAxis: [
+    { key:'show',             type:'boolean', label:'Show Axis',          def:true },
+    { key:'axisType',         type:'enum',    label:'Axis Type',          def:'Categorical', options:['Categorical','Continuous'] },
+    { key:'axisStyle',        type:'enum',    label:'Axis Style',         def:'showTitleOnly', options:['showTitleOnly','showUnitOnly','showBoth'] },
+    { key:'labelColor',       type:'color',   label:'Label Color',        def:'#666666' },
+    { key:'fontFamily',       type:'enum',    label:'Font Family',        def:'Segoe UI', options:FONTS },
+    { key:'fontSize',         type:'number',  label:'Font Size',          def:11, min:6, max:40 },
+    { key:'bold',             type:'boolean', label:'Bold',               def:false },
+    { key:'italic',           type:'boolean', label:'Italic',             def:false },
+    { key:'underline',        type:'boolean', label:'Underline',          def:false },
+    { key:'roundRange',       type:'boolean', label:'Round Range',        def:false },
+    { key:'showAxisTitle',      type:'boolean', label:'Show Axis Title',      def:false },
+    { key:'titleText',          type:'string',  label:'Title Text',           def:'' },
+    { key:'titleColor',         type:'color',   label:'Title Color',          def:'#666666' },
+    { key:'titleFontFamily',    type:'enum',    label:'Title Font Family',    def:'Segoe UI', options:FONTS },
+    { key:'titleFontSize',      type:'number',  label:'Title Font Size',      def:11, min:6, max:40 },
+    { key:'titleBold',          type:'boolean', label:'Title Bold',           def:false },
+    { key:'titleItalic',        type:'boolean', label:'Title Italic',         def:false },
+    { key:'titleUnderline',     type:'boolean', label:'Title Underline',      def:false },
+    { key:'gridlineShow',       type:'boolean', label:'Show Gridlines',       def:false },
+    { key:'gridlineColor',      type:'color',   label:'Gridline Color',       def:'#E0E0E0' },
+    { key:'gridlineThickness',  type:'number',  label:'Gridline Thickness',   def:1, min:1, max:10 },
+    { key:'gridlineStyle',      type:'enum',    label:'Gridline Style',       def:'dashed', options:['solid','dashed','dotted'] },
+    { key:'gridlineAutoScale',  type:'boolean', label:'Auto Scale Gridlines', def:false },
+    { key:'gridlineTransparency',type:'number', label:'Gridline Transparency',def:0, min:0, max:100 },
+    { key:'labelDisplayUnits',  type:'enum',    label:'Display Units',        def:'0', options:['0','1000','1000000','1000000000','1000000000000'] },
+    { key:'labelPrecision',     type:'number',  label:'Decimal Places',       def:0, min:0, max:10 },
+    { key:'invertAxis',         type:'boolean', label:'Invert Axis',          def:false },
+    { key:'concatenateLabels',  type:'boolean', label:'Concatenate Labels',   def:false },
+    { key:'innerPadding',       type:'number',  label:'Inner Padding',        def:0, min:0, max:50 },
+    { key:'switchAxisPosition', type:'boolean', label:'Switch Position',      def:false },
+    { key:'preferredCategoryWidth', type:'number', label:'Category Width',    def:0, min:0, max:500 },
+    { key:'maxMarginFactor',    type:'number',  label:'Max Margin Factor',    def:25, min:0, max:100 },
+  ],
+  valueAxis: [
+    { key:'show',            type:'boolean', label:'Show Axis',         def:true },
+    { key:'axisStyle',       type:'enum',    label:'Axis Style',        def:'showTitleOnly', options:['showTitleOnly','showUnitOnly','showBoth'] },
+    { key:'labelColor',      type:'color',   label:'Label Color',       def:'#666666' },
+    { key:'fontFamily',      type:'enum',    label:'Font Family',       def:'Segoe UI', options:FONTS },
+    { key:'fontSize',        type:'number',  label:'Font Size',         def:11, min:6, max:40 },
+    { key:'bold',            type:'boolean', label:'Bold',              def:false },
+    { key:'italic',          type:'boolean', label:'Italic',            def:false },
+    { key:'underline',       type:'boolean', label:'Underline',         def:false },
+    { key:'roundRange',      type:'boolean', label:'Round Range',       def:false },
+    { key:'sharedAxis',      type:'boolean', label:'Shared Axis',       def:false },
+    { key:'showAxisTitle',   type:'boolean', label:'Show Axis Title',   def:false },
+    { key:'titleText',       type:'string',  label:'Title Text',        def:'' },
+    { key:'titleColor',      type:'color',   label:'Title Color',       def:'#666666' },
+    { key:'titleFontFamily', type:'enum',    label:'Title Font Family', def:'Segoe UI', options:FONTS },
+    { key:'titleFontSize',   type:'number',  label:'Title Font Size',   def:11, min:6, max:40 },
+    { key:'gridlineShow',        type:'boolean', label:'Show Gridlines',       def:true },
+    { key:'gridlineColor',       type:'color',   label:'Gridline Color',       def:'#E0E0E0' },
+    { key:'gridlineThickness',   type:'number',  label:'Gridline Thickness',   def:1, min:1, max:10 },
+    { key:'gridlineStyle',       type:'enum',    label:'Gridline Style',       def:'dashed', options:['solid','dashed','dotted'] },
+    { key:'gridlineTransparency',type:'number',  label:'Gridline Transparency',def:0, min:0, max:100 },
+    { key:'logAxisScale',        type:'boolean', label:'Log Scale',            def:false },
+    { key:'invertAxis',          type:'boolean', label:'Invert Axis',          def:false },
+    { key:'scaleToFit',          type:'boolean', label:'Scale to Fit',         def:false },
+    { key:'start',               type:'number',  label:'Axis Start',           def:0, min:-1e9, max:1e9 },
+    { key:'end',                 type:'number',  label:'Axis End',             def:0, min:-1e9, max:1e9 },
+    { key:'labelDisplayUnits',   type:'enum',    label:'Display Units',        def:'0', options:['0','1000','1000000','1000000000','1000000000000'] },
+    { key:'labelPrecision',      type:'number',  label:'Decimal Places',       def:0, min:0, max:10 },
+    { key:'titleText',           type:'string',  label:'Title Text',           def:'' },
+    { key:'titleColor',          type:'color',   label:'Title Color',          def:'#666666' },
+    { key:'titleFontFamily',     type:'enum',    label:'Title Font Family',    def:'Segoe UI', options:FONTS },
+    { key:'titleFontSize',       type:'number',  label:'Title Font Size',      def:11, min:6, max:40 },
+    { key:'titleBold',           type:'boolean', label:'Title Bold',           def:false },
+    { key:'titleItalic',         type:'boolean', label:'Title Italic',         def:false },
+  ],
+  labels: [
+    { key:'show',              type:'boolean', label:'Show Labels',       def:false },
+    { key:'color',             type:'color',   label:'Label Color',       def:'#FFFFFF' },
+    { key:'fontFamily',        type:'enum',    label:'Font Family',       def:'Segoe UI', options:FONTS },
+    { key:'fontSize',          type:'number',  label:'Font Size',         def:9, min:6, max:40 },
+    { key:'bold',              type:'boolean', label:'Bold',              def:false },
+    { key:'italic',            type:'boolean', label:'Italic',            def:false },
+    { key:'labelDisplayUnits', type:'enum',    label:'Display Units',     def:'0', options:['0','1000','1000000','1000000000','1000000000000'] },
+    { key:'labelPrecision',    type:'number',  label:'Decimal Places',    def:0, min:0, max:10 },
+    { key:'labelPosition',     type:'enum',    label:'Position',          def:'InsideEnd', options:['InsideEnd','InsideCenter','InsideBase','OutsideEnd','Auto'] },
+    { key:'labelStyle',           type:'enum',    label:'Label Style',          def:'category', options:['category','data','both','percent','percentOfTotal'] },
+    { key:'wordWrap',             type:'boolean', label:'Word Wrap',            def:false },
+    { key:'backgroundColor',      type:'color',   label:'Background Color',     def:'#FFFFFF' },
+    { key:'backgroundTransparency',type:'number', label:'Bg Transparency',      def:100, min:0, max:100 },
+    { key:'enableBackground',     type:'boolean', label:'Enable Background',    def:false },
+    { key:'labelDensity',         type:'number',  label:'Label Density',        def:100, min:0, max:100 },
+    { key:'labelOrientation',     type:'enum',    label:'Orientation',          def:'horizontal', options:['horizontal','vertical','diagonal'] },
+    { key:'labelOverflow',        type:'boolean', label:'Allow Overflow',       def:false },
+    { key:'showAll',              type:'boolean', label:'Show All',             def:false },
+    { key:'showBlankAs',          type:'string',  label:'Show Blank As',        def:'' },
+    { key:'showSeries',           type:'boolean', label:'Show Series Name',     def:false },
+    { key:'showDynamicLabels',    type:'boolean', label:'Dynamic Labels',       def:false },
+    { key:'optimizeLabelDisplay', type:'boolean', label:'Optimize Display',     def:false },
+    { key:'valueCustomFormatString', type:'string', label:'Custom Format',      def:'' },
+    { key:'detailBold',           type:'boolean', label:'Detail Bold',          def:false },
+    { key:'detailColor',          type:'color',   label:'Detail Color',         def:'#444444' },
+    { key:'detailFontFamily',     type:'enum',    label:'Detail Font Family',   def:'Segoe UI', options:FONTS },
+    { key:'detailFontSize',       type:'number',  label:'Detail Font Size',     def:9, min:6, max:40 },
+    { key:'detailItalic',         type:'boolean', label:'Detail Italic',        def:false },
+    { key:'enableDetailDataLabel',type:'boolean', label:'Enable Detail Label',  def:false },
+    { key:'titleBold',            type:'boolean', label:'Title Bold',           def:false },
+    { key:'titleColor',           type:'color',   label:'Title Color',          def:'#444444' },
+    { key:'titleFontFamily',      type:'enum',    label:'Title Font Family',    def:'Segoe UI', options:FONTS },
+    { key:'titleFontSize',        type:'number',  label:'Title Font Size',      def:9, min:6, max:40 },
+    { key:'labelContainerMaxWidth', type:'number',label:'Max Width',            def:0, min:0, max:500 },
+  ],
+  dataPoint: [
+    { key:'defaultColor',         type:'color',   label:'Default Color',      def:'#0F4C81' },
+    { key:'fillTransparency',     type:'number',  label:'Fill Transparency',  def:0, min:0, max:100 },
+    { key:'borderShow',           type:'boolean', label:'Show Border',        def:false },
+    { key:'borderColor',          type:'color',   label:'Border Color',       def:'#FFFFFF' },
+    { key:'borderSize',           type:'number',  label:'Border Size',        def:1, min:0, max:10 },
+    { key:'borderTransparency',   type:'number',  label:'Border Transparency',def:0, min:0, max:100 },
+    { key:'borderColorMatchFill', type:'boolean', label:'Border Matches Fill',def:false },
+  ],
+  plotArea: [
+    { key:'transparency', type:'number', label:'Transparency', def:0, min:0, max:100 },
+    { key:'image',        type:'string', label:'Image URL',    def:'' },
+  ],
+  lineStyles: [
+    { key:'strokeWidth',  type:'number',  label:'Line Width',   def:2, min:1, max:10 },
+    { key:'lineStyle',    type:'enum',    label:'Line Style',   def:'solid', options:['solid','dashed','dotted'] },
+    { key:'showMarker',   type:'boolean', label:'Show Markers', def:false },
+    { key:'markerSize',   type:'number',  label:'Marker Size',  def:3, min:1, max:20 },
+    { key:'markerShape',  type:'enum',    label:'Marker Shape', def:'circle', options:['circle','square','diamond','triangle','x'] },
+  ],
+  trend: [
+    { key:'show',       type:'boolean', label:'Show Trend Line', def:false },
+    { key:'lineColor',  type:'color',   label:'Line Color',      def:'#E76F51' },
+    { key:'lineWidth',  type:'number',  label:'Line Width',      def:2, min:1, max:10 },
+    { key:'lineStyle',  type:'enum',    label:'Line Style',      def:'dashed', options:['solid','dashed','dotted'] },
+  ],
+  background: [
+    { key:'show',         type:'boolean', label:'Show Background', def:false },
+    { key:'color',        type:'color',   label:'Color',           def:'#FFFFFF' },
+    { key:'transparency', type:'number',  label:'Transparency',    def:0, min:0, max:100 },
+  ],
+  border: [
+    { key:'show',   type:'boolean', label:'Show Border',    def:false },
+    { key:'color',  type:'color',   label:'Border Color',   def:'#E0E0E0' },
+    { key:'radius', type:'number',  label:'Corner Radius',  def:0, min:0, max:50 },
+    { key:'weight', type:'number',  label:'Border Weight',  def:1, min:1, max:10 },
+  ],
+  shadow: [
+    { key:'show',    type:'boolean', label:'Show Shadow',    def:false },
+    { key:'color',   type:'color',   label:'Shadow Color',   def:'#000000' },
+    { key:'preset',  type:'enum',    label:'Shadow Preset',  def:'BottomRight', options:['TopLeft','Top','TopRight','Left','Center','Right','BottomLeft','Bottom','BottomRight','Custom'] },
+    { key:'shadowBlur',  type:'number', label:'Blur',        def:4, min:0, max:20 },
+    { key:'shadowAngle', type:'number', label:'Angle',       def:45, min:0, max:360 },
+    { key:'shadowDistance', type:'number', label:'Distance', def:2, min:0, max:20 },
+  ],
+  header: [
+    { key:'show',       type:'boolean', label:'Show Header',  def:true },
+    { key:'fontFamily', type:'enum',    label:'Font Family',  def:'Segoe UI Semibold', options:FONTS },
+    { key:'fontSize',   type:'number',  label:'Font Size',    def:12, min:6, max:40 },
+    { key:'fontColor',  type:'color',   label:'Font Color',   def:'#0F4C81' },
+    { key:'bold',       type:'boolean', label:'Bold',         def:true },
+    { key:'italic',     type:'boolean', label:'Italic',       def:false },
+    { key:'underline',  type:'boolean', label:'Underline',    def:false },
+    { key:'background', type:'color',   label:'Background',   def:'#FFFFFF' },
+    { key:'outline',    type:'enum',    label:'Outline',      def:'None', options:['None','Frame','Top','Bottom','Left','Right','TopBottom'] },
+  ],
+  items: [
+    { key:'fontFamily',  type:'enum',   label:'Font Family',  def:'Segoe UI', options:FONTS },
+    { key:'fontSize',    type:'number', label:'Font Size',    def:11, min:6, max:40 },
+    { key:'fontColor',   type:'color',  label:'Font Color',   def:'#333333' },
+    { key:'bold',        type:'boolean',label:'Bold',         def:false },
+    { key:'italic',      type:'boolean',label:'Italic',       def:false },
+    { key:'background',  type:'color',  label:'Background',   def:'#FFFFFF' },
+    { key:'outline',     type:'enum',   label:'Outline Style',def:'Frame', options:['None','Frame','Top','Bottom','Left','Right','TopBottom'] },
+    { key:'padding',     type:'number', label:'Padding',      def:3, min:0, max:20 },
+  ],
+  selection: [
+    { key:'singleSelect',              type:'boolean', label:'Single Select',          def:true },
+    { key:'selectAllCheckboxEnabled',  type:'boolean', label:'Select All Checkbox',    def:false },
+    { key:'selfFilterEnabled',         type:'boolean', label:'Self Filter',            def:false },
+  ],
+  grid: [
+    { key:'outlineColor',          type:'color',   label:'Outline Color',         def:'#E0E0E0' },
+    { key:'outlineWeight',         type:'number',  label:'Outline Weight',        def:1, min:1, max:10 },
+    { key:'gridVertical',          type:'boolean', label:'Vertical Gridlines',    def:false },
+    { key:'gridVerticalColor',     type:'color',   label:'Vertical Color',        def:'#E0E0E0' },
+    { key:'gridHorizontal',        type:'boolean', label:'Horizontal Gridlines',  def:true },
+    { key:'gridHorizontalColor',   type:'color',   label:'Horizontal Color',      def:'#E0E0E0' },
+    { key:'gridHorizontalWeight',  type:'number',  label:'Horizontal Weight',     def:1, min:1, max:10 },
+    { key:'rowPadding',            type:'number',  label:'Row Padding',           def:4, min:0, max:20 },
+    { key:'imageHeight',           type:'number',  label:'Image Height',          def:75, min:10, max:200 },
+  ],
+  columnHeaders: [
+    { key:'fontFamily',  type:'enum',   label:'Font Family',  def:'Segoe UI Semibold', options:FONTS },
+    { key:'fontSize',    type:'number', label:'Font Size',    def:11, min:6, max:40 },
+    { key:'fontColor',   type:'color',  label:'Font Color',   def:'#FFFFFF' },
+    { key:'bold',        type:'boolean',label:'Bold',         def:true },
+    { key:'italic',      type:'boolean',label:'Italic',       def:false },
+    { key:'underline',   type:'boolean',label:'Underline',    def:false },
+    { key:'background',  type:'color',  label:'Background',   def:'#0F4C81' },
+    { key:'outline',     type:'enum',   label:'Outline',      def:'None', options:['None','Frame','Top','Bottom','Left','Right','TopBottom'] },
+    { key:'alignment',   type:'enum',   label:'Alignment',    def:'left', options:['left','center','right'] },
+    { key:'autoSizeColumnWidth', type:'boolean', label:'Auto Width', def:true },
+  ],
+  rowHeaders: [
+    { key:'fontFamily',               type:'enum',   label:'Font Family',          def:'Segoe UI', options:FONTS },
+    { key:'fontSize',                 type:'number', label:'Font Size',            def:11, min:6, max:40 },
+    { key:'fontColor',                type:'color',  label:'Font Color',           def:'#333333' },
+    { key:'bold',                     type:'boolean',label:'Bold',                 def:false },
+    { key:'italic',                   type:'boolean',label:'Italic',               def:false },
+    { key:'background',               type:'color',  label:'Background',           def:'#FFFFFF' },
+    { key:'outline',                  type:'enum',   label:'Outline',              def:'None', options:['None','Frame','Top','Bottom','Left','Right','TopBottom'] },
+    { key:'stepped',                  type:'boolean',label:'Stepped Layout',       def:true },
+    { key:'steppedLayoutIndentation', type:'number', label:'Step Indent',          def:20, min:0, max:100 },
+    { key:'expandCollapse',           type:'boolean',label:'Expand/Collapse',      def:true },
+  ],
+  values: [
+    { key:'fontFamily',     type:'enum',   label:'Font Family',     def:'Segoe UI', options:FONTS },
+    { key:'fontSize',       type:'number', label:'Font Size',       def:11, min:6, max:40 },
+    { key:'fontColor',      type:'color',  label:'Font Color',      def:'#333333' },
+    { key:'bold',           type:'boolean',label:'Bold',            def:false },
+    { key:'italic',         type:'boolean',label:'Italic',          def:false },
+    { key:'background',     type:'color',  label:'Background',      def:'#FFFFFF' },
+    { key:'bandedRowColor', type:'color',  label:'Banded Row Color',def:'#F0F6FB' },
+    { key:'alignment',      type:'enum',   label:'Alignment',       def:'left', options:['left','center','right'] },
+  ],
+  subtotals: [
+    { key:'rowSubtotals',    type:'boolean', label:'Row Subtotals',    def:true },
+    { key:'columnSubtotals', type:'boolean', label:'Column Subtotals', def:true },
+    { key:'fontFamily',      type:'enum',    label:'Font Family',      def:'Segoe UI Semibold', options:FONTS },
+    { key:'fontSize',        type:'number',  label:'Font Size',        def:11, min:6, max:40 },
+    { key:'fontColor',       type:'color',   label:'Font Color',       def:'#0F4C81' },
+    { key:'bold',            type:'boolean', label:'Bold',             def:true },
+    { key:'background',      type:'color',   label:'Background',       def:'#E8F0F7' },
+    { key:'outline',         type:'enum',    label:'Outline',          def:'TopBottom', options:['None','Frame','Top','Bottom','Left','Right','TopBottom'] },
+    { key:'outlineColor',    type:'color',   label:'Outline Color',    def:'#0F4C81' },
+    { key:'perRowLevel',     type:'boolean', label:'Per Row Level',    def:true },
+    { key:'perColumnLevel',  type:'boolean', label:'Per Column Level', def:true },
+  ],
+  total: [
+    { key:'totals',     type:'boolean', label:'Show Totals',  def:true },
+    { key:'fontFamily', type:'enum',    label:'Font Family',  def:'Segoe UI Semibold', options:FONTS },
+    { key:'fontSize',   type:'number',  label:'Font Size',    def:11, min:6, max:40 },
+    { key:'fontColor',  type:'color',   label:'Font Color',   def:'#0F4C81' },
+    { key:'bold',       type:'boolean', label:'Bold',         def:true },
+    { key:'background', type:'color',   label:'Background',   def:'#E8F0F7' },
+    { key:'outline',    type:'enum',    label:'Outline',      def:'Top', options:['None','Frame','Top','Bottom','Left','Right','TopBottom'] },
+    { key:'outlineColor',type:'color',  label:'Outline Color',def:'#0F4C81' },
+  ],
+  gauge: [
+    { key:'arcAngle',         type:'number',  label:'Arc Angle',         def:150, min:60, max:270 },
+    { key:'startAngle',       type:'number',  label:'Start Angle',       def:-150, min:-180, max:0 },
+    { key:'pinNeedle',        type:'boolean', label:'Pin Needle',        def:false },
+    { key:'targetColor',      type:'color',   label:'Target Color',      def:'#E76F51' },
+    { key:'foregroundColor',  type:'color',   label:'Foreground Color',  def:'#1F8AC0' },
+    { key:'backgroundColor',  type:'color',   label:'Background Color',  def:'#E0E0E0' },
+  ],
+  dataLabels: [
+    { key:'show',              type:'boolean', label:'Show Labels',      def:false },
+    { key:'color',             type:'color',   label:'Color',            def:'#0F4C81' },
+    { key:'fontFamily',        type:'enum',    label:'Font Family',      def:'Segoe UI', options:FONTS },
+    { key:'fontSize',          type:'number',  label:'Font Size',        def:24, min:6, max:96 },
+    { key:'bold',              type:'boolean', label:'Bold',             def:false },
+    { key:'labelDisplayUnits', type:'enum',    label:'Display Units',    def:'0', options:['0','1000','1000000','1000000000'] },
+    { key:'labelPrecision',    type:'number',  label:'Decimal Places',   def:0, min:0, max:10 },
+  ],
+  categoryLabels: [
+    { key:'show',       type:'boolean', label:'Show Category',   def:true },
+    { key:'color',      type:'color',   label:'Color',           def:'#666666' },
+    { key:'fontFamily', type:'enum',    label:'Font Family',     def:'Segoe UI', options:FONTS },
+    { key:'fontSize',   type:'number',  label:'Font Size',       def:12, min:6, max:40 },
+    { key:'bold',       type:'boolean', label:'Bold',            def:false },
+    { key:'italic',     type:'boolean', label:'Italic',          def:false },
+  ],
+  sentimentColors: [
+    { key:'increaseFill', type:'color', label:'Increase Color', def:'#2A9D8F' },
+    { key:'decreaseFill', type:'color', label:'Decrease Color', def:'#E76F51' },
+    { key:'totalFill',    type:'color', label:'Total Color',    def:'#0F4C81' },
+  ],
+  innerRadius: [
+    { key:'innerRadiusRatio', type:'number', label:'Inner Radius %', def:50, min:0, max:90 },
+  ],
+  bubbles: [
+    { key:'minBubbleSize', type:'number', label:'Min Bubble Size', def:10, min:1, max:100 },
+    { key:'maxBubbleSize', type:'number', label:'Max Bubble Size', def:40, min:1, max:200 },
+  ],
+  shapes: [
+    { key:'strokeWidth', type:'number',  label:'Line Width',    def:2, min:1, max:10 },
+    { key:'showMarker',  type:'boolean', label:'Show Markers',  def:false },
+    { key:'markerSize',  type:'number',  label:'Marker Size',   def:3, min:1, max:20 },
+  ],
+  wordWrap: [
+    { key:'show', type:'boolean', label:'Word Wrap', def:false },
+  ],
+  indicator: [
+    { key:'show',      type:'boolean', label:'Show Indicator', def:true },
+    { key:'thickness', type:'number',  label:'Thickness',      def:3, min:1, max:10 },
+  ],
+  trendline: [
+    { key:'show',  type:'boolean', label:'Show Trendline',  def:true },
+    { key:'color', type:'color',   label:'Trendline Color', def:'#1F8AC0' },
+  ],
+  goals: [
+    { key:'show',       type:'boolean', label:'Show Goal',   def:true },
+    { key:'fontFamily', type:'enum',    label:'Font Family', def:'Segoe UI', options:FONTS },
+    { key:'fontSize',   type:'number',  label:'Font Size',   def:12, min:6, max:40 },
+    { key:'color',      type:'color',   label:'Color',       def:'#666666' },
+  ],
+  statusGraphic: [
+    { key:'show', type:'boolean', label:'Show Status Graphic', def:true },
+  ],
+  fillPoint: [
+    { key:'show', type:'boolean', label:'Fill Data Points', def:true },
+  ],
+  fill: [
+    { key:'show',         type:'boolean', label:'Show Fill',     def:true },
+    { key:'fillColor',    type:'color',   label:'Fill Color',    def:'#1F8AC0' },
+    { key:'transparency', type:'number',  label:'Transparency',  def:0, min:0, max:100 },
+  ],
+  line: [
+    { key:'show',        type:'boolean', label:'Show Line',     def:false },
+    { key:'strokeColor', type:'color',   label:'Line Color',    def:'#0F4C81' },
+    { key:'strokeWidth', type:'number',  label:'Line Width',    def:1, min:1, max:10 },
+  ],
+  outline: [
+    { key:'show',   type:'boolean', label:'Show Outline',  def:false },
+    { key:'color',  type:'color',   label:'Outline Color', def:'#E0E0E0' },
+    { key:'weight', type:'number',  label:'Weight',        def:1, min:1, max:10 },
+  ],
+  bar: [
+    { key:'show',   type:'boolean', label:'Show Bar',    def:true },
+    { key:'color',  type:'color',   label:'Bar Color',   def:'#1F8AC0' },
+    { key:'weight', type:'number',  label:'Bar Weight',  def:4, min:1, max:10 },
+  ],
+  cardTitle: [
+    { key:'show',       type:'boolean', label:'Show Title',  def:true },
+    { key:'fontFamily', type:'enum',    label:'Font Family', def:'Segoe UI Semibold', options:FONTS },
+    { key:'fontSize',   type:'number',  label:'Font Size',   def:12, min:6, max:40 },
+    { key:'color',      type:'color',   label:'Color',       def:'#0F4C81' },
+  ],
+  imageScaling: [
+    { key:'imageScalingType', type:'enum', label:'Scaling', def:'Fit', options:['Fit','Fill','Normal'] },
+  ],
+  text: [
+    { key:'show',              type:'boolean', label:'Show Text',          def:true },
+    { key:'fontFamily',        type:'enum',    label:'Font Family',        def:'Segoe UI', options:FONTS },
+    { key:'fontSize',          type:'number',  label:'Font Size',          def:12, min:6, max:96 },
+    { key:'fontBold',          type:'boolean', label:'Bold',               def:false },
+    { key:'fontColor',         type:'color',   label:'Font Color',         def:'#FFFFFF' },
+    { key:'alignment',         type:'enum',    label:'H Alignment',        def:'center', options:['left','center','right'] },
+    { key:'verticalAlignment', type:'enum',    label:'V Alignment',        def:'middle', options:['top','middle','bottom'] },
+  ],
+  zoom: [
+    { key:'enableScrollWheelZoom', type:'boolean', label:'Scroll Wheel Zoom', def:true },
+    { key:'show', type:'boolean', label:'Show Zoom Slider', def:false },
+  ],
+  annotations: [
+    { key:'show', type:'boolean', label:'Show Annotations', def:true },
+    { key:'color', type:'color', label:'Color', def:'#0F4C81' },
+    { key:'fontSize', type:'number', label:'Font Size', def:10, min:6, max:40 },
+    { key:'fontFamily', type:'enum', label:'Font Family', def:'Segoe UI', options:FONTS },
+    { key:'bold', type:'boolean', label:'Bold', def:false },
+    { key:'italic', type:'boolean', label:'Italic', def:false },
+  ],
+  forecast: [
+    { key:'show', type:'boolean', label:'Show Forecast', def:false },
+    { key:'lineColor', type:'color', label:'Line Color', def:'#E76F51' },
+    { key:'lineWidth', type:'number', label:'Line Width', def:2, min:1, max:10 },
+    { key:'lineStyle', type:'enum', label:'Line Style', def:'dashed', options:['solid','dashed','dotted'] },
+    { key:'confidenceBandStyle', type:'enum', label:'Confidence Band', def:'fill', options:['fill','line','none'] },
+    { key:'transparency', type:'number', label:'Transparency', def:80, min:0, max:100 },
+    { key:'units', type:'enum', label:'Forecast Length', def:'auto', options:['auto','points'] },
+  ],
+  referenceLine: [
+    { key:'show', type:'boolean', label:'Show Reference Line', def:false },
+    { key:'value', type:'number', label:'Value', def:0, min:-1e9, max:1e9 },
+    { key:'lineColor', type:'color', label:'Line Color', def:'#E76F51' },
+    { key:'lineWidth', type:'number', label:'Line Width', def:1, min:1, max:10 },
+    { key:'lineStyle', type:'enum', label:'Line Style', def:'dashed', options:['solid','dashed','dotted'] },
+    { key:'transparency', type:'number', label:'Transparency', def:0, min:0, max:100 },
+    { key:'labelShow', type:'boolean', label:'Show Label', def:true },
+    { key:'labelColor', type:'color', label:'Label Color', def:'#444444' },
+    { key:'labelPosition', type:'enum', label:'Label Position', def:'Above', options:['Above','Below','Left','Right'] },
+    { key:'labelText', type:'string', label:'Label Text', def:'' },
+  ],
+  markers: [
+    { key:'show', type:'boolean', label:'Show Markers', def:false },
+    { key:'markerSize', type:'number', label:'Size', def:5, min:1, max:20 },
+    { key:'markerShape', type:'enum', label:'Shape', def:'circle', options:['circle','square','diamond','triangle','x','cross'] },
+    { key:'markerColor', type:'color', label:'Color', def:'#0F4C81' },
+  ],
+  smallMultiplesLayout: [
+    { key:'numRows', type:'number', label:'Rows', def:2, min:1, max:20 },
+    { key:'numColumns', type:'number', label:'Columns', def:2, min:1, max:20 },
+    { key:'borderColor', type:'color', label:'Border Color', def:'#E0E0E0' },
+    { key:'borderWidth', type:'number', label:'Border Width', def:1, min:0, max:10 },
+    { key:'showPanelBorder', type:'boolean', label:'Show Panel Border', def:true },
+    { key:'showSeparator', type:'boolean', label:'Show Separator', def:true },
+    { key:'individualSlicerTitle', type:'boolean', label:'Individual Title', def:true },
+    { key:'panelTitleFontSize', type:'number', label:'Panel Title Size', def:11, min:6, max:40 },
+    { key:'panelTitleColor', type:'color', label:'Panel Title Color', def:'#333333' },
+    { key:'panelTitleFontFamily', type:'enum', label:'Panel Title Font', def:'Segoe UI', options:FONTS },
+  ],
+  seriesLabels: [
+    { key:'show', type:'boolean', label:'Show Series Labels', def:false },
+    { key:'color', type:'color', label:'Color', def:'#444444' },
+    { key:'fontSize', type:'number', label:'Font Size', def:9, min:6, max:40 },
+    { key:'fontFamily', type:'enum', label:'Font Family', def:'Segoe UI', options:FONTS },
+    { key:'bold', type:'boolean', label:'Bold', def:false },
+    { key:'italic', type:'boolean', label:'Italic', def:false },
+  ],
+  searchBox: [
+    { key:'show', type:'boolean', label:'Show Search', def:false },
+    { key:'color', type:'color', label:'Text Color', def:'#333333' },
+    { key:'background', type:'color', label:'Background', def:'#FFFFFF' },
+    { key:'border', type:'color', label:'Border Color', def:'#E0E0E0' },
+  ],
+  slider: [
+    { key:'color', type:'color', label:'Slider Color', def:'#1F8AC0' },
+    { key:'textSize', type:'number', label:'Text Size', def:11, min:6, max:40 },
+  ],
+  sparklines: [
+    { key:'show', type:'boolean', label:'Show Sparklines', def:false },
+    { key:'lineColor', type:'color', label:'Line Color', def:'#1F8AC0' },
+    { key:'lineWidth', type:'number', label:'Line Width', def:1, min:1, max:5 },
+    { key:'markerShow', type:'boolean', label:'Show Markers', def:false },
+    { key:'markerColor', type:'color', label:'Marker Color', def:'#0F4C81' },
+    { key:'type', type:'enum', label:'Type', def:'line', options:['line','bar'] },
+  ],
+  columnFormatting: [
+    { key:'urlIcon', type:'boolean', label:'Show URL Icon', def:false },
+    { key:'urlNewTab', type:'boolean', label:'Open in New Tab', def:true },
+    { key:'wordWrap', type:'boolean', label:'Word Wrap', def:false },
+  ],
+  accessibility: [
+    { key:'show', type:'boolean', label:'Show Accessibility', def:true },
+    { key:'altText', type:'string', label:'Alt Text', def:'' },
+  ],
+  colorByCategory: [
+    { key:'show', type:'boolean', label:'Color by Category', def:false },
+  ],
+  clustering: [
+    { key:'show', type:'boolean', label:'Show Clusters', def:false },
+    { key:'numClusters', type:'number', label:'Number of Clusters', def:5, min:2, max:20 },
+  ],
+  plotAreaShading: [
+    { key:'show', type:'boolean', label:'Show Shading', def:false },
+    { key:'color', type:'color', label:'Shading Color', def:'#E0E0E0' },
+    { key:'transparency', type:'number', label:'Transparency', def:60, min:0, max:100 },
+  ],
+  y2Axis: [
+    { key:'show', type:'boolean', label:'Show Secondary Axis', def:false },
+    { key:'labelColor', type:'color', label:'Label Color', def:'#666666' },
+    { key:'fontFamily', type:'enum', label:'Font Family', def:'Segoe UI', options:FONTS },
+    { key:'fontSize', type:'number', label:'Font Size', def:11, min:6, max:40 },
+    { key:'showAxisTitle', type:'boolean', label:'Show Title', def:false },
+    { key:'titleText', type:'string', label:'Title Text', def:'' },
+    { key:'gridlineShow', type:'boolean', label:'Show Gridlines', def:false },
+    { key:'gridlineColor', type:'color', label:'Gridline Color', def:'#E0E0E0' },
+  ],
+  scorecard: [
+    { key:'fontFamily', type:'enum', label:'Font Family', def:'Segoe UI', options:FONTS },
+    { key:'fontSize', type:'number', label:'Font Size', def:12, min:6, max:40 },
+    { key:'fontColor', type:'color', label:'Font Color', def:'#333333' },
+    { key:'background', type:'color', label:'Background', def:'#FFFFFF' },
+    { key:'showGoalBadges', type:'boolean', label:'Show Goal Badges', def:true },
+    { key:'showOwner', type:'boolean', label:'Show Owner', def:false },
+    { key:'showDueDate', type:'boolean', label:'Show Due Date', def:false },
+  ],
+  cardVisualSettings: [
+    { key:'show', type:'boolean', label:'Show', def:true },
+    { key:'fontFamily', type:'enum', label:'Font Family', def:'Segoe UI Light', options:FONTS },
+    { key:'fontSize', type:'number', label:'Font Size', def:32, min:6, max:96 },
+    { key:'fontColor', type:'color', label:'Font Color', def:'#0F4C81' },
+    { key:'bold', type:'boolean', label:'Bold', def:false },
+    { key:'italic', type:'boolean', label:'Italic', def:false },
+    { key:'alignment', type:'enum', label:'Alignment', def:'center', options:['left','center','right'] },
+    { key:'labelDisplayUnits', type:'enum', label:'Display Units', def:'0', options:['0','1000','1000000','1000000000'] },
+    { key:'labelPrecision', type:'number', label:'Decimal Places', def:0, min:0, max:10 },
+  ],
+  data: [
+    { key:'mode',       type:'enum',   label:'Slicer Mode',  def:'VerticalList', options:['VerticalList','HorizontalList','Dropdown','Between','Before','After','Basic','Relative','RelativeTime','Single'] },
+    { key:'fontFamily', type:'enum',   label:'Font Family', def:'Segoe UI', options:FONTS },
+    { key:'fontSize',   type:'number', label:'Font Size',   def:12, min:6, max:40 },
+    { key:'fontColor',  type:'color',  label:'Font Color',  def:'#333333' },
+    { key:'bold',       type:'boolean',label:'Bold',        def:false },
+    { key:'italic',     type:'boolean',label:'Italic',      def:false },
+  ],
+  detail: [
+    { key:'show', type:'boolean', label:'Show Detail', def:false },
+  ],
+  target: [
+    { key:'show',       type:'boolean', label:'Show Target',  def:true },
+    { key:'fontFamily', type:'enum',    label:'Font Family',  def:'Segoe UI', options:FONTS },
+    { key:'fontSize',   type:'number',  label:'Font Size',    def:12, min:6, max:40 },
+    { key:'color',      type:'color',   label:'Color',        def:'#666666' },
+  ],
+  pageSize: [
+    { key:'type', type:'enum', label:'Page Size Type', def:'Custom', options:['Custom','16:9','4:3','Letter','Legal','A3','A4','A5'] },
+    { key:'width', type:'number', label:'Width (px)', def:1280, min:200, max:5000 },
+    { key:'height', type:'number', label:'Height (px)', def:720, min:200, max:5000 },
+  ],
+  pageBackground: [
+    { key:'color', type:'color', label:'Background Color', def:'#FFFFFF' },
+    { key:'transparency', type:'number', label:'Transparency (%)', def:0, min:0, max:100 },
+    { key:'image', type:'string', label:'Background Image URL', def:'' },
+    { key:'imageFit', type:'enum', label:'Image Fit', def:'Normal', options:['Normal','Fit','Fill','Tile'] },
+  ],
+  pageWallpaper: [
+    { key:'color', type:'color', label:'Wallpaper Color', def:'#F2F2F2' },
+    { key:'transparency', type:'number', label:'Transparency (%)', def:0, min:0, max:100 },
+    { key:'image', type:'string', label:'Wallpaper Image URL', def:'' },
+    { key:'imageFit', type:'enum', label:'Image Fit', def:'Fill', options:['Normal','Fit','Fill','Tile'] },
+  ],
+  filterPane: [
+    { key:'backgroundColor', type:'color', label:'Background Color', def:'#F2F2F2' },
+    { key:'foregroundColor', type:'color', label:'Header Color', def:'#000000' },
+    { key:'fontFamily', type:'enum', label:'Font Family', def:'Segoe UI', options:FONTS },
+    { key:'fontSize', type:'number', label:'Font Size', def:12, min:6, max:40 },
+    { key:'borderColor', type:'color', label:'Border Color', def:'#E0E0E0' },
+    { key:'fieldTitleColor', type:'color', label:'Filter Title Color', def:'#000000' },
+    { key:'fieldSearchColor', type:'color', label:'Search Color', def:'#333333' },
+    { key:'applyButtonColor', type:'color', label:'Apply Button Color', def:'#0F4C81' },
+  ],
+};
+
+// ── Which cards each visual exposes ──
+const VISUAL_SCHEMA = {
+  '*':                            ['general','title','subheader','background','border','shadow'],
+  barChart:                       ['general','title','subheader','legend','categoryAxis','valueAxis','labels','dataPoint','plotArea','trend','zoom'],
+  clusteredBarChart:              ['general','title','subheader','legend','categoryAxis','valueAxis','labels','dataPoint','plotArea','trend','zoom'],
+  stackedBarChart:                ['general','title','subheader','legend','categoryAxis','valueAxis','labels','dataPoint','plotArea','zoom'],
+  hundredPercentStackedBarChart:  ['general','title','subheader','legend','categoryAxis','valueAxis','labels','dataPoint','plotArea','zoom'],
+  columnChart:                    ['general','title','subheader','legend','categoryAxis','valueAxis','labels','dataPoint','plotArea','trend','zoom'],
+  clusteredColumnChart:           ['general','title','subheader','legend','categoryAxis','valueAxis','labels','dataPoint','plotArea','trend','zoom'],
+  stackedColumnChart:             ['general','title','subheader','legend','categoryAxis','valueAxis','labels','dataPoint','plotArea','zoom'],
+  hundredPercentStackedColumnChart:['general','title','subheader','legend','categoryAxis','valueAxis','labels','dataPoint','plotArea','zoom'],
+  lineChart:                      ['general','title','subheader','legend','categoryAxis','valueAxis','labels','dataPoint','lineStyles','markers','plotArea','trend','forecast','referenceLine','annotations','smallMultiplesLayout','seriesLabels','zoom'],
+  areaChart:                      ['general','title','subheader','legend','categoryAxis','valueAxis','labels','dataPoint','markers','plotArea','trend','referenceLine','annotations','smallMultiplesLayout','zoom'],
+  stackedAreaChart:               ['general','title','subheader','legend','categoryAxis','valueAxis','labels','dataPoint','plotArea','annotations','smallMultiplesLayout','zoom'],
+  ribbonChart:                    ['general','title','subheader','legend','categoryAxis','valueAxis','labels','dataPoint','plotArea'],
+  waterfallChart:                 ['general','title','subheader','legend','categoryAxis','valueAxis','labels','sentimentColors','plotArea','zoom'],
+  scatterChart:                   ['general','title','subheader','legend','categoryAxis','valueAxis','labels','dataPoint','fillPoint','markers','plotArea','trend','referenceLine','clustering','colorByCategory','plotAreaShading','zoom'],
+  pieChart:                       ['general','title','subheader','legend','labels','dataPoint','detail'],
+  donutChart:                     ['general','title','subheader','legend','labels','dataPoint','innerRadius','detail'],
+  treemap:                        ['general','title','subheader','legend','labels','categoryLabels','dataPoint'],
+  map:                            ['general','title','subheader','legend','labels','dataPoint','bubbles'],
+  filledMap:                      ['general','title','subheader','legend','labels','dataPoint'],
+  funnel:                         ['general','title','subheader','legend','labels','dataPoint'],
+  gauge:                          ['general','title','subheader','dataLabels','gauge','target'],
+  multiRowCard:                   ['general','title','dataLabels','categoryLabels','cardTitle','outline','bar','background','border'],
+  kpi:                            ['general','title','indicator','trendline','dataLabels','goals','statusGraphic'],
+  slicer:                         ['general','title','header','items','selection','data','searchBox','slider','background','border'],
+  tableEx:                        ['general','title','grid','columnHeaders','values','total','sparklines','columnFormatting','accessibility','background','border'],
+  matrix:                         ['general','title','grid','rowHeaders','columnHeaders','values','subtotals','sparklines','columnFormatting','accessibility','background','border'],
+  lineClusteredColumnComboChart:  ['general','title','subheader','legend','categoryAxis','valueAxis','y2Axis','labels','dataPoint','lineStyles','markers','plotArea','trend','referenceLine','annotations','zoom'],
+  lineStackedColumnComboChart:    ['general','title','subheader','legend','categoryAxis','valueAxis','y2Axis','labels','dataPoint','lineStyles','markers','plotArea','trend','referenceLine','annotations','zoom'],
+  decompositionTree:              ['general','title','subheader','legend','labels','dataLabels','header'],
+  decompositionTreeVisual:        ['general','title','subheader','legend','labels','dataLabels','header'],
+  hundredPercentStackedAreaChart: ['general','title','subheader','legend','categoryAxis','valueAxis','labels','dataPoint','plotArea','zoom'],
+  advancedSlicerVisual:           ['general','title','header','items','selection','searchBox','background','border'],
+  listSlicer:                     ['general','title','header','items','selection','searchBox','background','border'],
+  pivotTable:                     ['general','title','grid','rowHeaders','columnHeaders','values','subtotals','sparklines','accessibility','background','border'],
+  scorecard:                      ['general','title','scorecard','background','border'],
+  cardVisual:                     ['general','title','cardVisualSettings','categoryLabels','background','border'],
+  bookmarkNavigator:              ['general','title','text','fill','outline','shadow','border'],
+  pageNavigator:                  ['general','title','text','fill','outline','shadow','border'],
+  azureMap:                       ['general','title','legend','dataPoint','bubbles','background','border'],
+  shapeMap:                       ['general','title','legend','dataPoint','labels','background','border'],
+  textbox:                        ['background','border','shadow'],
+  actionButton:                   ['text','fill','outline','shadow','border'],
+  __page__:                       ['pageSize','pageBackground','pageWallpaper','filterPane'],
+};
+
+// ── Embedded theme state ──
+const THEME = {"name":"Customer360 Theme","textClasses":{"title":{"fontFace":"Segoe UI","fontSize":14,"fontBold":true,"fontColor":"#0F4C81"},"header":{"fontFace":"Segoe UI","fontSize":12,"fontBold":true,"fontColor":"#374649"},"label":{"fontFace":"Segoe UI","fontSize":10,"fontBold":false,"fontColor":"#666666"},"callout":{"fontFace":"Segoe UI","fontSize":45,"fontBold":false,"fontColor":"#374649"}},"dataColors":["#0F4C81","#1F8AC0","#3BBFCE","#70C1B3","#F4A261","#E76F51","#264653","#2A9D8F"],"background":"#FFFFFF","foreground":"#0F4C81","tableAccent":"#1F8AC0","good":"#1AAB40","neutral":"#D9B300","bad":"#D63554","maximum":"#1F8AC0","center":"#FFFFFF","minimum":"#E76F51","null":"#A0A0A0","firstLevelElements":"#0F4C81","secondLevelElements":"#374649","thirdLevelElements":"#A0A0A0","fourthLevelElements":"#D2D0CE","secondaryBackground":"#F0F6FB","visualStyles":{"*":{"*":{"background":[{"show":false}],"border":[{"show":false}],"dropShadow":[{"show":false}],"visualHeader":[{"show":true}],"title":[{"show":true,"fontFamily":"Segoe UI","fontSize":14,"fontBold":true,"fontColor":{"solid":{"color":"#0F4C81"}},"alignment":"left","background":{"solid":{"color":"#FFFFFF"}}}]}},"barChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":false}]}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}}}]}],"dataLabels":[{"show":false,"fontSize":9,"fontFamily":"Segoe UI","color":{"solid":{"color":"#FFFFFF"}}}],"plotArea":[{"transparency":0}]}},"clusteredBarChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}}}]}],"dataLabels":[{"show":false,"fontSize":9,"fontFamily":"Segoe UI"}]}},"stackedBarChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}}}]}],"dataLabels":[{"show":false,"fontSize":9,"fontFamily":"Segoe UI","color":{"solid":{"color":"#FFFFFF"}}}]}},"hundredPercentStackedBarChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false}],"dataLabels":[{"show":true,"fontSize":9,"fontFamily":"Segoe UI","color":{"solid":{"color":"#FFFFFF"}}}]}},"columnChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":false}]}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}}}]}],"dataLabels":[{"show":false,"fontSize":9,"fontFamily":"Segoe UI","color":{"solid":{"color":"#FFFFFF"}}}]}},"clusteredColumnChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}}}]}],"dataLabels":[{"show":false,"fontSize":9,"fontFamily":"Segoe UI"}]}},"stackedColumnChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}}}]}],"dataLabels":[{"show":false,"fontSize":9,"fontFamily":"Segoe UI","color":{"solid":{"color":"#FFFFFF"}}}]}},"hundredPercentStackedColumnChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false}],"dataLabels":[{"show":true,"fontSize":9,"fontFamily":"Segoe UI","color":{"solid":{"color":"#FFFFFF"}}}]}},"lineChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}}}]}],"dataLabels":[{"show":false,"fontSize":9,"fontFamily":"Segoe UI"}],"shapes":[{"strokeWidth":2,"showMarker":false,"markerSize":3}]}},"areaChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}}}]}],"dataLabels":[{"show":false,"fontSize":9,"fontFamily":"Segoe UI"}]}},"stackedAreaChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}}}]}],"dataLabels":[{"show":false,"fontSize":9,"fontFamily":"Segoe UI","color":{"solid":{"color":"#FFFFFF"}}}]}},"ribbonChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}}}]}],"dataLabels":[{"show":false,"fontSize":9,"fontFamily":"Segoe UI"}]}},"waterfallChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}}}]}],"dataLabels":[{"show":true,"fontSize":9,"fontFamily":"Segoe UI","color":{"solid":{"color":"#FFFFFF"}}}],"sentimentColors":[{"increaseFill":{"solid":{"color":"#2A9D8F"}},"decreaseFill":{"solid":{"color":"#E76F51"}},"totalFill":{"solid":{"color":"#0F4C81"}}}]}},"scatterChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}}}]}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}}}]}],"dataLabels":[{"show":false,"fontSize":9,"fontFamily":"Segoe UI"}],"fillPoint":[{"show":true}]}},"pieChart":{"*":{"legend":[{"show":true,"position":"Right","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"dataLabels":[{"show":true,"fontSize":10,"fontFamily":"Segoe UI","color":{"solid":{"color":"#FFFFFF"}},"labelDisplayUnits":0,"labelStyle":"category"}],"detail":[{"show":false}]}},"donutChart":{"*":{"legend":[{"show":true,"position":"Right","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"dataLabels":[{"show":true,"fontSize":10,"fontFamily":"Segoe UI","color":{"solid":{"color":"#FFFFFF"}},"labelStyle":"category"}],"innerRadius":[{"innerRadiusRatio":50}]}},"treemap":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"dataLabels":[{"show":true,"fontSize":10,"fontFamily":"Segoe UI","color":{"solid":{"color":"#FFFFFF"}}}],"categoryLabels":[{"show":true,"fontSize":10,"fontFamily":"Segoe UI","color":{"solid":{"color":"#FFFFFF"}}}]}},"map":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"dataLabels":[{"show":false,"fontSize":9,"fontFamily":"Segoe UI"}],"bubbles":[{"minBubbleSize":10,"maxBubbleSize":40}]}},"filledMap":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"dataLabels":[{"show":false,"fontSize":9,"fontFamily":"Segoe UI"}]}},"funnel":{"*":{"legend":[{"show":false}],"dataLabels":[{"show":true,"fontSize":10,"fontFamily":"Segoe UI","color":{"solid":{"color":"#FFFFFF"}},"labelStyle":"both"}]}},"gauge":{"*":{"dataLabels":[{"show":true,"fontSize":24,"fontFamily":"Segoe UI","color":{"solid":{"color":"#0F4C81"}}}],"gauge":[{"arcAngle":150,"startAngle":-150,"pinNeedle":false,"targetColor":{"solid":{"color":"#E76F51"}},"foregroundColor":{"solid":{"color":"#1F8AC0"}},"backgroundColor":{"solid":{"color":"#E0E0E0"}}}],"target":[{"show":true,"fontSize":12,"fontFamily":"Segoe UI","color":{"solid":{"color":"#666666"}}}]}},"card":{"*":{"dataLabels":[{"show":true,"fontSize":32,"fontFamily":"Segoe UI Light","color":{"solid":{"color":"#0F4C81"}},"labelDisplayUnits":0}],"categoryLabels":[{"show":true,"fontSize":12,"fontFamily":"Segoe UI","color":{"solid":{"color":"#666666"}}}],"wordWrap":[{"show":false}]}},"multiRowCard":{"*":{"dataLabels":[{"fontSize":14,"fontFamily":"Segoe UI","color":{"solid":{"color":"#0F4C81"}}}],"categoryLabels":[{"show":true,"fontSize":10,"fontFamily":"Segoe UI","color":{"solid":{"color":"#666666"}}}],"cardTitle":[{"show":true,"fontSize":12,"fontFamily":"Segoe UI Semibold","color":{"solid":{"color":"#0F4C81"}}}],"outline":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}},"weight":1}],"bar":[{"show":true,"color":{"solid":{"color":"#1F8AC0"}},"weight":4}]}},"kpi":{"*":{"indicator":[{"show":true,"thickness":3}],"trendline":[{"show":true,"color":{"solid":{"color":"#1F8AC0"}}}],"dataLabels":[{"show":true,"fontSize":28,"fontFamily":"Segoe UI Light","color":{"solid":{"color":"#0F4C81"}}}],"goals":[{"show":true,"fontSize":12,"fontFamily":"Segoe UI","color":{"solid":{"color":"#666666"}}}],"statusGraphic":[{"show":true}]}},"slicer":{"*":{"data":[{"fontFamily":"Segoe UI","fontSize":12,"fontColor":{"solid":{"color":"#333333"}}}],"selection":[{"selectAllCheckboxEnabled":false,"singleSelect":true}],"header":[{"show":true,"fontFamily":"Segoe UI Semibold","fontSize":12,"fontColor":{"solid":{"color":"#0F4C81"}},"background":{"solid":{"color":"#FFFFFF"}},"outline":"None"}],"items":[{"fontFamily":"Segoe UI","fontSize":11,"fontColor":{"solid":{"color":"#333333"}},"background":{"solid":{"color":"#FFFFFF"}},"outline":"Frame"}]}},"tableEx":{"*":{"grid":[{"outlineColor":{"solid":{"color":"#E0E0E0"}},"outlineWeight":1,"gridVertical":false,"gridHorizontal":true,"gridHorizontalColor":{"solid":{"color":"#E0E0E0"}},"gridHorizontalWeight":1,"rowPadding":4}],"columnHeaders":[{"fontFamily":"Segoe UI Semibold","fontSize":11,"fontColor":{"solid":{"color":"#FFFFFF"}},"background":{"solid":{"color":"#0F4C81"}},"outline":"None","alignment":"left"}],"values":[{"fontFamily":"Segoe UI","fontSize":11,"fontColor":{"solid":{"color":"#333333"}},"background":{"solid":{"color":"#FFFFFF"}},"bandedRowColor":{"solid":{"color":"#F0F6FB"}},"alignment":"left"}],"total":[{"totals":true,"fontFamily":"Segoe UI Semibold","fontSize":11,"fontColor":{"solid":{"color":"#0F4C81"}},"background":{"solid":{"color":"#E8F0F7"}},"outline":"Top","outlineColor":{"solid":{"color":"#0F4C81"}}}]}},"matrix":{"*":{"grid":[{"outlineColor":{"solid":{"color":"#E0E0E0"}},"outlineWeight":1,"gridVertical":false,"gridHorizontal":true,"gridHorizontalColor":{"solid":{"color":"#E0E0E0"}},"gridHorizontalWeight":1,"rowPadding":4}],"rowHeaders":[{"fontFamily":"Segoe UI","fontSize":11,"fontColor":{"solid":{"color":"#333333"}},"background":{"solid":{"color":"#FFFFFF"}},"outline":"None","stepped":true,"steppedLayoutIndentation":20,"expandCollapse":true}],"columnHeaders":[{"fontFamily":"Segoe UI Semibold","fontSize":11,"fontColor":{"solid":{"color":"#FFFFFF"}},"background":{"solid":{"color":"#0F4C81"}},"outline":"None","alignment":"left"}],"values":[{"fontFamily":"Segoe UI","fontSize":11,"fontColor":{"solid":{"color":"#333333"}},"background":{"solid":{"color":"#FFFFFF"}},"bandedRowColor":{"solid":{"color":"#F0F6FB"}},"alignment":"right"}],"subtotals":[{"rowSubtotals":true,"columnSubtotals":true,"fontFamily":"Segoe UI Semibold","fontSize":11,"fontColor":{"solid":{"color":"#0F4C81"}},"background":{"solid":{"color":"#E8F0F7"}},"outline":"TopBottom","outlineColor":{"solid":{"color":"#0F4C81"}},"perRowLevel":true,"perColumnLevel":true}]}},"lineClusteredColumnComboChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}}}]}],"y2AxisReferenceLine":[{"show":false}],"dataLabels":[{"show":false,"fontSize":9,"fontFamily":"Segoe UI"}]}},"lineStackedColumnComboChart":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"categoryAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false}],"valueAxis":[{"show":true,"color":{"solid":{"color":"#666666"}},"fontSize":11,"fontFamily":"Segoe UI","showAxisTitle":false,"gridlines":[{"show":true,"color":{"solid":{"color":"#E0E0E0"}}}]}],"dataLabels":[{"show":false,"fontSize":9,"fontFamily":"Segoe UI"}]}},"decompositionTree":{"*":{"legend":[{"show":true,"position":"Top","showTitle":false,"labelColor":{"solid":{"color":"#444444"}},"fontFamily":"Segoe UI","fontSize":10}],"dataLabels":[{"show":true,"fontSize":11,"fontFamily":"Segoe UI","color":{"solid":{"color":"#333333"}}}],"header":[{"fontFamily":"Segoe UI Semibold","fontSize":11,"fontColor":{"solid":{"color":"#FFFFFF"}},"fill":{"solid":{"color":"#0F4C81"}}}]}},"shape":{"*":{"fill":[{"show":true,"fillColor":{"solid":{"color":"#1F8AC0"}},"transparency":0}],"line":[{"show":false,"strokeColor":{"solid":{"color":"#0F4C81"}},"strokeWidth":1}]}},"textbox":{"*":{"background":[{"show":false}],"border":[{"show":false}]}},"image":{"*":{"imageScaling":[{"imageScalingType":"Fit"}],"background":[{"show":false}]}},"actionButton":{"*":{"text":[{"show":true,"fontFamily":"Segoe UI","fontSize":12,"fontBold":false,"fontColor":{"solid":{"color":"#FFFFFF"}},"alignment":"center","verticalAlignment":"middle"}],"fill":[{"show":true,"color":{"solid":{"color":"#1F8AC0"}},"transparency":0}],"outline":[{"show":false}],"shadow":[{"show":false}]}}}};
+
 // ── Visual display names ──
 const VISUAL_LABELS = {
   "*":                            "Global (All Visuals)",
@@ -170,7 +1103,6 @@ const VISUAL_LABELS = {
   "filledMap":                    "Filled Map",
   "funnel":                       "Funnel",
   "gauge":                        "Gauge",
-  "card":                         "Card",
   "multiRowCard":                 "Multi-Row Card",
   "kpi":                          "KPI",
   "slicer":                       "Slicer",
@@ -179,11 +1111,39 @@ const VISUAL_LABELS = {
   "lineClusteredColumnComboChart":"Line & Clustered Column Combo",
   "lineStackedColumnComboChart":  "Line & Stacked Column Combo",
   "decompositionTree":            "Decomposition Tree",
-  "shape":                        "Shape",
+  "decompositionTreeVisual":      "Decomposition Tree (New)",
+  "hundredPercentStackedAreaChart":"100% Stacked Area Chart",
+  "advancedSlicerVisual":         "Advanced Slicer",
+  "listSlicer":                   "List Slicer",
+  "pivotTable":                   "Pivot Table",
+  "scorecard":                    "Scorecard",
+  "cardVisual":                   "Card (New)",
+  "bookmarkNavigator":            "Bookmark Navigator",
+  "pageNavigator":                "Page Navigator",
+  "azureMap":                     "Azure Map",
+  "shapeMap":                     "Shape Map",
   "textbox":                      "Text Box",
-  "image":                        "Image",
-  "actionButton":                 "Button"
+  "actionButton":                 "Button",
 };
+
+let currentVisual = null;
+
+function syntaxHL(json) {
+  return json
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/("(\\u[0-9a-fA-F]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, m => {
+      let cls = 'json-num';
+      if (/^"/.test(m)) cls = /:$/.test(m) ? 'json-key' : 'json-str';
+      else if (/true|false/.test(m)) cls = 'json-bool';
+      else if (/null/.test(m)) cls = 'json-null';
+      return `<span class="${cls}">${m}</span>`;
+    });
+}
+
+function updateJSON() {
+  const out = document.getElementById('json-output');
+  out.innerHTML = syntaxHL(JSON.stringify(THEME, null, 2));
+}
 
 // ── Build sidebar from label map ──
 function buildSidebar(filter = "") {
@@ -207,20 +1167,1434 @@ function buildSidebar(filter = "") {
   });
 }
 
+const ENUMS = {
+  position: ["Top","Bottom","Left","Right","TopLeft","TopRight","BottomLeft","BottomRight"],
+  alignment: ["left","center","right"],
+  verticalAlignment: ["top","middle","bottom"],
+  fontFamily: ["Segoe UI","Segoe UI Semibold","Segoe UI Light","Arial","Calibri","Trebuchet MS","Times New Roman","Courier New"],
+  outline: ["None","Frame","Top","Bottom","Left","Right","TopBottom"],
+  imageScalingType: ["Fit","Fill","Normal"],
+  labelStyle: ["category","data","both","percent","percentOfTotal"],
+};
+
+function isSolidColor(v) {
+  return v && typeof v === 'object' && v.solid && v.solid.color;
+}
+
+function getSolidColor(v) { return v.solid.color; }
+
+function setSolidColor(obj, key, hex) {
+  obj[key] = { solid: { color: hex } };
+}
+
+function setNestedPath(obj, path, value) {
+  const keys = path.split('.');
+  let cur = obj;
+  for (let i = 0; i < keys.length - 1; i++) cur = cur[keys[i]];
+  cur[keys[keys.length - 1]] = value;
+}
+
+function renderControl(val, onChange) {
+  const wrap = document.createElement('div');
+  wrap.className = 'prop-control';
+
+  if (typeof val === 'boolean') {
+    const label = document.createElement('label');
+    label.className = 'toggle';
+    const inp = document.createElement('input');
+    inp.type = 'checkbox';
+    inp.checked = val;
+    inp.addEventListener('change', () => onChange(inp.checked));
+    const slider = document.createElement('span');
+    slider.className = 'toggle-slider';
+    label.appendChild(inp);
+    label.appendChild(slider);
+    wrap.appendChild(label);
+
+  } else if (isSolidColor(val)) {
+    const cw = document.createElement('div');
+    cw.className = 'color-wrap';
+    const inp = document.createElement('input');
+    inp.type = 'color';
+    inp.value = getSolidColor(val).toLowerCase();
+    const hex = document.createElement('span');
+    hex.className = 'color-hex';
+    hex.textContent = inp.value.toUpperCase();
+    inp.addEventListener('input', () => {
+      hex.textContent = inp.value.toUpperCase();
+      onChange({ solid: { color: inp.value.toUpperCase() } });
+    });
+    cw.appendChild(inp);
+    cw.appendChild(hex);
+    wrap.appendChild(cw);
+
+  } else if (typeof val === 'number') {
+    const inp = document.createElement('input');
+    inp.type = 'number';
+    inp.className = 'prop-num';
+    inp.value = val;
+    inp.addEventListener('change', () => onChange(Number(inp.value)));
+    wrap.appendChild(inp);
+
+  } else if (typeof val === 'string') {
+    const enumKey = Object.keys(ENUMS).find(k => ENUMS[k].includes(val));
+    if (enumKey) {
+      const sel = document.createElement('select');
+      sel.className = 'prop-select';
+      ENUMS[enumKey].forEach(opt => {
+        const o = document.createElement('option');
+        o.value = opt; o.textContent = opt;
+        if (opt === val) o.selected = true;
+        sel.appendChild(o);
+      });
+      sel.addEventListener('change', () => onChange(sel.value));
+      wrap.appendChild(sel);
+    } else {
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.className = 'prop-text';
+      inp.value = val;
+      inp.addEventListener('change', () => onChange(inp.value));
+      wrap.appendChild(inp);
+    }
+  }
+  return wrap;
+}
+
+function renderProps(props, onChange) {
+  const frag = document.createDocumentFragment();
+  Object.entries(props).forEach(([key, val]) => {
+    // nested array (e.g. gridlines)
+    if (Array.isArray(val) && val.length > 0 && typeof val[0] === 'object') {
+      const sub = document.createElement('div');
+      const title = document.createElement('div');
+      title.className = 'sub-card-title';
+      title.textContent = key;
+      sub.className = 'sub-card';
+      sub.appendChild(title);
+      sub.appendChild(renderProps(val[0], (subKey, newVal) => {
+        val[0][subKey] = newVal;
+        onChange(key, val);
+        updateJSON();
+      }));
+      const row = document.createElement('div');
+      row.className = 'prop-row';
+      const lbl = document.createElement('span');
+      lbl.className = 'prop-label';
+      lbl.textContent = key;
+      row.appendChild(sub);
+      frag.appendChild(row);
+      return;
+    }
+
+    if (isSolidColor(val) || typeof val === 'boolean' || typeof val === 'number' || typeof val === 'string') {
+      const row = document.createElement('div');
+      row.className = 'prop-row';
+      const lbl = document.createElement('span');
+      lbl.className = 'prop-label';
+      lbl.textContent = key;
+      const ctrl = renderControl(val, newVal => {
+        onChange(key, newVal);
+        updateJSON();
+      });
+      row.appendChild(lbl);
+      row.appendChild(ctrl);
+      frag.appendChild(row);
+    }
+  });
+  return frag;
+}
+
+function renderCards(visualKey) {
+  const panel = document.getElementById('settings-panel');
+  const title = document.getElementById('panel-title');
+  const sub = document.getElementById('panel-subtitle');
+  const placeholder = document.getElementById('panel-placeholder');
+
+  placeholder.style.display = 'none';
+
+  // Remove old cards
+  panel.querySelectorAll('.card').forEach(c => c.remove());
+
+  const style = THEME.visualStyles[visualKey];
+  if (!style) return;
+  const cards = style['*'];
+  if (!cards) return;
+
+  Object.entries(cards).forEach(([cardName, cardArr]) => {
+    if (!Array.isArray(cardArr) || cardArr.length === 0) return;
+    const props = cardArr[0];
+
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const header = document.createElement('div');
+    header.className = 'card-header';
+    header.innerHTML = `${cardName} <span class="arrow">▶</span>`;
+    header.addEventListener('click', () => {
+      header.classList.toggle('open');
+      body.classList.toggle('open');
+    });
+
+    const body = document.createElement('div');
+    body.className = 'card-body';
+    body.appendChild(renderProps(props, (propKey, newVal) => {
+      props[propKey] = newVal;
+      updateJSON();
+    }));
+
+    card.appendChild(header);
+    card.appendChild(body);
+    panel.appendChild(card);
+  });
+}
+
 function selectVisual(key, label, el) {
   document.querySelectorAll("#visual-list li").forEach(l => l.classList.remove("active"));
   el.classList.add("active");
   document.getElementById("panel-title").textContent = label;
   document.getElementById("panel-subtitle").textContent = `JSON key: "${key}"`;
-  document.getElementById("panel-placeholder").textContent = "Settings panel coming in next step…";
-  document.getElementById("json-output").textContent = JSON.stringify({ [key]: {} }, null, 2);
+  currentVisual = key;
+  renderCards(key);
+  updateJSON();
+}
+
+function toggleJSON() {
+  const panel = document.getElementById('json-panel');
+  const btn = document.getElementById('json-toggle-btn');
+  panel.classList.toggle('open');
+  btn.textContent = panel.classList.contains('open') ? '{ } Hide JSON' : '{ } Show JSON';
+}
+
+function copyJSON() {
+  const text = JSON.stringify(THEME, null, 2);
+  navigator.clipboard.writeText(text).then(() => alert('Full theme JSON copied!'));
+}
+function downloadJSON() {
+  const blob = new Blob([JSON.stringify(THEME, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'Customer360_Theme.json';
+  a.click();
 }
 
 // ── Search ──
 document.getElementById("sidebar-search").addEventListener("input", e => buildSidebar(e.target.value));
 
+// ── Global bar init ──
+function initGlobalBar() {
+  [
+    'background','foreground','tableAccent',
+    'good','neutral','bad',
+    'maximum','center','minimum','null',
+    'firstLevelElements','secondLevelElements','thirdLevelElements','fourthLevelElements','secondaryBackground',
+    // Extended (schema v2.152)
+    'accent','foregroundButton','foregroundLight','foregroundDark',
+    'foregroundNeutralLight','foregroundNeutralDark',
+    'foregroundNeutralSecondary','foregroundNeutralSecondaryAlt','foregroundNeutralSecondaryAlt2',
+    'foregroundNeutralTertiary','foregroundNeutralTertiaryAlt','foregroundSelected',
+    'backgroundLight','backgroundNeutral','backgroundDark',
+    'disabledText','hyperlink','visitedHyperlink','shapeStroke','mapPushpin'
+  ].forEach(key => {
+    const inp = document.getElementById('g-' + key);
+    if (!inp) return;
+    inp.value = (THEME[key] || '#888888').toLowerCase();
+    inp.addEventListener('input', () => { THEME[key] = inp.value.toUpperCase(); updateJSON(); });
+  });
+  const dc = document.getElementById('data-colors');
+  THEME.dataColors.forEach((col, i) => {
+    const inp = document.createElement('input');
+    inp.type = 'color';
+    inp.value = col.toLowerCase();
+    inp.title = `Color ${i+1}`;
+    inp.style.cssText = 'width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;';
+    inp.addEventListener('input', () => { THEME.dataColors[i] = inp.value.toUpperCase(); updateJSON(); buildGrid(); });
+    dc.appendChild(inp);
+  });
+
+  // ── textClasses (Global Typography — MS way) ──
+  if (!THEME.textClasses) THEME.textClasses = {
+    title:   { fontFace:'Segoe UI', fontSize:14, fontBold:true,  fontColor:'#0F4C81' },
+    header:  { fontFace:'Segoe UI', fontSize:12, fontBold:true,  fontColor:'#374649' },
+    label:   { fontFace:'Segoe UI', fontSize:10, fontBold:false, fontColor:'#666666' },
+    callout: { fontFace:'Segoe UI', fontSize:45, fontBold:false, fontColor:'#374649' },
+  };
+
+  ['title','header','label','callout'].forEach(cls => {
+    if (!THEME.textClasses[cls]) THEME.textClasses[cls] = {};
+    const tc   = THEME.textClasses[cls];
+    const fSel  = document.getElementById(`tc-${cls}-font`);
+    const fSize = document.getElementById(`tc-${cls}-size`);
+    const fCol  = document.getElementById(`tc-${cls}-color`);
+    const fBold = document.getElementById(`tc-${cls}-bold`);
+
+    if (fSel) {
+      FONTS.forEach(f => { const o=document.createElement('option'); o.value=f; o.textContent=f; fSel.appendChild(o); });
+      fSel.value = tc.fontFace || 'Segoe UI';
+      fSel.addEventListener('change', () => { tc.fontFace = fSel.value; updateJSON(); });
+    }
+    if (fSize) {
+      fSize.value = tc.fontSize || 12;
+      fSize.addEventListener('change', () => { tc.fontSize = +fSize.value; updateJSON(); });
+    }
+    if (fCol) {
+      fCol.value = (tc.fontColor || '#000000').toLowerCase();
+      fCol.addEventListener('input', () => { tc.fontColor = fCol.value.toUpperCase(); updateJSON(); });
+    }
+    if (fBold) {
+      fBold.checked = !!tc.fontBold;
+      fBold.addEventListener('change', () => { tc.fontBold = fBold.checked; updateJSON(); });
+    }
+  });
+}
+
+// ── VALIDATION rules per property name ──
+const VALIDATION = {
+  fontSize:              { min: 6,   max: 96,  step: 1 },
+  transparency:          { min: 0,   max: 100, step: 1 },
+  strokeWidth:           { min: 0,   max: 20,  step: 1 },
+  weight:                { min: 1,   max: 10,  step: 1 },
+  outlineWeight:         { min: 1,   max: 10,  step: 1 },
+  gridHorizontalWeight:  { min: 1,   max: 10,  step: 1 },
+  markerSize:            { min: 1,   max: 20,  step: 1 },
+  thickness:             { min: 1,   max: 10,  step: 1 },
+  arcAngle:              { min: 60,  max: 270, step: 1 },
+  startAngle:            { min: -180,max: 0,   step: 1 },
+  innerRadiusRatio:      { min: 0,   max: 100, step: 1 },
+  minBubbleSize:         { min: 1,   max: 100, step: 1 },
+  maxBubbleSize:         { min: 1,   max: 200, step: 1 },
+  rowPadding:            { min: 0,   max: 20,  step: 1 },
+  steppedLayoutIndentation: { min: 0, max: 100, step: 1 },
+  labelDisplayUnits:     { min: 0,   max: 4,   step: 1 },
+};
+
+// ── Get or create a card's data object in THEME ──
+const PAGE_SETTINGS = {};
+
+function getCardData(visualKey, cardName) {
+  if (visualKey === '__page__') {
+    if (!PAGE_SETTINGS[cardName]) PAGE_SETTINGS[cardName] = {};
+    return PAGE_SETTINGS[cardName];
+  }
+  if (!THEME.visualStyles[visualKey]) THEME.visualStyles[visualKey] = { '*': {} };
+  if (!THEME.visualStyles[visualKey]['*']) THEME.visualStyles[visualKey]['*'] = {};
+  const cards = THEME.visualStyles[visualKey]['*'];
+  if (!cards[cardName] || !cards[cardName][0]) cards[cardName] = [{}];
+  return cards[cardName][0];
+}
+
+// ── Modal open/close ──
+function openEditModal(key, label) {
+  currentVisual = key;
+  document.getElementById('modal-title').textContent = label;
+  const isPage = key === '__page__';
+  document.getElementById('modal-key').textContent = isPage ? 'Page-level settings' : `visualStyles["${key}"]["*"]`;
+  updateJSON();
+
+  const body = document.getElementById('modal-body');
+  body.innerHTML = '';
+
+  // LEFT: pinned preview pane
+  const previewPane = document.createElement('div');
+  previewPane.id = 'modal-preview-pane';
+
+  if (!isPage) {
+    const canvas = document.createElement('canvas');
+    canvas.id = 'preview-canvas';
+    canvas.width = 280; canvas.height = 200;
+    previewPane.appendChild(canvas);
+    const lbl = document.createElement('div');
+    lbl.id = 'modal-preview-label';
+    lbl.textContent = label;
+    previewPane.appendChild(lbl);
+  } else {
+    // Page settings: show a simple page mockup
+    const pgMock = document.createElement('div');
+    pgMock.style.cssText = 'width:250px;height:160px;background:#fff;border:2px solid #cdd9e8;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#0f4c81;font-size:12px;font-weight:600;';
+    pgMock.textContent = 'Page Canvas';
+    previewPane.appendChild(pgMock);
+    const lbl = document.createElement('div');
+    lbl.id = 'modal-preview-label';
+    lbl.textContent = 'Page Settings';
+    previewPane.appendChild(lbl);
+  }
+  body.appendChild(previewPane);
+
+  // RIGHT: scrollable settings pane
+  const settingsPane = document.createElement('div');
+  settingsPane.id = 'modal-settings-pane';
+
+  // Expand / Collapse all toolbar
+  const toolbar = document.createElement('div');
+  toolbar.style.cssText = 'display:flex;gap:8px;margin-bottom:12px;align-items:center;';
+  const btnExpandAll = document.createElement('button');
+  btnExpandAll.textContent = 'Expand All';
+  btnExpandAll.style.cssText = 'font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid #1f8ac0;background:#fff;color:#1f8ac0;cursor:pointer;';
+  const btnCollapseAll = document.createElement('button');
+  btnCollapseAll.textContent = 'Collapse All';
+  btnCollapseAll.style.cssText = 'font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid #aaa;background:#fff;color:#555;cursor:pointer;';
+  btnExpandAll.onclick = () => {
+    settingsPane.querySelectorAll('.card-header').forEach(h => { h.classList.add('open'); h.querySelector('.arrow').style.transform='rotate(90deg)'; });
+    settingsPane.querySelectorAll('.card-body').forEach(b => b.classList.add('open'));
+  };
+  btnCollapseAll.onclick = () => {
+    settingsPane.querySelectorAll('.card-header').forEach(h => { h.classList.remove('open'); h.querySelector('.arrow').style.transform=''; });
+    settingsPane.querySelectorAll('.card-body').forEach(b => b.classList.remove('open'));
+  };
+  const btnApply = document.createElement('button');
+  btnApply.textContent = '▶ Apply';
+  btnApply.title = 'Refresh preview with current settings';
+  btnApply.style.cssText = 'font-size:11px;padding:3px 10px;border-radius:4px;border:none;background:#1f8ac0;color:#fff;cursor:pointer;margin-left:auto;';
+  btnApply.onclick = () => { refreshModalPreview(key); refreshGridCard(key); };
+  toolbar.appendChild(btnExpandAll);
+  toolbar.appendChild(btnCollapseAll);
+  toolbar.appendChild(btnApply);
+  settingsPane.appendChild(toolbar);
+
+  const cardList = VISUAL_SCHEMA[key] || [];
+  let firstCard = true;
+  cardList.forEach(cardName => {
+    if (!CARD_DEFS[cardName]) return;
+    const data = getCardData(key, cardName);
+    settingsPane.appendChild(buildModalCard(cardName, data, key, firstCard));
+    firstCard = false;
+  });
+  body.appendChild(settingsPane);
+
+  document.getElementById('modal-overlay').classList.add('open');
+
+  if (!isPage) {
+    const canvas = document.getElementById('preview-canvas');
+    destroyChartOnCanvas(canvas);
+    _modalChart = renderVisualPreview(key, canvas, true);
+  }
+}
+
+let _modalChart = null;
+
+function destroyChartOnCanvas(canvas) {
+  const existing = (typeof Chart !== 'undefined') ? Chart.getChart(canvas) : null;
+  if (existing) { try { existing.destroy(); } catch(e){} }
+  if (_modalChart) { try { _modalChart.destroy(); } catch(e){} _modalChart = null; }
+}
+
+let _refreshTimer = null;
+function refreshModalPreview(key) {
+  clearTimeout(_refreshTimer);
+  _refreshTimer = setTimeout(() => {
+    const canvas = document.getElementById('preview-canvas');
+    if (!canvas) return;
+    destroyChartOnCanvas(canvas);
+    _modalChart = renderVisualPreview(key, canvas, true);
+  }, 40);
+}
+
+function closeEditModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  if (_modalChart) { try{_modalChart.destroy();}catch(e){} _modalChart=null; }
+}
+
+// close on overlay click
+document.getElementById('modal-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeEditModal();
+});
+
+function buildModalCard(cardName, data, visualKey, startOpen) {
+  const defs = CARD_DEFS[cardName];
+  if (!defs) return document.createDocumentFragment();
+
+  const wrap = document.createElement('div');
+  wrap.className = 'card';
+  wrap.style.marginBottom = '10px';
+
+  const hdr = document.createElement('div');
+  hdr.className = startOpen ? 'card-header open' : 'card-header';
+  const cardLabel = cardName.replace(/([A-Z])/g,' $1').replace(/^./,s=>s.toUpperCase());
+  hdr.innerHTML = `${cardLabel} <span class="arrow" style="transform:${startOpen?'rotate(90deg)':''}">▶</span>`;
+
+  const body = document.createElement('div');
+  body.className = startOpen ? 'card-body open' : 'card-body';
+
+  defs.forEach(def => {
+    const val = data[def.key] !== undefined ? resolveVal(data[def.key]) : def.def;
+    const row = document.createElement('div');
+    row.className = 'prop-row';
+    const lbl = document.createElement('span');
+    lbl.className = 'prop-label';
+    lbl.textContent = def.label;
+    const ctrl = buildCtrl(def, val, newVal => {
+      data[def.key] = storeVal(def, newVal);
+      updateJSON();
+      refreshModalPreview(visualKey);
+      refreshGridCard(visualKey);
+    });
+    row.appendChild(lbl); row.appendChild(ctrl);
+    body.appendChild(row);
+  });
+
+  hdr.addEventListener('click', () => {
+    hdr.classList.toggle('open');
+    body.classList.toggle('open');
+    hdr.querySelector('.arrow').style.transform = hdr.classList.contains('open') ? 'rotate(90deg)' : '';
+  });
+
+  wrap.appendChild(hdr); wrap.appendChild(body);
+  return wrap;
+}
+
+// resolve stored value to plain value for rendering
+function resolveVal(v) {
+  if (isSolidColor(v)) return getSolidColor(v);
+  return v;
+}
+// store value back in correct format
+function storeVal(def, v) {
+  if (def.type === 'color') return { solid: { color: v } };
+  return v;
+}
+
+function buildCtrl(def, val, onChange) {
+  const wrap = document.createElement('div');
+  wrap.className = 'prop-control';
+
+  if (def.type === 'boolean') {
+    const label = document.createElement('label');
+    label.className = 'toggle';
+    const inp = document.createElement('input');
+    inp.type = 'checkbox'; inp.checked = !!val;
+    inp.addEventListener('change', () => onChange(inp.checked));
+    const slider = document.createElement('span');
+    slider.className = 'toggle-slider';
+    label.appendChild(inp); label.appendChild(slider);
+    wrap.appendChild(label);
+
+  } else if (def.type === 'color') {
+    const cw = document.createElement('div'); cw.className = 'color-wrap';
+    const inp = document.createElement('input');
+    inp.type = 'color';
+    inp.value = (val || '#000000').toLowerCase();
+    const hex = document.createElement('span');
+    hex.className = 'color-hex'; hex.textContent = inp.value.toUpperCase();
+    inp.addEventListener('input',  () => { hex.textContent = inp.value.toUpperCase(); });
+    inp.addEventListener('change', () => { hex.textContent = inp.value.toUpperCase(); onChange(inp.value.toUpperCase()); });
+    cw.appendChild(inp); cw.appendChild(hex); wrap.appendChild(cw);
+
+  } else if (def.type === 'number') {
+    const inp = document.createElement('input');
+    inp.type = 'number'; inp.className = 'prop-num'; inp.value = val ?? def.def ?? 0;
+    if (def.min !== undefined) inp.min = def.min;
+    if (def.max !== undefined) inp.max = def.max;
+    inp.step = def.step || 1;
+    inp.addEventListener('change', () => {
+      let v = Number(inp.value);
+      if (def.min !== undefined && v < def.min) { v = def.min; inp.value = v; }
+      if (def.max !== undefined && v > def.max) { v = def.max; inp.value = v; }
+      onChange(v);
+    });
+    wrap.appendChild(inp);
+
+  } else if (def.type === 'enum' || def.type === 'fontFamily') {
+    const opts = def.options || ENUMS[def.key] || [];
+    const sel = document.createElement('select'); sel.className = 'prop-select';
+    opts.forEach(o => {
+      const op = document.createElement('option');
+      op.value = o; op.textContent = o;
+      if (o === val) op.selected = true;
+      sel.appendChild(op);
+    });
+    sel.addEventListener('change', () => onChange(sel.value));
+    wrap.appendChild(sel);
+
+  } else {
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.className = 'prop-text'; inp.value = val || '';
+    inp.maxLength = 200;
+    inp.addEventListener('input', () => onChange(inp.value));
+    wrap.appendChild(inp);
+  }
+  return wrap;
+}
+
+function buildPropRows(props, visualKey, cardName) {
+  const frag = document.createDocumentFragment();
+  Object.entries(props).forEach(([key, val]) => {
+    // nested array (e.g. gridlines: [{show, color}])
+    if (Array.isArray(val) && val.length > 0 && typeof val[0] === 'object') {
+      const sub = document.createElement('div');
+      sub.className = 'sub-card';
+      const t = document.createElement('div');
+      t.className = 'sub-card-title';
+      t.textContent = key;
+      sub.appendChild(t);
+      sub.appendChild(buildPropRows(val[0], visualKey, cardName + '.' + key));
+      const row = document.createElement('div');
+      row.className = 'prop-row';
+      row.appendChild(sub);
+      frag.appendChild(row);
+      return;
+    }
+    // solid color object
+    if (isSolidColor(val)) {
+      frag.appendChild(makeRow(key, makeColorControl(val, newVal => {
+        props[key] = newVal; updateJSON();
+      })));
+      return;
+    }
+    // plain object (e.g. background: {solid:{color}}) already handled above
+    if (typeof val === 'object') return;
+
+    if (typeof val === 'boolean') {
+      frag.appendChild(makeRow(key, makeToggle(val, v => { props[key] = v; updateJSON(); })));
+    } else if (typeof val === 'number') {
+      frag.appendChild(makeRow(key, makeNumber(key, val, v => { props[key] = v; updateJSON(); })));
+    } else if (typeof val === 'string') {
+      const enumKey = Object.keys(ENUMS).find(k => k === key || ENUMS[k].includes(val));
+      if (enumKey) {
+        frag.appendChild(makeRow(key, makeDropdown(enumKey, val, v => { props[key] = v; updateJSON(); })));
+      } else {
+        frag.appendChild(makeRow(key, makeText(key, val, v => { props[key] = v; updateJSON(); })));
+      }
+    }
+  });
+  return frag;
+}
+
+function makeRow(label, control) {
+  const row = document.createElement('div');
+  row.className = 'prop-row';
+  const lbl = document.createElement('span');
+  lbl.className = 'prop-label';
+  lbl.textContent = label;
+  row.appendChild(lbl);
+  row.appendChild(control);
+  return row;
+}
+
+function makeToggle(val, onChange) {
+  const wrap = document.createElement('div');
+  wrap.className = 'prop-control';
+  const label = document.createElement('label');
+  label.className = 'toggle';
+  const inp = document.createElement('input');
+  inp.type = 'checkbox'; inp.checked = val;
+  inp.addEventListener('change', () => onChange(inp.checked));
+  const slider = document.createElement('span');
+  slider.className = 'toggle-slider';
+  label.appendChild(inp); label.appendChild(slider);
+  wrap.appendChild(label);
+  return wrap;
+}
+
+function makeColorControl(val, onChange) {
+  const wrap = document.createElement('div');
+  wrap.className = 'prop-control';
+  const cw = document.createElement('div');
+  cw.className = 'color-wrap';
+  const inp = document.createElement('input');
+  inp.type = 'color';
+  inp.value = getSolidColor(val).toLowerCase();
+  const hex = document.createElement('span');
+  hex.className = 'color-hex';
+  hex.textContent = inp.value.toUpperCase();
+  inp.addEventListener('input', () => {
+    hex.textContent = inp.value.toUpperCase();
+    onChange({ solid: { color: inp.value.toUpperCase() } });
+  });
+  cw.appendChild(inp); cw.appendChild(hex);
+  wrap.appendChild(cw);
+  return wrap;
+}
+
+function makeNumber(key, val, onChange) {
+  const wrap = document.createElement('div');
+  wrap.className = 'prop-control';
+  const rule = VALIDATION[key] || {};
+  const inp = document.createElement('input');
+  inp.type = 'number'; inp.className = 'prop-num';
+  inp.value = val;
+  if (rule.min !== undefined) inp.min = rule.min;
+  if (rule.max !== undefined) inp.max = rule.max;
+  if (rule.step)              inp.step = rule.step;
+  inp.addEventListener('change', () => {
+    let v = Number(inp.value);
+    if (rule.min !== undefined && v < rule.min) { v = rule.min; inp.value = v; }
+    if (rule.max !== undefined && v > rule.max) { v = rule.max; inp.value = v; }
+    onChange(v);
+  });
+  wrap.appendChild(inp);
+  return wrap;
+}
+
+function makeDropdown(enumKey, val, onChange) {
+  const wrap = document.createElement('div');
+  wrap.className = 'prop-control';
+  const sel = document.createElement('select');
+  sel.className = 'prop-select';
+  ENUMS[enumKey].forEach(opt => {
+    const o = document.createElement('option');
+    o.value = opt; o.textContent = opt;
+    if (opt === val) o.selected = true;
+    sel.appendChild(o);
+  });
+  sel.addEventListener('change', () => onChange(sel.value));
+  wrap.appendChild(sel);
+  return wrap;
+}
+
+function makeText(key, val, onChange) {
+  const wrap = document.createElement('div');
+  wrap.className = 'prop-control';
+  const inp = document.createElement('input');
+  inp.type = 'text'; inp.className = 'prop-text';
+  inp.value = val; inp.maxLength = 100;
+  // validate: hex color strings must match pattern
+  if (key.toLowerCase().includes('color') || val.startsWith('#')) {
+    inp.pattern = '^#[0-9A-Fa-f]{6}$';
+    inp.title = 'Hex color e.g. #1F8AC0';
+    inp.style.fontFamily = 'monospace';
+  }
+  inp.addEventListener('change', () => {
+    if (inp.validity.valid) onChange(inp.value);
+    else inp.style.borderColor = '#e76f51';
+  });
+  inp.addEventListener('input', () => inp.style.borderColor = '');
+  wrap.appendChild(inp);
+  return wrap;
+}
+
+// ── Sample data ──
+const SL  = ['Jan','Feb','Mar','Apr','May','Jun'];
+const SD1 = [42,68,55,80,63,91];
+const SD2 = [30,45,60,35,70,50];
+const SD3 = [20,30,25,45,30,40];
+
+function rcv(vk, card, prop, fb) {
+  try { const v = resolveVal(THEME.visualStyles[vk]['*'][card][0][prop]); if (v !== undefined && v !== null) return v; } catch(e){}
+  try { const v = resolveVal(THEME.visualStyles['*']['*'][card][0][prop]); if (v !== undefined && v !== null) return v; } catch(e){}
+  return fb;
+}
+function col(i){ return THEME.dataColors[i % THEME.dataColors.length]; }
+function hexAlpha(hex, a) {
+  if (!hex || hex.length < 6) return `rgba(0,0,0,${a})`;
+  const h = hex.replace('#','');
+  const r=parseInt(h.slice(0,2),16), g=parseInt(h.slice(2,4),16), b=parseInt(h.slice(4,6),16);
+  return `rgba(${r},${g},${b},${(+a).toFixed(2)})`;
+}
+
+// ── Master preview renderer — returns Chart instance or null ──
+function renderVisualPreview(vk, canvas, isModal) {
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const W = canvas.width, H = canvas.height;
+
+  // Page settings mockup
+  if (vk === '__page__') {
+    ctx.fillStyle = '#f4f6f9';
+    ctx.fillRect(0,0,W,H);
+    const pw = Math.round(W*0.72), ph = Math.round(H*0.8);
+    const px = Math.round((W-pw)/2), py = Math.round((H-ph)/2);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(px, py, pw, ph);
+    ctx.strokeStyle = '#c8d8ea';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(px, py, pw, ph);
+    // title bar stub
+    ctx.fillStyle = '#e0eaf5';
+    ctx.fillRect(px+8, py+8, pw-16, 12);
+    // content stubs
+    for (let i=0;i<4;i++) {
+      ctx.fillStyle = '#e8eef6';
+      ctx.fillRect(px+8, py+28+i*16, pw-16-(i%2)*20, 10);
+    }
+    ctx.fillStyle = '#0f4c81';
+    ctx.font = `${isModal?12:9}px Segoe UI`;
+    ctx.textAlign = 'center';
+    ctx.fillText('Page Settings', W/2, H-6);
+    return null;
+  }
+  const colors = THEME.dataColors;
+
+  // ── Legend
+  const legendShow    = rcv(vk,'legend','show',true);
+  const _lp           = (rcv(vk,'legend','position','Top')||'Top').toLowerCase();
+  const legendPos     = _lp.includes('right') ? 'right' : _lp.includes('left') ? 'left' : _lp.includes('bottom') ? 'bottom' : 'top';
+  const legendColor   = rcv(vk,'legend','labelColor','#444444');
+  const legendFontSz  = rcv(vk,'legend','fontSize', isModal?10:8);
+
+  // ── Category axis
+  const catShow    = rcv(vk,'categoryAxis','show', true);
+  const catColor   = rcv(vk,'categoryAxis','labelColor','#666666');
+  const catFontSz  = rcv(vk,'categoryAxis','fontSize', isModal?11:9);
+  const catGridShow= rcv(vk,'categoryAxis','gridlineShow', false);
+  const catGridCol = rcv(vk,'categoryAxis','gridlineColor','#E0E0E0');
+
+  // ── Value axis
+  const valShow    = rcv(vk,'valueAxis','show', true);
+  const valColor   = rcv(vk,'valueAxis','labelColor','#666666');
+  const valFontSz  = rcv(vk,'valueAxis','fontSize', isModal?11:9);
+  const gridShow   = rcv(vk,'valueAxis','gridlineShow', true);
+  const gridCol    = rcv(vk,'valueAxis','gridlineColor','#E0E0E0');
+
+  // ── Data point
+  const dpDefaultColor = rcv(vk,'dataPoint','defaultColor', null);
+  const dpAlpha        = 1 - (rcv(vk,'dataPoint','fillTransparency', 0) / 100);
+
+  // ── Data labels
+  const labShow   = rcv(vk,'labels','show', false);
+  const labColor  = rcv(vk,'labels','color','#FFFFFF');
+  const labFontSz = rcv(vk,'labels','fontSize', isModal?9:8);
+
+  // ── Title
+  const titleShow  = rcv(vk,'title','show', true);
+  const titleColor = rcv(vk,'title','fontColor','#0F4C81');
+  const titleFontSz= Math.min(rcv(vk,'title','fontSize', 14), isModal?16:13);
+  const titleBold  = rcv(vk,'title','bold', true);
+  const titleText  = rcv(vk,'title','text','') || (typeof VISUAL_LABELS !== 'undefined' ? VISUAL_LABELS[vk]||vk : vk);
+  const displayTitle = titleText.length > 28 ? titleText.slice(0,28)+'…' : titleText;
+
+  // ── Background
+  const bgShow  = rcv(vk,'background','show', false);
+  const bgColor = rcv(vk,'background','color','#FFFFFF');
+  const bgAlpha = 1 - (rcv(vk,'background','transparency', 0) / 100);
+
+  if (bgShow) { ctx.fillStyle = hexAlpha(bgColor, bgAlpha); ctx.fillRect(0,0,W,H); }
+
+  // Reserve top space for title — canvas 2D visuals draw it here;
+  // Chart.js visuals use plugins.title instead (Chart.js clears canvas on init)
+  let titleH = 0;
+  if (titleShow) {
+    titleH = titleFontSz + 6;
+    ctx.fillStyle = titleColor;
+    ctx.font = `${titleBold?'bold ':''}${titleFontSz}px Segoe UI`;
+    ctx.textAlign = 'left';
+    ctx.fillText(displayTitle, 6, titleFontSz + 2);
+  }
+
+  // ── Border (canvas 2D: drawn before content so content paints on top at edges)
+  const borderShow2 = rcv(vk,'border','show', false);
+  const borderColor2 = rcv(vk,'border','color','#E0E0E0');
+  const borderWeight2 = rcv(vk,'border','weight', 1);
+  const borderRadius2 = rcv(vk,'border','radius', 0);
+  if (borderShow2) {
+    ctx.save();
+    ctx.strokeStyle = borderColor2;
+    ctx.lineWidth = borderWeight2;
+    const bHalf = borderWeight2 / 2;
+    if (borderRadius2 > 0 && ctx.roundRect) {
+      ctx.beginPath(); ctx.roundRect(bHalf,bHalf,W-borderWeight2,H-borderWeight2,borderRadius2); ctx.stroke();
+    } else {
+      ctx.strokeRect(bHalf,bHalf,W-borderWeight2,H-borderWeight2);
+    }
+    ctx.restore();
+  }
+
+  // ── Series color helper (const to avoid hoisting ambiguity)
+  const sc = (i) => hexAlpha((i===0 && dpDefaultColor) ? dpDefaultColor : col(i), dpAlpha > 0 ? dpAlpha : 1);
+
+  const fontSize = isModal ? 11 : 9;
+
+  // ── Axis title settings (for Chart.js scales)
+  const catAxisTitleShow  = rcv(vk,'categoryAxis','showAxisTitle', false);
+  const catAxisTitleText  = rcv(vk,'categoryAxis','titleText', '');
+  const catAxisTitleColor = rcv(vk,'categoryAxis','titleColor', '#666666');
+  const valAxisTitleShow  = rcv(vk,'valueAxis','showAxisTitle', false);
+  const valAxisTitleText  = rcv(vk,'valueAxis','titleText', '');
+  const valAxisTitleColor = rcv(vk,'valueAxis','titleColor', '#666666');
+
+  // bx = base CATEGORY axis, by = base VALUE axis — spread into each chart's scales
+  const bx = { display:catShow, ticks:{color:catColor, font:{size:catFontSz}},
+               grid:{display:catGridShow, color:catGridCol}, border:{display:false},
+               title:{display:catAxisTitleShow && isModal, text:catAxisTitleText, color:catAxisTitleColor} };
+  const by = { display:valShow, ticks:{color:valColor, font:{size:valFontSz}},
+               grid:{display:gridShow, color:gridCol}, border:{display:false},
+               title:{display:valAxisTitleShow && isModal, text:valAxisTitleText, color:valAxisTitleColor} };
+  // Chart.js plugins.title handles title rendering so Chart.js canvas-clear doesn't erase it
+  const basePlugins = {
+    legend:{ display:legendShow && isModal, position:legendPos, labels:{font:{size:legendFontSz}, color:legendColor, boxWidth:10} },
+    tooltip:{ enabled:false },
+    title:{
+      display: titleShow,
+      text: displayTitle,
+      color: titleColor,
+      font:{ size: titleFontSz, weight: titleBold ? 'bold' : 'normal', family: 'Segoe UI' },
+      align: 'start',
+      padding:{ top:2, bottom:4 }
+    }
+  };
+  const baseOpts = { responsive:false, animation:{duration:150}, plugins:basePlugins };
+
+  // ── Horizontal bar charts (indexAxis y: cat=y, val=x) ──
+  if (['barChart','clusteredBarChart','stackedBarChart','hundredPercentStackedBarChart'].includes(vk)) {
+    const stacked  = vk==='stackedBarChart'||vk==='hundredPercentStackedBarChart';
+    const pct      = vk==='hundredPercentStackedBarChart';
+    const datasets = vk==='barChart'
+      ? [{ label:'A', data:SD1, backgroundColor:sc(0) }]
+      : [
+          { label:'A', data:SD1, backgroundColor:sc(0) },
+          { label:'B', data:SD2, backgroundColor:sc(1) },
+          { label:'C', data:SD3, backgroundColor:sc(2) },
+        ];
+    return new Chart(ctx,{
+      type:'bar',
+      data:{ labels:SL, datasets },
+      options:{ ...baseOpts, indexAxis:'y',
+        scales:{ x:{...by, stacked, max:pct?100:undefined},
+                 y:{...bx, stacked} } }
+    });
+  }
+
+  // ── Vertical column charts (cat=x, val=y) ──
+  if (['columnChart','clusteredColumnChart','stackedColumnChart','hundredPercentStackedColumnChart'].includes(vk)) {
+    const stacked  = vk==='stackedColumnChart'||vk==='hundredPercentStackedColumnChart';
+    const pct      = vk==='hundredPercentStackedColumnChart';
+    const datasets = vk==='columnChart'
+      ? [{ label:'A', data:SD1, backgroundColor:sc(0) }]
+      : [
+          { label:'A', data:SD1, backgroundColor:sc(0) },
+          { label:'B', data:SD2, backgroundColor:sc(1) },
+          { label:'C', data:SD3, backgroundColor:sc(2) },
+        ];
+    return new Chart(ctx,{
+      type:'bar',
+      data:{ labels:SL, datasets },
+      options:{ ...baseOpts,
+        scales:{ x:{...bx, stacked},
+                 y:{...by, stacked, max:pct?100:undefined} } }
+    });
+  }
+
+  // ── Line chart ──
+  if (vk==='lineChart') {
+    const sw = rcv(vk,'lineStyles','strokeWidth',2);
+    const pm = rcv(vk,'lineStyles','showMarker',false) ? 4 : 0;
+    return new Chart(ctx,{
+      type:'line',
+      data:{ labels:SL, datasets:[
+        { label:'A', data:SD1, borderColor:sc(0), backgroundColor:'transparent', borderWidth:sw, pointRadius:pm, tension:0 },
+        { label:'B', data:SD2, borderColor:sc(1), backgroundColor:'transparent', borderWidth:sw, pointRadius:pm, tension:0 },
+      ]},
+      options:{ ...baseOpts, scales:{
+        x:{...bx, grid:{display:false}, border:{display:true,color:'#ccc'}},
+        y:{...by}
+      }}
+    });
+  }
+
+  // ── Area chart ──
+  if (vk==='areaChart') {
+    const sw = rcv(vk,'lineStyles','strokeWidth',2);
+    return new Chart(ctx,{
+      type:'line',
+      data:{ labels:SL, datasets:[
+        { label:'A', data:SD1, borderColor:sc(0), backgroundColor:hexAlpha(col(0),0.25), borderWidth:sw, fill:true, tension:0, pointRadius:0 },
+        { label:'B', data:SD2, borderColor:sc(1), backgroundColor:hexAlpha(col(1),0.25), borderWidth:sw, fill:true, tension:0, pointRadius:0 },
+      ]},
+      options:{ ...baseOpts, scales:{
+        x:{...bx, grid:{display:false}, border:{display:true,color:'#ccc'}},
+        y:{...by}
+      }}
+    });
+  }
+
+  // ── Stacked area ──
+  if (vk==='stackedAreaChart'||vk==='hundredPercentStackedAreaChart') {
+    const pct = vk==='hundredPercentStackedAreaChart';
+    return new Chart(ctx,{
+      type:'line',
+      data:{ labels:SL, datasets:[
+        { label:'A', data:SD1, borderColor:sc(0), backgroundColor:hexAlpha(col(0),0.45), fill:true, tension:0, pointRadius:0, borderWidth:1.5 },
+        { label:'B', data:SD2, borderColor:sc(1), backgroundColor:hexAlpha(col(1),0.45), fill:true, tension:0, pointRadius:0, borderWidth:1.5 },
+        { label:'C', data:SD3, borderColor:sc(2), backgroundColor:hexAlpha(col(2),0.45), fill:true, tension:0, pointRadius:0, borderWidth:1.5 },
+      ]},
+      options:{ ...baseOpts, scales:{
+        x:{...bx, stacked:true, grid:{display:false}, border:{display:true,color:'#ccc'}},
+        y:{...by, stacked:true, max:pct?100:undefined}
+      }}
+    });
+  }
+
+  // ── Ribbon chart ──
+  if (vk==='ribbonChart') {
+    return new Chart(ctx,{
+      type:'bar',
+      data:{ labels:SL, datasets:[
+        { label:'A', data:SD1, backgroundColor:sc(0), stack:'s' },
+        { label:'B', data:SD2, backgroundColor:sc(1), stack:'s' },
+        { label:'C', data:SD3, backgroundColor:sc(2), stack:'s' },
+      ]},
+      options:{ ...baseOpts, scales:{
+        x:{...bx, stacked:true, grid:{display:false}},
+        y:{...by, stacked:true}
+      }}
+    });
+  }
+
+  // ── Waterfall chart ──
+  if (vk==='waterfallChart') {
+    const inc = rcv(vk,'sentimentColors','increaseFill','#2A9D8F');
+    const dec = rcv(vk,'sentimentColors','decreaseFill','#E76F51');
+    const tot = rcv(vk,'sentimentColors','totalFill','#0F4C81');
+    const bgs  = [inc,dec,inc,dec,inc,tot];
+    return new Chart(ctx,{
+      type:'bar',
+      data:{ labels:['Start','Feb','Mar','Apr','May','Total'], datasets:[
+        { data:[0,40,25,50,40,0], backgroundColor:'transparent', borderWidth:0 },
+        { data:[40,15,25,10,30,70], backgroundColor:bgs }
+      ]},
+      options:{ ...baseOpts, scales:{
+        x:{...bx, stacked:true, grid:{display:false}},
+        y:{...by, stacked:true}
+      }}
+    });
+  }
+
+  // ── Scatter ──
+  if (vk==='scatterChart') {
+    return new Chart(ctx,{
+      type:'scatter',
+      data:{ datasets:[
+        { label:'A', backgroundColor:sc(0), data:[{x:10,y:42},{x:25,y:68},{x:40,y:55},{x:55,y:80},{x:70,y:63},{x:85,y:91}] },
+        { label:'B', backgroundColor:sc(1), data:[{x:15,y:30},{x:30,y:45},{x:45,y:60},{x:60,y:35},{x:75,y:70},{x:90,y:50}] },
+      ]},
+      options:{ ...baseOpts, scales:{
+        x:{...bx, grid:{display:gridShow,color:gridCol}},
+        y:{...by}
+      }}
+    });
+  }
+
+  // ── Pie ──
+  if (vk==='pieChart') {
+    return new Chart(ctx,{
+      type:'pie',
+      data:{ labels:SL, datasets:[{ data:SD1, backgroundColor:colors.map((c,i)=>sc(i)) }] },
+      options:{ ...baseOpts, cutout:0 }
+    });
+  }
+
+  // ── Donut ──
+  if (vk==='donutChart') {
+    const ir = rcv(vk,'innerRadius','innerRadiusRatio',50);
+    return new Chart(ctx,{
+      type:'doughnut',
+      data:{ labels:SL, datasets:[{ data:SD1, backgroundColor:colors.map((c,i)=>sc(i)) }] },
+      options:{ ...baseOpts, cutout:`${ir}%` }
+    });
+  }
+
+  // ── Combo charts ──
+  if (vk==='lineClusteredColumnComboChart'||vk==='lineStackedColumnComboChart') {
+    const stacked = vk==='lineStackedColumnComboChart';
+    return new Chart(ctx,{
+      type:'bar',
+      data:{ labels:SL, datasets:[
+        { type:'bar',  label:'Col A', data:SD1, backgroundColor:sc(0), yAxisID:'y' },
+        { type:'bar',  label:'Col B', data:SD2, backgroundColor:sc(1), yAxisID:'y' },
+        { type:'line', label:'Line',  data:[60,72,65,85,70,95], borderColor:sc(2), backgroundColor:'transparent', borderWidth:2, pointRadius:3, yAxisID:'y2', tension:0 },
+      ]},
+      options:{ ...baseOpts, scales:{
+        x:{...bx, stacked, grid:{display:false}},
+        y:{...by, stacked, position:'left'},
+        y2:{display:valShow,ticks:{color:sc(2),font:{size:valFontSz}},grid:{display:false},border:{display:false},position:'right'}
+      }}
+    });
+  }
+
+  // ── Gauge (canvas 2D) ──
+  if (vk==='gauge') {
+    const fg = rcv(vk,'gauge','foregroundColor','#1F8AC0');
+    const bg = rcv(vk,'gauge','backgroundColor','#E0E0E0');
+    const tg = rcv(vk,'gauge','targetColor','#E76F51');
+    const pct = 0.65;
+    const cx=W/2, cy=H*0.72, r=Math.min(W,H)*0.38;
+    ctx.beginPath(); ctx.arc(cx,cy,r,Math.PI,2*Math.PI); ctx.strokeStyle=bg; ctx.lineWidth=r*0.28; ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx,cy,r,Math.PI,Math.PI+Math.PI*pct); ctx.strokeStyle=fg; ctx.lineWidth=r*0.28; ctx.stroke();
+    ctx.beginPath(); const ta=Math.PI+Math.PI*0.8; ctx.moveTo(cx+Math.cos(ta)*(r*0.72),cy+Math.sin(ta)*(r*0.72));
+    ctx.lineTo(cx+Math.cos(ta)*(r*1.05),cy+Math.sin(ta)*(r*1.05)); ctx.strokeStyle=tg; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle=rcv(vk,'dataLabels','color','#0F4C81'); ctx.font=`bold ${r*0.38}px Segoe UI`; ctx.textAlign='center';
+    ctx.fillText('65%',cx,cy-r*0.05);
+    return null;
+  }
+
+  // ── Funnel (canvas 2D) ──
+  if (vk==='funnel') {
+    const steps=[['Leads',100],['Qualified',75],['Proposal',50],['Closed',28]];
+    const availH = H - titleH - 6;
+    const sh = availH * 0.22, gap = 3, tw = W * 0.82;
+    steps.forEach(([lbl,pct],i)=>{
+      const w=tw*(pct/100), x=(W-w)/2, y=i*(sh+gap)+titleH+4;
+      ctx.fillStyle=col(i); ctx.beginPath();
+      ctx.roundRect(x,y,w,sh,4); ctx.fill();
+      ctx.fillStyle='#fff'; ctx.font=`${fontSize+1}px Segoe UI`; ctx.textAlign='center';
+      ctx.fillText(`${lbl} (${pct}%)`,W/2,y+sh/2+4);
+    });
+    return null;
+  }
+
+  // ── Treemap (canvas 2D) ──
+  if (vk==='treemap') {
+    const rects=[{x:0,y:0,w:.55,h:.55},{x:.55,y:0,w:.45,h:.55},{x:0,y:.55,w:.35,h:.45},{x:.35,y:.55,w:.35,h:.45},{x:.7,y:.55,w:.3,h:.45}];
+    const labels=['Category A','Category B','C','D','E'];
+    const pad=3, yOff=titleH, drawH=H-yOff;
+    rects.forEach(({x,y,w,h},i)=>{
+      ctx.fillStyle=col(i);
+      ctx.fillRect(x*W+pad, y*drawH+pad+yOff, (w*W-pad*2), (h*drawH-pad*2));
+      ctx.fillStyle='#fff'; ctx.font=`bold ${fontSize+1}px Segoe UI`; ctx.textAlign='center';
+      const cx=(x+w/2)*W, cy=(y+h/2)*drawH+yOff;
+      ctx.fillText(labels[i],cx,cy+4);
+    });
+    return null;
+  }
+
+  // ── Card / Card (New) (canvas 2D) ──
+  if (vk==='cardVisual') {
+    const fc = rcv(vk,'calloutValue','color', rcv(vk,'dataLabels','color','#0F4C81'));
+    const fs = Math.min(rcv(vk,'calloutValue','fontSize', rcv(vk,'dataLabels','fontSize',32)), H*0.45);
+    const catC = rcv(vk,'categoryLabels','fontColor', rcv(vk,'categoryLabel','color','#666666'));
+    const catFs = rcv(vk,'categoryLabels','fontSize', 12);
+    if (bgShow) { ctx.fillStyle=hexAlpha(bgColor,bgAlpha); ctx.fillRect(0,0,W,H); }
+    ctx.fillStyle=fc; ctx.font=`300 ${fs}px Segoe UI`; ctx.textAlign='center';
+    ctx.fillText('$1,284',W/2,H*0.5+fs*0.35);
+    ctx.fillStyle=catC; ctx.font=`${catFs}px Segoe UI`;
+    ctx.fillText('Total Revenue',W/2,H*0.5+fs*0.35+catFs+4);
+    return null;
+  }
+
+  // ── Multi-row card (canvas 2D) ──
+  if (vk==='multiRowCard') {
+    const barColor = rcv(vk,'bar','color','#1F8AC0');
+    const valColor2 = rcv(vk,'dataLabels','color','#0F4C81');
+    const catC2  = rcv(vk,'categoryLabels','fontColor','#666666');
+    const rows=[['Revenue','$1,284'],['Customers','842'],['Orders','1,203']];
+    const rh=(H-titleH)/rows.length;
+    rows.forEach(([lbl,val],i)=>{
+      const y=i*rh+titleH;
+      ctx.fillStyle=barColor; ctx.fillRect(0,y+2,4,rh-4);
+      ctx.fillStyle=catC2; ctx.font=`${fontSize}px Segoe UI`; ctx.textAlign='left';
+      ctx.fillText(lbl,12,y+rh*0.42);
+      ctx.fillStyle=valColor2; ctx.font=`bold ${fontSize+3}px Segoe UI`;
+      ctx.fillText(val,12,y+rh*0.78);
+      if(i<rows.length-1){ ctx.strokeStyle='#eee'; ctx.beginPath(); ctx.moveTo(0,y+rh); ctx.lineTo(W,y+rh); ctx.stroke(); }
+    });
+    return null;
+  }
+
+  // ── KPI (canvas 2D) ──
+  if (vk==='kpi') {
+    const fc2 = rcv(vk,'dataLabels','color','#0F4C81');
+    const tc2 = rcv(vk,'trendline','color','#1F8AC0');
+    const kpiFontSz = rcv(vk,'dataLabels','fontSize', 28);
+    ctx.fillStyle=fc2; ctx.font=`300 ${kpiFontSz}px Segoe UI`; ctx.textAlign='center';
+    ctx.fillText('84.2%',W/2,titleH + kpiFontSz + 4);
+    ctx.fillStyle='#2A9D8F'; ctx.font=`bold ${fontSize+2}px Segoe UI`;
+    ctx.fillText('▲ +5.3%  vs target',W/2,titleH + kpiFontSz + 22);
+    if (rcv(vk,'trendline','show', true)) {
+      const pts=[0.4,0.55,0.45,0.6,0.5,0.7,0.6,0.8,0.75,0.9];
+      ctx.beginPath(); ctx.strokeStyle=tc2; ctx.lineWidth=2;
+      pts.forEach((v,i)=>{ const x=W*0.1+i*(W*0.8/9), y=H*(1-v*0.22); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+      ctx.stroke();
+    }
+    return null;
+  }
+
+  // ── Slicer (canvas 2D) ──
+  if (['slicer','advancedSlicerVisual','listSlicer'].includes(vk)) {
+    const hc    = rcv(vk,'header','fontColor','#0F4C81');
+    const hbg   = rcv(vk,'header','background','#FFFFFF');
+    const hFontSz = rcv(vk,'header','fontSize', 12);
+    const hShow = rcv(vk,'header','show', true);
+    const ic    = rcv(vk,'items','fontColor','#333333');
+    const ibg   = rcv(vk,'items','background','#FFFFFF');
+    const iFontSz = rcv(vk,'items','fontSize', 11);
+    const sliderCol = rcv(vk,'slider','color', col(0));
+    const ty = titleH + 2;
+    const headerH = hShow ? hFontSz + 10 : 0;
+    if (hShow) {
+      ctx.fillStyle=hbg; ctx.fillRect(0,ty,W,headerH);
+      ctx.fillStyle=hc; ctx.font=`bold ${hFontSz}px Segoe UI`; ctx.textAlign='left';
+      ctx.fillText('Region',8,ty+hFontSz+1);
+      ctx.strokeStyle='#e0e0e0'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(0,ty+headerH); ctx.lineTo(W,ty+headerH); ctx.stroke();
+    }
+    const rowH = iFontSz + 10;
+    const items=['North','South','East','West','Central'];
+    items.slice(0,Math.floor((H-ty-headerH-4)/rowH)).forEach((item,i)=>{
+      const y=ty+headerH+4+i*rowH;
+      ctx.fillStyle=ibg; ctx.fillRect(0,y-1,W,rowH-1);
+      const boxSz = Math.max(10, iFontSz);
+      ctx.strokeStyle=sliderCol; ctx.lineWidth=1.5; ctx.strokeRect(8,y,boxSz,boxSz);
+      if (i<2) { ctx.fillStyle=sliderCol; ctx.fillRect(10,y+2,boxSz-4,boxSz-4); }
+      ctx.fillStyle=ic; ctx.font=`${iFontSz}px Segoe UI`; ctx.textAlign='left';
+      ctx.fillText(item,8+boxSz+6,y+iFontSz-1);
+    });
+    return null;
+  }
+
+  // ── Table (canvas 2D) ──
+  if (vk==='tableEx'||vk==='pivotTable') {
+    const hbg = rcv(vk,'columnHeaders','background','#0F4C81');
+    const hfc = rcv(vk,'columnHeaders','fontColor','#FFFFFF');
+    const banded = rcv(vk,'values','bandedRowColor','#F0F6FB');
+    const cols=['Name','Region','Sales','Growth'];
+    const rows=[['Adams','North','$1,284','▲ 12%'],['Brown','South','$942','▼ 3%'],['Clark','East','$1,830','▲ 8%']];
+    const cw=W/cols.length, rh=(H-titleH)/(rows.length+1);
+    ctx.fillStyle=hbg;
+    ctx.fillRect(0,titleH,W,rh);
+    cols.forEach((c,i)=>{ ctx.fillStyle=hfc; ctx.font=`bold ${fontSize}px Segoe UI`; ctx.textAlign='center'; ctx.fillText(c,cw*i+cw/2,titleH+rh*0.68); });
+    rows.forEach((row,ri)=>{
+      if(ri%2===1){ ctx.fillStyle=banded; ctx.fillRect(0,(ri+1)*rh+titleH,W,rh); }
+      row.forEach((cell,ci)=>{
+        ctx.fillStyle=cell.includes('▲')?'#2A9D8F':cell.includes('▼')?'#E76F51':'#333';
+        ctx.font=`${fontSize}px Segoe UI`; ctx.textAlign='center';
+        ctx.fillText(cell,cw*ci+cw/2,(ri+1)*rh+titleH+rh*0.65);
+      });
+    });
+    ctx.strokeStyle='#e0e0e0'; ctx.lineWidth=1;
+    for(let r=0;r<=rows.length+1;r++){ ctx.beginPath(); ctx.moveTo(0,r*rh+titleH); ctx.lineTo(W,r*rh+titleH); ctx.stroke(); }
+    return null;
+  }
+
+  // ── Matrix (canvas 2D) ──
+  if (vk==='matrix') {
+    const hbg = rcv(vk,'columnHeaders','background','#0F4C81');
+    const hfc = rcv(vk,'columnHeaders','fontColor','#FFFFFF');
+    const rbg = rcv(vk,'rowHeaders','background','#FFFFFF');
+    const cols=['','Q1','Q2','Q3']; const rows=[['North',42,68,55],['South',30,45,60],['East',20,38,49],['Total',92,151,164]];
+    const cw=W/cols.length, rh=(H-titleH)/(rows.length+1);
+    ctx.fillStyle=hbg; ctx.fillRect(0,titleH,W,rh);
+    cols.forEach((c,i)=>{ ctx.fillStyle=hfc; ctx.font=`bold ${fontSize}px Segoe UI`; ctx.textAlign='center'; ctx.fillText(c,cw*i+cw/2,titleH+rh*0.7); });
+    rows.forEach((row,ri)=>{
+      const isTot = ri===rows.length-1;
+      ctx.fillStyle=isTot?'#E8F0F7':rbg; ctx.fillRect(0,(ri+1)*rh+titleH,W,rh);
+      row.forEach((cell,ci)=>{
+        ctx.fillStyle=isTot?'#0F4C81':'#333'; ctx.font=`${isTot?'bold ':''}${fontSize}px Segoe UI`;
+        ctx.textAlign=ci===0?'left':'right';
+        ctx.fillText(cell,ci===0?6:cw*(ci+1)-4,(ri+1)*rh+titleH+rh*0.68);
+      });
+    });
+    ctx.strokeStyle='#e0e0e0'; ctx.lineWidth=1;
+    for(let r=0;r<=rows.length+1;r++){ ctx.beginPath(); ctx.moveTo(0,r*rh+titleH); ctx.lineTo(W,r*rh+titleH); ctx.stroke(); }
+    return null;
+  }
+
+  // ── Map / Filled Map ──
+  if (vk==='map'||vk==='filledMap'||vk==='azureMap'||vk==='shapeMap') {
+    const isChoro = vk==='filledMap'||vk==='shapeMap';
+    const mapY = titleH, mapH = H - titleH;
+    ctx.fillStyle='#cce8f7'; ctx.fillRect(0,mapY,W,mapH); // ocean
+    // Simplified continent polygons (relative coords 0..1 within map area)
+    const conts=[
+      [[.06,.17],[.28,.13],[.31,.38],[.25,.6],[.12,.55],[.07,.36]], // N.America
+      [[.17,.57],[.3,.57],[.33,.77],[.21,.9],[.14,.76]],            // S.America
+      [[.44,.12],[.57,.12],[.58,.35],[.44,.33]],                    // Europe
+      [[.44,.34],[.61,.34],[.61,.74],[.52,.88],[.44,.71]],          // Africa
+      [[.57,.09],[.95,.09],[.95,.51],[.78,.57],[.62,.46],[.57,.28]],// Asia
+      [[.76,.59],[.91,.59],[.92,.77],[.78,.81]],                    // Australia
+    ];
+    conts.forEach((pts,i)=>{
+      ctx.fillStyle = isChoro ? hexAlpha(col(i%THEME.dataColors.length),0.75) : '#b0c890';
+      ctx.beginPath();
+      pts.forEach(([x,y],j)=>j===0?ctx.moveTo(x*W,y*mapH+mapY):ctx.lineTo(x*W,y*mapH+mapY));
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle='#7a9a60'; ctx.lineWidth=0.6; ctx.stroke();
+    });
+    if (!isChoro) {
+      const bubbles=[{x:.2,y:.33,r:5},{x:.55,y:.24,r:9},{x:.52,y:.54,r:6},{x:.28,y:.71,r:4},{x:.83,y:.68,r:7}];
+      bubbles.forEach(({x,y,r},i)=>{ ctx.fillStyle=hexAlpha(col(i),0.8); ctx.beginPath(); ctx.arc(x*W,y*mapH+mapY,r*(isModal?1.6:1),0,Math.PI*2); ctx.fill(); });
+    }
+    const lbl=vk==='filledMap'?'Filled Map':vk==='azureMap'?'Azure Map':vk==='shapeMap'?'Shape Map':'Map';
+    ctx.fillStyle='#444'; ctx.font=`${fontSize}px Segoe UI`; ctx.textAlign='center';
+    ctx.fillText(lbl,W/2,H-4);
+    return null;
+  }
+
+  // ── Decomposition tree (canvas 2D) ──
+  if (['decompositionTree','decompositionTreeVisual'].includes(vk)) {
+    const hbg = rcv(vk,'header','fill','#0F4C81');
+    const nodes=[{x:.1,y:.45,w:.22,h:.22,lbl:'Total'},{x:.45,y:.25,w:.2,h:.15,lbl:'North'},{x:.45,y:.5,w:.2,h:.15,lbl:'South'},{x:.45,y:.72,w:.2,h:.15,lbl:'East'},{x:.75,y:.2,w:.2,h:.15,lbl:'A'},{x:.75,y:.42,w:.2,h:.15,lbl:'B'}];
+    const edges=[[0,1],[0,2],[0,3],[1,4],[1,5]];
+    edges.forEach(([a,b])=>{ const na=nodes[a],nb=nodes[b]; ctx.strokeStyle='#c0d4e8'; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.moveTo((na.x+na.w)*W,na.y*H+na.h*H/2); ctx.lineTo(nb.x*W,nb.y*H+nb.h*H/2); ctx.stroke(); });
+    nodes.forEach(({x,y,w,h,lbl},i)=>{ ctx.fillStyle=i===0?hbg:col(i); ctx.beginPath(); ctx.roundRect(x*W,y*H,w*W,h*H,4); ctx.fill();
+      ctx.fillStyle='#fff'; ctx.font=`${fontSize}px Segoe UI`; ctx.textAlign='center'; ctx.fillText(lbl,(x+w/2)*W,(y+h/2)*H+4); });
+    return null;
+  }
+
+  // ── Shape (canvas 2D) ──
+  if (vk==='shape') {
+    const fc = rcv(vk,'fill','fillColor','#1F8AC0');
+    const tr = rcv(vk,'fill','transparency',0)/100;
+    ctx.globalAlpha=1-tr; ctx.fillStyle=fc;
+    ctx.beginPath(); ctx.roundRect(W*0.1,H*0.15,W*0.8,H*0.7,8); ctx.fill();
+    ctx.globalAlpha=1;
+    return null;
+  }
+
+  // ── Button (canvas 2D) ──
+  if (vk==='actionButton') {
+    const bc=rcv(vk,'fill','color','#1F8AC0'); const tc=rcv(vk,'text','fontColor','#FFFFFF');
+    ctx.fillStyle=bc; ctx.beginPath(); ctx.roundRect(W*0.15,H*0.3,W*0.7,H*0.4,6); ctx.fill();
+    ctx.fillStyle=tc; ctx.font=`bold ${fontSize+3}px Segoe UI`; ctx.textAlign='center';
+    ctx.fillText('Click me',W/2,H*0.57);
+    return null;
+  }
+
+  // ── Text box (canvas 2D) ──
+  if (vk==='textbox') {
+    ctx.fillStyle='#f8f8f8'; ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='#e0e0e0'; ctx.strokeRect(2,2,W-4,H-4);
+    const lines=['Lorem ipsum dolor sit','amet, consectetur','adipiscing elit.'];
+    ctx.fillStyle='#333'; ctx.font=`${fontSize+1}px Segoe UI`; ctx.textAlign='left';
+    lines.forEach((l,i)=>ctx.fillText(l,12,24+i*18));
+    return null;
+  }
+
+  // ── Image (canvas 2D) ──
+  if (vk==='image') {
+    ctx.fillStyle='#f0f0f0'; ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='#ccc'; ctx.strokeRect(W*0.1,H*0.1,W*0.8,H*0.8);
+    ctx.fillStyle='#bbb'; ctx.font=`${H*0.25}px Segoe UI`; ctx.textAlign='center';
+    ctx.fillText('🖼',W/2,H*0.62);
+    return null;
+  }
+
+  // ── Scorecard (canvas 2D) ──
+  if (vk==='scorecard') {
+    const goals=[{n:'Revenue',v:'$1.2M',s:'▲',c:'#2A9D8F'},{n:'Customers',v:'842',s:'▼',c:'#E76F51'},{n:'NPS',v:'72',s:'▲',c:'#2A9D8F'}];
+    const rh=H/goals.length;
+    goals.forEach(({n,v,s,c},i)=>{
+      const y=i*rh;
+      ctx.fillStyle=c+'22'; ctx.fillRect(0,y,W,rh-2);
+      ctx.fillStyle=c; ctx.font=`bold ${fontSize+1}px Segoe UI`; ctx.textAlign='left'; ctx.fillText(s+' '+v,8,y+rh*0.68);
+      ctx.fillStyle='#666'; ctx.font=`${fontSize}px Segoe UI`; ctx.fillText(n,8,y+rh*0.32);
+    });
+    return null;
+  }
+
+  // ── Bookmark Navigator (canvas 2D) ──
+  if (vk==='bookmarkNavigator') {
+    const bc = rcv(vk,'fill','color','#1F8AC0');
+    const tc = rcv(vk,'text','fontColor','#FFFFFF');
+    const labels=['Overview','Sales','Region','Detail'];
+    const avail = H - titleH - 4;
+    const bh = avail * 0.52, by = titleH + avail * 0.2;
+    const bw = (W-20)/labels.length;
+    labels.forEach((lbl,i)=>{
+      const x=10+i*(bw+4), active=i===0;
+      ctx.fillStyle=active?bc:'#e8edf2';
+      ctx.fillRect(x,by,bw-4,bh);
+      ctx.fillStyle=active?tc:'#555';
+      ctx.font=`${fontSize+1}px Segoe UI`; ctx.textAlign='center';
+      ctx.fillText(lbl,x+(bw-4)/2,by+bh*0.62);
+    });
+    return null;
+  }
+
+  // ── Page Navigator (canvas 2D) ──
+  if (vk==='pageNavigator') {
+    const bc = rcv(vk,'fill','color','#1F8AC0');
+    const tc = rcv(vk,'text','fontColor','#FFFFFF');
+    const pages=['Page 1','Page 2','Page 3','Page 4'];
+    const avail = H - titleH - 4;
+    const bh = avail * 0.52, by = titleH + avail * 0.2;
+    const bw = (W-20)/pages.length;
+    pages.forEach((lbl,i)=>{
+      const x=10+i*(bw+4), active=i===1;
+      ctx.fillStyle=active?bc:'#e8edf2';
+      ctx.fillRect(x,by,bw-4,bh);
+      ctx.fillStyle=active?tc:'#555';
+      ctx.font=`${fontSize+1}px Segoe UI`; ctx.textAlign='center';
+      ctx.fillText(lbl,x+(bw-4)/2,by+bh*0.62);
+    });
+    return null;
+  }
+
+  // ── KPI visual, QnA, AI Narratives, Key Influencers — simple placeholders ──
+  ctx.fillStyle='#f4f6f9'; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#aaa'; ctx.font=`${fontSize+2}px Segoe UI`; ctx.textAlign='center';
+  const shortName = (VISUAL_LABELS[vk]||vk).split(' ').slice(0,2).join(' ');
+  ctx.fillText(shortName, W/2, H/2-8);
+  ctx.fillStyle='#1f8ac0'; ctx.font=`${fontSize}px Segoe UI`;
+  ctx.fillText('Click to configure', W/2, H/2+10);
+  return null;
+}
+
+// ── track grid chart instances ──
+const _gridCharts = {};
+
+// ── Visual cards grid ──
+function buildGrid(filter) {
+  const grid = document.getElementById('visual-grid');
+  // destroy old chart instances
+  Object.values(_gridCharts).forEach(c => { try { c.destroy(); } catch(e){} });
+  Object.keys(_gridCharts).forEach(k => delete _gridCharts[k]);
+  grid.innerHTML = '';
+  const term = (filter || '').toLowerCase();
+
+  Object.entries(VISUAL_LABELS).forEach(([key, label]) => {
+    if (term && !label.toLowerCase().includes(term) && !key.toLowerCase().includes(term)) return;
+
+    const card = document.createElement('div');
+    card.className = 'vis-card';
+
+    const previewWrap = document.createElement('div');
+    previewWrap.className = 'vc-preview-wrap';
+    const canvas = document.createElement('canvas');
+    canvas.className = 'vc-canvas';
+    canvas.width = 270; canvas.height = 170;
+    canvas.id = 'grid-canvas-' + key;
+    previewWrap.appendChild(canvas);
+
+    const info = document.createElement('div');
+    info.className = 'vc-info';
+    info.innerHTML = `<div class="vc-name">${label}</div><div class="vc-key">${key}</div>`;
+
+    card.appendChild(previewWrap);
+    card.appendChild(info);
+    card.addEventListener('click', () => openEditModal(key, label));
+    grid.appendChild(card);
+
+    // render after DOM insertion (requestAnimationFrame ensures canvas is ready)
+    requestAnimationFrame(() => {
+      const instance = renderVisualPreview(key, canvas, false);
+      if (instance) _gridCharts[key] = instance;
+    });
+  });
+}
+
+// refresh a single grid card after settings change
+let _gridRefreshTimers = {};
+function refreshGridCard(visualKey) {
+  clearTimeout(_gridRefreshTimers[visualKey]);
+  _gridRefreshTimers[visualKey] = setTimeout(() => {
+    const canvas = document.getElementById('grid-canvas-' + visualKey);
+    if (!canvas) return;
+    const existing = (typeof Chart !== 'undefined') ? Chart.getChart(canvas) : null;
+    if (existing) { try { existing.destroy(); } catch(e){} }
+    if (_gridCharts[visualKey]) { try { _gridCharts[visualKey].destroy(); } catch(e){} }
+    const instance = renderVisualPreview(visualKey, canvas, false);
+    _gridCharts[visualKey] = instance || null;
+  }, 40);
+}
+
+// Sync sidebar search to grid
+document.getElementById("sidebar-search").addEventListener("input", e => {
+  buildSidebar(e.target.value);
+  buildGrid(e.target.value);
+});
+
+// Sidebar click now opens modal directly
+function selectVisual(key, label, el) {
+  document.querySelectorAll("#visual-list li").forEach(l => l.classList.remove("active"));
+  el.classList.add("active");
+  currentVisual = key;
+  updateJSON();
+  openEditModal(key, label);
+}
+
 // ── Init ──
 buildSidebar();
+buildGrid();
+initGlobalBar();
 </script>
 </body>
 </html>
