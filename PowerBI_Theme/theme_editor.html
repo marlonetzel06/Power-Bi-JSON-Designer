@@ -100,7 +100,7 @@
   /* Visual cards grid */
   #visual-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(275px, 1fr));
     gap: 16px;
     margin-top: 4px;
   }
@@ -119,7 +119,7 @@
   .vis-card .vc-preview-wrap {
     background: #f8fafd;
     display: flex; align-items: center; justify-content: center;
-    height: 150px; overflow: hidden;
+    height: 175px; overflow: hidden;
   }
   .vis-card canvas.vc-canvas { display: block; }
   .vis-card .vc-info { padding: 10px 14px 12px; }
@@ -1577,6 +1577,8 @@ function buildModalCard(cardName, data, visualKey, startOpen) {
     const ctrl = buildCtrl(def, val, newVal => {
       data[def.key] = storeVal(def, newVal);
       updateJSON();
+      refreshModalPreview(visualKey);
+      refreshGridCard(visualKey);
     });
     row.appendChild(lbl); row.appendChild(ctrl);
     body.appendChild(row);
@@ -1659,7 +1661,7 @@ function buildCtrl(def, val, onChange) {
     const inp = document.createElement('input');
     inp.type = 'text'; inp.className = 'prop-text'; inp.value = val || '';
     inp.maxLength = 200;
-    inp.addEventListener('change', () => onChange(inp.value));
+    inp.addEventListener('input', () => onChange(inp.value));
     wrap.appendChild(inp);
   }
   return wrap;
@@ -2131,9 +2133,10 @@ function renderVisualPreview(vk, canvas, isModal) {
   // ── Funnel (canvas 2D) ──
   if (vk==='funnel') {
     const steps=[['Leads',100],['Qualified',75],['Proposal',50],['Closed',28]];
-    const sh=H*0.18, gap=4, tw=W*0.8;
+    const availH = H - titleH - 6;
+    const sh = availH * 0.22, gap = 3, tw = W * 0.82;
     steps.forEach(([lbl,pct],i)=>{
-      const w=tw*(pct/100), x=(W-w)/2, y=i*(sh+gap)+H*0.06;
+      const w=tw*(pct/100), x=(W-w)/2, y=i*(sh+gap)+titleH+4;
       ctx.fillStyle=col(i); ctx.beginPath();
       ctx.roundRect(x,y,w,sh,4); ctx.fill();
       ctx.fillStyle='#fff'; ctx.font=`${fontSize+1}px Segoe UI`; ctx.textAlign='center';
@@ -2146,12 +2149,12 @@ function renderVisualPreview(vk, canvas, isModal) {
   if (vk==='treemap') {
     const rects=[{x:0,y:0,w:.55,h:.55},{x:.55,y:0,w:.45,h:.55},{x:0,y:.55,w:.35,h:.45},{x:.35,y:.55,w:.35,h:.45},{x:.7,y:.55,w:.3,h:.45}];
     const labels=['Category A','Category B','C','D','E'];
-    const pad=3;
+    const pad=3, yOff=titleH, drawH=H-yOff;
     rects.forEach(({x,y,w,h},i)=>{
       ctx.fillStyle=col(i);
-      ctx.fillRect(x*W+pad,y*H+pad,(w*W-pad*2),(h*H-pad*2));
+      ctx.fillRect(x*W+pad, y*drawH+pad+yOff, (w*W-pad*2), (h*drawH-pad*2));
       ctx.fillStyle='#fff'; ctx.font=`bold ${fontSize+1}px Segoe UI`; ctx.textAlign='center';
-      const cx=(x+w/2)*W, cy=(y+h/2)*H;
+      const cx=(x+w/2)*W, cy=(y+h/2)*drawH+yOff;
       ctx.fillText(labels[i],cx,cy+4);
     });
     return null;
@@ -2177,9 +2180,9 @@ function renderVisualPreview(vk, canvas, isModal) {
     const valColor2 = rcv(vk,'dataLabels','color','#0F4C81');
     const catC2  = rcv(vk,'categoryLabels','fontColor','#666666');
     const rows=[['Revenue','$1,284'],['Customers','842'],['Orders','1,203']];
-    const rh=H/rows.length;
+    const rh=(H-titleH)/rows.length;
     rows.forEach(([lbl,val],i)=>{
-      const y=i*rh;
+      const y=i*rh+titleH;
       ctx.fillStyle=barColor; ctx.fillRect(0,y+2,4,rh-4);
       ctx.fillStyle=catC2; ctx.font=`${fontSize}px Segoe UI`; ctx.textAlign='left';
       ctx.fillText(lbl,12,y+rh*0.42);
@@ -2211,13 +2214,14 @@ function renderVisualPreview(vk, canvas, isModal) {
     const hbg= rcv(vk,'header','background','#FFFFFF');
     const ic = rcv(vk,'items','fontColor','#333333');
     const selColor = rcv(vk,'items','background', col(0));
-    if (hbg !== '#FFFFFF') { ctx.fillStyle=hbg; ctx.fillRect(0,0,W,30); }
+    const ty = titleH + 2;
+    if (hbg !== '#FFFFFF') { ctx.fillStyle=hbg; ctx.fillRect(0,ty,W,28); }
     ctx.fillStyle=hc; ctx.font=`bold ${fontSize+2}px Segoe UI`; ctx.textAlign='left';
-    ctx.fillText('Region',8,22);
-    ctx.strokeStyle='#e0e0e0'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(0,28); ctx.lineTo(W,28); ctx.stroke();
+    ctx.fillText('Region',8,ty+16);
+    ctx.strokeStyle='#e0e0e0'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(0,ty+22); ctx.lineTo(W,ty+22); ctx.stroke();
     const items=['North','South','East','West','Central'];
     items.slice(0,4).forEach((item,i)=>{
-      const y=38+i*26;
+      const y=ty+34+i*24;
       ctx.strokeStyle=col(0); ctx.lineWidth=1.5; ctx.strokeRect(10,y-11,13,13);
       if(i<2){ ctx.fillStyle=col(0); ctx.fillRect(12,y-9,9,9); }
       ctx.fillStyle=ic; ctx.font=`${fontSize+1}px Segoe UI`; ctx.textAlign='left';
@@ -2233,20 +2237,20 @@ function renderVisualPreview(vk, canvas, isModal) {
     const banded = rcv(vk,'values','bandedRowColor','#F0F6FB');
     const cols=['Name','Region','Sales','Growth'];
     const rows=[['Adams','North','$1,284','▲ 12%'],['Brown','South','$942','▼ 3%'],['Clark','East','$1,830','▲ 8%']];
-    const cw=W/cols.length, rh=H/(rows.length+1);
+    const cw=W/cols.length, rh=(H-titleH)/(rows.length+1);
     ctx.fillStyle=hbg;
-    ctx.fillRect(0,0,W,rh);
-    cols.forEach((c,i)=>{ ctx.fillStyle=hfc; ctx.font=`bold ${fontSize}px Segoe UI`; ctx.textAlign='center'; ctx.fillText(c,cw*i+cw/2,rh*0.68); });
+    ctx.fillRect(0,titleH,W,rh);
+    cols.forEach((c,i)=>{ ctx.fillStyle=hfc; ctx.font=`bold ${fontSize}px Segoe UI`; ctx.textAlign='center'; ctx.fillText(c,cw*i+cw/2,titleH+rh*0.68); });
     rows.forEach((row,ri)=>{
-      if(ri%2===1){ ctx.fillStyle=banded; ctx.fillRect(0,(ri+1)*rh,W,rh); }
+      if(ri%2===1){ ctx.fillStyle=banded; ctx.fillRect(0,(ri+1)*rh+titleH,W,rh); }
       row.forEach((cell,ci)=>{
         ctx.fillStyle=cell.includes('▲')?'#2A9D8F':cell.includes('▼')?'#E76F51':'#333';
         ctx.font=`${fontSize}px Segoe UI`; ctx.textAlign='center';
-        ctx.fillText(cell,cw*ci+cw/2,(ri+1)*rh+rh*0.65);
+        ctx.fillText(cell,cw*ci+cw/2,(ri+1)*rh+titleH+rh*0.65);
       });
     });
     ctx.strokeStyle='#e0e0e0'; ctx.lineWidth=1;
-    for(let r=0;r<=rows.length+1;r++){ ctx.beginPath(); ctx.moveTo(0,r*rh); ctx.lineTo(W,r*rh); ctx.stroke(); }
+    for(let r=0;r<=rows.length+1;r++){ ctx.beginPath(); ctx.moveTo(0,r*rh+titleH); ctx.lineTo(W,r*rh+titleH); ctx.stroke(); }
     return null;
   }
 
@@ -2256,28 +2260,29 @@ function renderVisualPreview(vk, canvas, isModal) {
     const hfc = rcv(vk,'columnHeaders','fontColor','#FFFFFF');
     const rbg = rcv(vk,'rowHeaders','background','#FFFFFF');
     const cols=['','Q1','Q2','Q3']; const rows=[['North',42,68,55],['South',30,45,60],['East',20,38,49],['Total',92,151,164]];
-    const cw=W/cols.length, rh=H/(rows.length+1);
-    ctx.fillStyle=hbg; ctx.fillRect(0,0,W,rh);
-    cols.forEach((c,i)=>{ ctx.fillStyle=hfc; ctx.font=`bold ${fontSize}px Segoe UI`; ctx.textAlign='center'; ctx.fillText(c,cw*i+cw/2,rh*0.7); });
+    const cw=W/cols.length, rh=(H-titleH)/(rows.length+1);
+    ctx.fillStyle=hbg; ctx.fillRect(0,titleH,W,rh);
+    cols.forEach((c,i)=>{ ctx.fillStyle=hfc; ctx.font=`bold ${fontSize}px Segoe UI`; ctx.textAlign='center'; ctx.fillText(c,cw*i+cw/2,titleH+rh*0.7); });
     rows.forEach((row,ri)=>{
       const isTot = ri===rows.length-1;
-      ctx.fillStyle=isTot?'#E8F0F7':rbg; ctx.fillRect(0,(ri+1)*rh,W,rh);
+      ctx.fillStyle=isTot?'#E8F0F7':rbg; ctx.fillRect(0,(ri+1)*rh+titleH,W,rh);
       row.forEach((cell,ci)=>{
         ctx.fillStyle=isTot?'#0F4C81':'#333'; ctx.font=`${isTot?'bold ':''}${fontSize}px Segoe UI`;
         ctx.textAlign=ci===0?'left':'right';
-        ctx.fillText(cell,ci===0?6:cw*(ci+1)-4,(ri+1)*rh+rh*0.68);
+        ctx.fillText(cell,ci===0?6:cw*(ci+1)-4,(ri+1)*rh+titleH+rh*0.68);
       });
     });
     ctx.strokeStyle='#e0e0e0'; ctx.lineWidth=1;
-    for(let r=0;r<=rows.length+1;r++){ ctx.beginPath(); ctx.moveTo(0,r*rh); ctx.lineTo(W,r*rh); ctx.stroke(); }
+    for(let r=0;r<=rows.length+1;r++){ ctx.beginPath(); ctx.moveTo(0,r*rh+titleH); ctx.lineTo(W,r*rh+titleH); ctx.stroke(); }
     return null;
   }
 
   // ── Map / Filled Map ──
   if (vk==='map'||vk==='filledMap'||vk==='azureMap'||vk==='shapeMap') {
     const isChoro = vk==='filledMap'||vk==='shapeMap';
-    ctx.fillStyle='#cce8f7'; ctx.fillRect(0,0,W,H); // ocean
-    // Simplified continent polygons (relative coords 0..1)
+    const mapY = titleH, mapH = H - titleH;
+    ctx.fillStyle='#cce8f7'; ctx.fillRect(0,mapY,W,mapH); // ocean
+    // Simplified continent polygons (relative coords 0..1 within map area)
     const conts=[
       [[.06,.17],[.28,.13],[.31,.38],[.25,.6],[.12,.55],[.07,.36]], // N.America
       [[.17,.57],[.3,.57],[.33,.77],[.21,.9],[.14,.76]],            // S.America
@@ -2289,13 +2294,13 @@ function renderVisualPreview(vk, canvas, isModal) {
     conts.forEach((pts,i)=>{
       ctx.fillStyle = isChoro ? hexAlpha(col(i%THEME.dataColors.length),0.75) : '#b0c890';
       ctx.beginPath();
-      pts.forEach(([x,y],j)=>j===0?ctx.moveTo(x*W,y*H):ctx.lineTo(x*W,y*H));
+      pts.forEach(([x,y],j)=>j===0?ctx.moveTo(x*W,y*mapH+mapY):ctx.lineTo(x*W,y*mapH+mapY));
       ctx.closePath(); ctx.fill();
       ctx.strokeStyle='#7a9a60'; ctx.lineWidth=0.6; ctx.stroke();
     });
     if (!isChoro) {
       const bubbles=[{x:.2,y:.33,r:5},{x:.55,y:.24,r:9},{x:.52,y:.54,r:6},{x:.28,y:.71,r:4},{x:.83,y:.68,r:7}];
-      bubbles.forEach(({x,y,r},i)=>{ ctx.fillStyle=hexAlpha(col(i),0.8); ctx.beginPath(); ctx.arc(x*W,y*H,r*(isModal?1.6:1),0,Math.PI*2); ctx.fill(); });
+      bubbles.forEach(({x,y,r},i)=>{ ctx.fillStyle=hexAlpha(col(i),0.8); ctx.beginPath(); ctx.arc(x*W,y*mapH+mapY,r*(isModal?1.6:1),0,Math.PI*2); ctx.fill(); });
     }
     const lbl=vk==='filledMap'?'Filled Map':vk==='azureMap'?'Azure Map':vk==='shapeMap'?'Shape Map':'Map';
     ctx.fillStyle='#444'; ctx.font=`${fontSize}px Segoe UI`; ctx.textAlign='center';
@@ -2371,7 +2376,9 @@ function renderVisualPreview(vk, canvas, isModal) {
     const bc = rcv(vk,'fill','color','#1F8AC0');
     const tc = rcv(vk,'text','fontColor','#FFFFFF');
     const labels=['Overview','Sales','Region','Detail'];
-    const bw=(W-20)/labels.length, bh=H*0.45, by=H*0.28;
+    const avail = H - titleH - 4;
+    const bh = avail * 0.52, by = titleH + avail * 0.2;
+    const bw = (W-20)/labels.length;
     labels.forEach((lbl,i)=>{
       const x=10+i*(bw+4), active=i===0;
       ctx.fillStyle=active?bc:'#e8edf2';
@@ -2380,8 +2387,6 @@ function renderVisualPreview(vk, canvas, isModal) {
       ctx.font=`${fontSize+1}px Segoe UI`; ctx.textAlign='center';
       ctx.fillText(lbl,x+(bw-4)/2,by+bh*0.62);
     });
-    ctx.fillStyle='#aaa'; ctx.font=`${fontSize}px Segoe UI`; ctx.textAlign='center';
-    ctx.fillText('Bookmark Navigator',W/2,H*0.88);
     return null;
   }
 
@@ -2390,7 +2395,9 @@ function renderVisualPreview(vk, canvas, isModal) {
     const bc = rcv(vk,'fill','color','#1F8AC0');
     const tc = rcv(vk,'text','fontColor','#FFFFFF');
     const pages=['Page 1','Page 2','Page 3','Page 4'];
-    const bw=(W-20)/pages.length, bh=H*0.45, by=H*0.28;
+    const avail = H - titleH - 4;
+    const bh = avail * 0.52, by = titleH + avail * 0.2;
+    const bw = (W-20)/pages.length;
     pages.forEach((lbl,i)=>{
       const x=10+i*(bw+4), active=i===1;
       ctx.fillStyle=active?bc:'#e8edf2';
@@ -2399,8 +2406,6 @@ function renderVisualPreview(vk, canvas, isModal) {
       ctx.font=`${fontSize+1}px Segoe UI`; ctx.textAlign='center';
       ctx.fillText(lbl,x+(bw-4)/2,by+bh*0.62);
     });
-    ctx.fillStyle='#aaa'; ctx.font=`${fontSize}px Segoe UI`; ctx.textAlign='center';
-    ctx.fillText('Page Navigator',W/2,H*0.88);
     return null;
   }
 
@@ -2436,7 +2441,7 @@ function buildGrid(filter) {
     previewWrap.className = 'vc-preview-wrap';
     const canvas = document.createElement('canvas');
     canvas.className = 'vc-canvas';
-    canvas.width = 236; canvas.height = 148;
+    canvas.width = 270; canvas.height = 170;
     canvas.id = 'grid-canvas-' + key;
     previewWrap.appendChild(canvas);
 
