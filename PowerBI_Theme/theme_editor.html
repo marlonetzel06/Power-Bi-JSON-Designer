@@ -1071,6 +1071,7 @@ const VISUAL_SCHEMA = {
   pageNavigator:                  ['general','title','text','fill','outline','shadow','border'],
   azureMap:                       ['general','title','legend','dataPoint','bubbles','background','border'],
   shapeMap:                       ['general','title','legend','dataPoint','labels','background','border'],
+  shape:                          ['general','title','fill','line','background','border'],
   textbox:                        ['background','border','shadow'],
   actionButton:                   ['text','fill','outline','shadow','border'],
   __page__:                       ['pageSize','pageBackground','pageWallpaper','filterPane'],
@@ -1122,6 +1123,7 @@ const VISUAL_LABELS = {
   "pageNavigator":                "Page Navigator",
   "azureMap":                     "Azure Map",
   "shapeMap":                     "Shape Map",
+  "shape":                        "Shape",
   "textbox":                      "Text Box",
   "actionButton":                 "Button",
 };
@@ -1140,9 +1142,20 @@ function syntaxHL(json) {
     });
 }
 
+function buildExportTheme() {
+  const t = JSON.parse(JSON.stringify(THEME));
+  if (Object.keys(PAGE_SETTINGS).length > 0) {
+    if (!t.visualStyles.__page__) t.visualStyles.__page__ = {'*': {}};
+    Object.entries(PAGE_SETTINGS).forEach(([card, data]) => {
+      t.visualStyles.__page__['*'][card] = [data];
+    });
+  }
+  return t;
+}
+
 function updateJSON() {
   const out = document.getElementById('json-output');
-  out.innerHTML = syntaxHL(JSON.stringify(THEME, null, 2));
+  out.innerHTML = syntaxHL(JSON.stringify(buildExportTheme(), null, 2));
 }
 
 // ── Build sidebar from label map ──
@@ -1371,7 +1384,7 @@ function copyJSON() {
   navigator.clipboard.writeText(text).then(() => alert('Full theme JSON copied!'));
 }
 function downloadJSON() {
-  const blob = new Blob([JSON.stringify(THEME, null, 2)], {type:'application/json'});
+  const blob = new Blob([JSON.stringify(buildExportTheme(), null, 2)], {type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'Customer360_Theme.json';
@@ -2248,9 +2261,9 @@ function renderVisualPreview(vk, canvas, isModal) {
 
   // ── Card / Card (New) (canvas 2D) ──
   if (vk==='cardVisual') {
-    const fc = rcv(vk,'calloutValue','color', rcv(vk,'dataLabels','color','#0F4C81'));
-    const fs = Math.min(rcv(vk,'calloutValue','fontSize', rcv(vk,'dataLabels','fontSize',32)), H*0.45);
-    const catC = rcv(vk,'categoryLabels','fontColor', rcv(vk,'categoryLabel','color','#666666'));
+    const fc = rcv(vk,'cardVisualSettings','fontColor','#0F4C81');
+    const fs = Math.min(rcv(vk,'cardVisualSettings','fontSize',32), H*0.45);
+    const catC = rcv(vk,'categoryLabels','color','#666666');
     const catFs = rcv(vk,'categoryLabels','fontSize', 12);
     if (bgShow) { ctx.fillStyle=hexAlpha(bgColor,bgAlpha); ctx.fillRect(0,0,W,H); }
     ctx.fillStyle=fc; ctx.font=`300 ${fs}px Segoe UI`; ctx.textAlign='center';
@@ -2264,7 +2277,7 @@ function renderVisualPreview(vk, canvas, isModal) {
   if (vk==='multiRowCard') {
     const barColor = rcv(vk,'bar','color','#1F8AC0');
     const valColor2 = rcv(vk,'dataLabels','color','#0F4C81');
-    const catC2  = rcv(vk,'categoryLabels','fontColor','#666666');
+    const catC2  = rcv(vk,'categoryLabels','color','#666666');
     const rows=[['Revenue','$1,284'],['Customers','842'],['Orders','1,203']];
     const rh=(H-titleH)/rows.length;
     rows.forEach(([lbl,val],i)=>{
@@ -2409,7 +2422,7 @@ function renderVisualPreview(vk, canvas, isModal) {
 
   // ── Decomposition tree (canvas 2D) ──
   if (['decompositionTree','decompositionTreeVisual'].includes(vk)) {
-    const hbg = rcv(vk,'header','fill','#0F4C81');
+    const hbg = rcv(vk,'header','background','#0F4C81');
     const nodes=[{x:.1,y:.45,w:.22,h:.22,lbl:'Total'},{x:.45,y:.25,w:.2,h:.15,lbl:'North'},{x:.45,y:.5,w:.2,h:.15,lbl:'South'},{x:.45,y:.72,w:.2,h:.15,lbl:'East'},{x:.75,y:.2,w:.2,h:.15,lbl:'A'},{x:.75,y:.42,w:.2,h:.15,lbl:'B'}];
     const edges=[[0,1],[0,2],[0,3],[1,4],[1,5]];
     edges.forEach(([a,b])=>{ const na=nodes[a],nb=nodes[b]; ctx.strokeStyle='#c0d4e8'; ctx.lineWidth=1.5;
@@ -2431,7 +2444,7 @@ function renderVisualPreview(vk, canvas, isModal) {
 
   // ── Button (canvas 2D) ──
   if (vk==='actionButton') {
-    const bc=rcv(vk,'fill','color','#1F8AC0'); const tc=rcv(vk,'text','fontColor','#FFFFFF');
+    const bc=rcv(vk,'fill','fillColor','#1F8AC0'); const tc=rcv(vk,'text','fontColor','#FFFFFF');
     ctx.fillStyle=bc; ctx.beginPath(); ctx.roundRect(W*0.15,H*0.3,W*0.7,H*0.4,6); ctx.fill();
     ctx.fillStyle=tc; ctx.font=`bold ${fontSize+3}px Segoe UI`; ctx.textAlign='center';
     ctx.fillText('Click me',W/2,H*0.57);
@@ -2472,7 +2485,7 @@ function renderVisualPreview(vk, canvas, isModal) {
 
   // ── Bookmark Navigator (canvas 2D) ──
   if (vk==='bookmarkNavigator') {
-    const bc = rcv(vk,'fill','color','#1F8AC0');
+    const bc = rcv(vk,'fill','fillColor','#1F8AC0');
     const tc = rcv(vk,'text','fontColor','#FFFFFF');
     const labels=['Overview','Sales','Region','Detail'];
     const avail = H - titleH - 4;
@@ -2491,7 +2504,7 @@ function renderVisualPreview(vk, canvas, isModal) {
 
   // ── Page Navigator (canvas 2D) ──
   if (vk==='pageNavigator') {
-    const bc = rcv(vk,'fill','color','#1F8AC0');
+    const bc = rcv(vk,'fill','fillColor','#1F8AC0');
     const tc = rcv(vk,'text','fontColor','#FFFFFF');
     const pages=['Page 1','Page 2','Page 3','Page 4'];
     const avail = H - titleH - 4;
