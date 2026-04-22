@@ -164,7 +164,8 @@
     max-width: 100%; border-radius: 4px;
   }
   #modal-preview-label {
-    font-size: 12px; color: #555; font-style: italic; text-align: center;
+    font-size: 13px; font-weight: 700; color: #0f4c81; text-align: center;
+    width: 100%; padding-bottom: 8px; border-bottom: 1px solid #dce8f3;
   }
   #modal-settings-pane {
     flex: 1; overflow-y: auto; padding: 16px 20px;
@@ -1480,7 +1481,7 @@ function openEditModal(key, label) {
   currentVisual = key;
   document.getElementById('modal-title').textContent = label;
   const isPage = key === '__page__';
-  document.getElementById('modal-key').textContent = isPage ? 'Page-level settings' : `visualStyles["${key}"]["*"]`;
+  document.getElementById('modal-key').textContent = isPage ? 'Page-level settings' : `Theme settings for all ${label} visuals`;
   updateJSON();
 
   const body = document.getElementById('modal-body');
@@ -1491,24 +1492,23 @@ function openEditModal(key, label) {
   previewPane.id = 'modal-preview-pane';
 
   if (!isPage) {
-    const canvas = document.createElement('canvas');
-    canvas.id = 'preview-canvas';
-    canvas.width = 280; canvas.height = 200;
-    previewPane.appendChild(canvas);
     const lbl = document.createElement('div');
     lbl.id = 'modal-preview-label';
     lbl.textContent = label;
     previewPane.appendChild(lbl);
+    const canvas = document.createElement('canvas');
+    canvas.id = 'preview-canvas';
+    canvas.width = 280; canvas.height = 200;
+    previewPane.appendChild(canvas);
   } else {
-    // Page settings: show a simple page mockup
-    const pgMock = document.createElement('div');
-    pgMock.style.cssText = 'width:250px;height:160px;background:#fff;border:2px solid #cdd9e8;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#0f4c81;font-size:12px;font-weight:600;';
-    pgMock.textContent = 'Page Canvas';
-    previewPane.appendChild(pgMock);
     const lbl = document.createElement('div');
     lbl.id = 'modal-preview-label';
     lbl.textContent = 'Page Settings';
     previewPane.appendChild(lbl);
+    const pgMock = document.createElement('div');
+    pgMock.style.cssText = 'width:250px;height:160px;background:#fff;border:2px solid #cdd9e8;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#0f4c81;font-size:12px;font-weight:600;';
+    pgMock.textContent = 'Page Canvas';
+    previewPane.appendChild(pgMock);
   }
   body.appendChild(previewPane);
 
@@ -1518,7 +1518,7 @@ function openEditModal(key, label) {
 
   // Expand / Collapse all toolbar
   const toolbar = document.createElement('div');
-  toolbar.style.cssText = 'display:flex;gap:8px;margin-bottom:12px;align-items:center;';
+  toolbar.style.cssText = 'display:flex;gap:8px;margin-bottom:12px;align-items:center;position:sticky;top:0;background:#fff;z-index:2;padding:8px 0 8px;border-bottom:1px solid #eef2f8;';
   const btnExpandAll = document.createElement('button');
   btnExpandAll.textContent = 'Expand All';
   btnExpandAll.style.cssText = 'font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid #1f8ac0;background:#fff;color:#1f8ac0;cursor:pointer;';
@@ -1584,6 +1584,7 @@ function refreshModalPreview(key) {
 function closeEditModal() {
   document.getElementById('modal-overlay').classList.remove('open');
   if (_modalChart) { try{_modalChart.destroy();}catch(e){} _modalChart=null; }
+  if (currentVisual && currentVisual !== '__page__') refreshGridCard(currentVisual);
 }
 
 // close on overlay click
@@ -1601,7 +1602,28 @@ function buildModalCard(cardName, data, visualKey, startOpen) {
 
   const hdr = document.createElement('div');
   hdr.className = startOpen ? 'card-header open' : 'card-header';
-  const cardLabel = cardName.replace(/([A-Z])/g,' $1').replace(/^./,s=>s.toUpperCase());
+  const CARD_NAME_MAP = {
+    general:'General', title:'Title', subheader:'Subtitle', legend:'Legend',
+    categoryAxis:'Category Axis', valueAxis:'Value Axis', y2Axis:'Secondary Axis',
+    labels:'Data Labels', dataPoint:'Data Point', plotArea:'Plot Area',
+    trend:'Trend Line', zoom:'Zoom', lineStyles:'Line Style', markers:'Markers',
+    referenceLine:'Reference Line', annotations:'Annotations', forecast:'Forecast',
+    smallMultiplesLayout:'Small Multiples', seriesLabels:'Series Labels',
+    detail:'Detail', innerRadius:'Inner Radius', fillPoint:'Fill Point',
+    clustering:'Clustering', colorByCategory:'Color by Category',
+    plotAreaShading:'Plot Area Shading', sentimentColors:'Sentiment Colors',
+    wordWrap:'Word Wrap', shapes:'Shapes', gauge:'Gauge', target:'Target',
+    data:'Data', selection:'Selection', header:'Header', items:'Items',
+    grid:'Grid', columnHeaders:'Column Headers', values:'Values', total:'Total',
+    rowHeaders:'Row Headers', subtotals:'Subtotals', bubbles:'Bubbles',
+    cardTitle:'Card Title', indicator:'Indicator', trendline:'Trend Line',
+    goals:'Goals', statusGraphic:'Status Indicator', fill:'Fill', line:'Line',
+    outline:'Outline', shadow:'Shadow', border:'Border', background:'Background',
+    text:'Text', y2AxisReferenceLine:'Secondary Axis Reference Line',
+    cardVisualSettings:'Card Value', categoryLabels:'Category Label',
+    dataLabels:'Data Labels',
+  };
+  const cardLabel = CARD_NAME_MAP[cardName] || cardName.replace(/([A-Z])/g,' $1').replace(/^./,s=>s.toUpperCase());
   hdr.innerHTML = `${cardLabel} <span class="arrow" style="transform:${startOpen?'rotate(90deg)':''}">▶</span>`;
 
   const body = document.createElement('div');
@@ -1941,7 +1963,7 @@ function renderVisualPreview(vk, canvas, isModal) {
   const titleColor = rcv(vk,'title','fontColor','#0F4C81');
   const titleFontSz= Math.min(rcv(vk,'title','fontSize', 14), isModal?16:13);
   const titleBold  = rcv(vk,'title','bold', true);
-  const titleText  = rcv(vk,'title','text','') || (typeof VISUAL_LABELS !== 'undefined' ? VISUAL_LABELS[vk]||vk : vk);
+  const titleText  = rcv(vk,'title','text','') || 'Chart Title';
   const displayTitle = titleText.length > 28 ? titleText.slice(0,28)+'…' : titleText;
 
   // ── Background
