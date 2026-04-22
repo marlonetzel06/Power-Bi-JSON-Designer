@@ -1963,7 +1963,7 @@ function renderVisualPreview(vk, canvas, isModal) {
   const titleColor = rcv(vk,'title','fontColor','#0F4C81');
   const titleFontSz= Math.min(rcv(vk,'title','fontSize', 14), isModal?16:13);
   const titleBold  = rcv(vk,'title','bold', true);
-  const titleText  = rcv(vk,'title','text','') || 'Chart Title';
+  const titleText  = rcv(vk,'title','text','') || 'My Report Title';
   const displayTitle = titleText.length > 28 ? titleText.slice(0,28)+'…' : titleText;
 
   // ── Background
