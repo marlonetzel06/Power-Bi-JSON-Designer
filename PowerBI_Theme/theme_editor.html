@@ -103,35 +103,131 @@
     letter-spacing: 0.05em;
     margin-top: 2px;
   }
+  #global-bar { gap: 0 !important; }
   #global-bar-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     cursor: pointer;
     user-select: none;
-    padding: 2px 0;
+    padding: 2px 0 10px;
+    border-bottom: 1.5px solid #eef2f8;
+    margin-bottom: 10px;
   }
-  #global-bar-header:hover { opacity: 0.8; }
+  #global-bar-header:hover { opacity: 0.85; }
+  #global-bar-header-left { display: flex; flex-direction: column; gap: 2px; }
+  #global-bar-header-title { font-size: 13px; font-weight: 700; color: #0f4c81; }
+  #global-bar-header-sub  { font-size: 10px; color: #aaa; }
   #global-bar-toggle {
     background: none;
-    border: 1px solid #c8d8ea;
+    border: 1px solid #d0dce8;
     border-radius: 5px;
-    font-size: 11px;
     color: #0f4c81;
     cursor: pointer;
-    padding: 2px 8px;
-    line-height: 1.4;
+    padding: 4px 8px;
+    line-height: 1;
+    transition: background 0.15s;
+    font-size: 12px;
   }
+  #global-bar-toggle:hover { background: #f0f5fb; }
   #global-bar-body {
-    max-height: 600px;
+    max-height: 700px;
     overflow: hidden;
     transition: max-height 0.28s ease, opacity 0.2s ease;
     opacity: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
   }
-  #global-bar-body.collapsed {
-    max-height: 0;
-    opacity: 0;
+  #global-bar-body.collapsed { max-height: 0; opacity: 0; }
+  /* Section rows */
+  .gb-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+    padding: 8px 12px;
+    background: #f8fafd;
+    border: 1px solid #e6edf5;
+    border-radius: 6px;
   }
+  .gb-row-typo { align-items: flex-start; }
+  /* Pill labels */
+  .gb-pill {
+    font-size: 11px;
+    font-weight: 700;
+    color: #0f4c81;
+    background: #fff;
+    border: 1.5px solid #b8ccde;
+    border-radius: 20px;
+    padding: 3px 11px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .gb-pill-sm { font-size: 10px; padding: 2px 9px; border-color: #ccdce8; }
+  /* Individual controls */
+  .gb-ctrl {
+    font-size: 12px;
+    color: #444;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+  }
+  .gb-ctrl-label { font-size: 12px; color: #555; flex-shrink: 0; }
+  /* Swatches */
+  .gb-swatch {
+    width: 32px;
+    height: 32px;
+    border: 1.5px solid #c8d8e8;
+    border-radius: 5px;
+    cursor: pointer;
+    padding: 1px;
+    background: none;
+    flex-shrink: 0;
+  }
+  /* Vertical divider between groups */
+  .gb-divider {
+    width: 1px;
+    height: 30px;
+    background: #cdd8e4;
+    flex-shrink: 0;
+    align-self: center;
+  }
+  /* Typography card columns */
+  .gb-typo-grid { display: flex; gap: 6px; flex-wrap: wrap; }
+  .gb-typo-col {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    align-items: stretch;
+    width: 148px;
+    background: #fff;
+    border: 1px solid #dde8f3;
+    border-radius: 6px;
+    padding: 0 8px 8px;
+    overflow: hidden;
+  }
+  .gb-typo-head {
+    font-size: 11px;
+    font-weight: 700;
+    color: #0f4c81;
+    background: #edf3fb;
+    text-align: center;
+    padding: 4px 0;
+    margin: 0 -8px 3px;
+    letter-spacing: 0.04em;
+  }
+  .gb-typo-font, .gb-typo-size {
+    width: 100%;
+    font-size: 10px;
+    padding: 2px 4px;
+    border: 1px solid #ccd;
+    border-radius: 3px;
+    box-sizing: border-box;
+  }
+  .gb-typo-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+  .gb-typo-row label { font-size: 10px; color: #666; display: flex; align-items: center; gap: 4px; cursor: pointer; }
   #settings-panel h1 {
     font-size: 20px;
     font-weight: 700;
@@ -391,81 +487,92 @@
     <!-- Global settings bar -->
     <div id="global-bar" style="background:#fff;border-radius:8px;padding:12px 16px;margin-bottom:18px;box-shadow:0 1px 4px rgba(0,0,0,.07);display:flex;flex-direction:column;gap:10px;">
       <div id="global-bar-header" onclick="toggleGlobalBar()">
-        <span style="font-size:13px;font-weight:700;color:#0f4c81;">Global Settings</span>
-        <button id="global-bar-toggle">▼ Collapse</button>
+        <div id="global-bar-header-left">
+          <span id="global-bar-header-title">Global Settings</span>
+          <span id="global-bar-header-sub">Applies to all visuals unless overridden per-visual</span>
+        </div>
+        <button id="global-bar-toggle">&#x25BC; Collapse</button>
       </div>
       <div id="global-bar-body">
-      <!-- Row 1: Colors + Palette -->
-      <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;">
-        <span style="font-size:12px;font-weight:700;color:#0f4c81;min-width:80px;">Colors</span>
-        <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;">
-          Background
-          <input type="color" id="g-background" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;">
-        </label>
-        <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;">
-          Foreground
-          <input type="color" id="g-foreground" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;">
-        </label>
-        <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;">
-          Table Accent
-          <input type="color" id="g-tableAccent" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;">
-        </label>
-        <span style="font-size:12px;color:#444;">Data Colors:</span>
-        <div id="data-colors" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
-      </div>
-      <!-- Row 2: Global Typography (textClasses) -->
-      <div style="display:grid;grid-template-columns:80px repeat(4,1fr);gap:8px 12px;align-items:center;border-top:1px solid #eef2f8;padding-top:10px;">
-        <span style="font-size:12px;font-weight:700;color:#0f4c81;">Typography</span>
-        <span style="font-size:11px;color:#666;font-weight:600;text-align:center;">title</span>
-        <span style="font-size:11px;color:#666;font-weight:600;text-align:center;">header</span>
-        <span style="font-size:11px;color:#666;font-weight:600;text-align:center;">label</span>
-        <span style="font-size:11px;color:#666;font-weight:600;text-align:center;">callout</span>
 
-        <span style="font-size:11px;color:#555;">Font</span>
-        <select id="tc-title-font" style="font-size:10px;padding:2px 3px;border:1px solid #cdd;border-radius:3px;width:100%;"></select>
-        <select id="tc-header-font" style="font-size:10px;padding:2px 3px;border:1px solid #cdd;border-radius:3px;width:100%;"></select>
-        <select id="tc-label-font" style="font-size:10px;padding:2px 3px;border:1px solid #cdd;border-radius:3px;width:100%;"></select>
-        <select id="tc-callout-font" style="font-size:10px;padding:2px 3px;border:1px solid #cdd;border-radius:3px;width:100%;"></select>
+        <!-- Row 1: Canvas colors + Data palette -->
+        <div class="gb-row">
+          <span class="gb-pill">Colors</span>
+          <label class="gb-ctrl">Background <input type="color" id="g-background" class="gb-swatch"></label>
+          <label class="gb-ctrl">Foreground <input type="color" id="g-foreground" class="gb-swatch"></label>
+          <label class="gb-ctrl">Table Accent <input type="color" id="g-tableAccent" class="gb-swatch"></label>
+          <div class="gb-divider"></div>
+          <span class="gb-ctrl-label">Data Colors</span>
+          <div id="data-colors" style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;"></div>
+        </div>
 
-        <span style="font-size:11px;color:#555;">Size</span>
-        <input type="number" id="tc-title-size" min="6" max="96" style="width:100%;font-size:10px;padding:2px;border:1px solid #cdd;border-radius:3px;">
-        <input type="number" id="tc-header-size" min="6" max="96" style="width:100%;font-size:10px;padding:2px;border:1px solid #cdd;border-radius:3px;">
-        <input type="number" id="tc-label-size" min="6" max="40" style="width:100%;font-size:10px;padding:2px;border:1px solid #cdd;border-radius:3px;">
-        <input type="number" id="tc-callout-size" min="6" max="96" style="width:100%;font-size:10px;padding:2px;border:1px solid #cdd;border-radius:3px;">
+        <!-- Row 2: Typography -->
+        <div class="gb-row gb-row-typo">
+          <span class="gb-pill">Typography</span>
+          <div class="gb-typo-grid">
+            <div class="gb-typo-col">
+              <div class="gb-typo-head">Title</div>
+              <select id="tc-title-font" class="gb-typo-font"></select>
+              <input type="number" id="tc-title-size" class="gb-typo-size" min="6" max="96">
+              <div class="gb-typo-row">
+                <input type="color" id="tc-title-color" class="gb-swatch" style="width:28px;height:28px;">
+                <label><input type="checkbox" id="tc-title-bold"> Bold</label>
+              </div>
+            </div>
+            <div class="gb-typo-col">
+              <div class="gb-typo-head">Header</div>
+              <select id="tc-header-font" class="gb-typo-font"></select>
+              <input type="number" id="tc-header-size" class="gb-typo-size" min="6" max="96">
+              <div class="gb-typo-row">
+                <input type="color" id="tc-header-color" class="gb-swatch" style="width:28px;height:28px;">
+                <label><input type="checkbox" id="tc-header-bold"> Bold</label>
+              </div>
+            </div>
+            <div class="gb-typo-col">
+              <div class="gb-typo-head">Label</div>
+              <select id="tc-label-font" class="gb-typo-font"></select>
+              <input type="number" id="tc-label-size" class="gb-typo-size" min="6" max="40">
+              <div class="gb-typo-row">
+                <input type="color" id="tc-label-color" class="gb-swatch" style="width:28px;height:28px;">
+                <label><input type="checkbox" id="tc-label-bold"> Bold</label>
+              </div>
+            </div>
+            <div class="gb-typo-col">
+              <div class="gb-typo-head">Callout</div>
+              <select id="tc-callout-font" class="gb-typo-font"></select>
+              <input type="number" id="tc-callout-size" class="gb-typo-size" min="6" max="96">
+              <div class="gb-typo-row">
+                <input type="color" id="tc-callout-color" class="gb-swatch" style="width:28px;height:28px;">
+                <label><input type="checkbox" id="tc-callout-bold"> Bold</label>
+              </div>
+            </div>
+          </div>
+        </div>
 
-        <span style="font-size:11px;color:#555;">Color</span>
-        <div><input type="color" id="tc-title-color" style="width:28px;height:28px;border:none;border-radius:4px;cursor:pointer;"></div>
-        <div><input type="color" id="tc-header-color" style="width:28px;height:28px;border:none;border-radius:4px;cursor:pointer;"></div>
-        <div><input type="color" id="tc-label-color" style="width:28px;height:28px;border:none;border-radius:4px;cursor:pointer;"></div>
-        <div><input type="color" id="tc-callout-color" style="width:28px;height:28px;border:none;border-radius:4px;cursor:pointer;"></div>
+        <!-- Row 3: Sentiment + Diverging (separated by divider) -->
+        <div class="gb-row">
+          <span class="gb-pill">Sentiment</span>
+          <label class="gb-ctrl">Good <input type="color" id="g-good" class="gb-swatch"></label>
+          <label class="gb-ctrl">Neutral <input type="color" id="g-neutral" class="gb-swatch"></label>
+          <label class="gb-ctrl">Bad <input type="color" id="g-bad" class="gb-swatch"></label>
+          <div class="gb-divider"></div>
+          <span class="gb-pill gb-pill-sm">Diverging</span>
+          <label class="gb-ctrl">Min <input type="color" id="g-minimum" class="gb-swatch"></label>
+          <label class="gb-ctrl">Center <input type="color" id="g-center" class="gb-swatch"></label>
+          <label class="gb-ctrl">Max <input type="color" id="g-maximum" class="gb-swatch"></label>
+          <label class="gb-ctrl">Null <input type="color" id="g-null" class="gb-swatch"></label>
+        </div>
 
-        <span style="font-size:11px;color:#555;">Bold</span>
-        <label style="display:flex;justify-content:center;"><input type="checkbox" id="tc-title-bold"></label>
-        <label style="display:flex;justify-content:center;"><input type="checkbox" id="tc-header-bold"></label>
-        <label style="display:flex;justify-content:center;"><input type="checkbox" id="tc-label-bold"></label>
-        <label style="display:flex;justify-content:center;"><input type="checkbox" id="tc-callout-bold"></label>
-      </div>
-      <!-- Row 3: Sentiment + Diverging colors -->
-      <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;border-top:1px solid #eef2f8;padding-top:10px;">
-        <span style="font-size:12px;font-weight:700;color:#0f4c81;min-width:80px;">Sentiment</span>
-        <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;">Good <input type="color" id="g-good" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;"></label>
-        <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;">Neutral <input type="color" id="g-neutral" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;"></label>
-        <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;">Bad <input type="color" id="g-bad" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;"></label>
-        <span style="font-size:12px;font-weight:700;color:#0f4c81;margin-left:12px;">Diverging</span>
-        <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;">Min <input type="color" id="g-minimum" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;"></label>
-        <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;">Center <input type="color" id="g-center" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;"></label>
-        <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;">Max <input type="color" id="g-maximum" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;"></label>
-        <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;">Null <input type="color" id="g-null" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;"></label>
-      </div>
-      <!-- Row 4: UI structure colors -->
-      <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;border-top:1px solid #eef2f8;padding-top:10px;">
-        <span style="font-size:12px;font-weight:700;color:#0f4c81;min-width:80px;">UI Colors</span>
-        <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;" title="firstLevelElements — primary text color for titles and main labels">Primary Text <input type="color" id="g-firstLevelElements" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;"></label>
-        <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;" title="secondLevelElements — secondary text color for axis labels and subtitles">Secondary Text <input type="color" id="g-secondLevelElements" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;"></label>
-        <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;" title="thirdLevelElements — border and line color for UI outlines and dividers">Borders &amp; Lines <input type="color" id="g-thirdLevelElements" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;"></label>
-        <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;" title="fourthLevelElements — color for disabled and dimmed elements">Disabled <input type="color" id="g-fourthLevelElements" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;"></label>
-        <label style="font-size:12px;color:#444;display:flex;align-items:center;gap:6px;" title="secondaryBackground — alternate row color in tables and secondary surfaces">Alt. Background <input type="color" id="g-secondaryBackground" style="width:26px;height:26px;border:none;border-radius:4px;cursor:pointer;"></label>
-      </div>
+        <!-- Row 4: UI structural colors -->
+        <div class="gb-row">
+          <span class="gb-pill">UI Colors</span>
+          <label class="gb-ctrl" title="Primary text color for titles and main labels">Primary Text <input type="color" id="g-firstLevelElements" class="gb-swatch"></label>
+          <label class="gb-ctrl" title="Secondary text color for axis labels and subtitles">Secondary Text <input type="color" id="g-secondLevelElements" class="gb-swatch"></label>
+          <label class="gb-ctrl" title="Border and line color for UI outlines and dividers">Borders &amp; Lines <input type="color" id="g-thirdLevelElements" class="gb-swatch"></label>
+          <label class="gb-ctrl" title="Color for disabled and dimmed elements">Disabled <input type="color" id="g-fourthLevelElements" class="gb-swatch"></label>
+          <label class="gb-ctrl" title="Alternate row color for tables and secondary surfaces">Alt. Background <input type="color" id="g-secondaryBackground" class="gb-swatch"></label>
+        </div>
+
       </div><!-- /global-bar-body -->
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
