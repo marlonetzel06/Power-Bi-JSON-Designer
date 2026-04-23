@@ -123,8 +123,8 @@
   }
   .vis-card canvas.vc-canvas { display: block; }
   .vis-card .vc-info { padding: 10px 14px 12px; }
-  .vis-card .vc-name { font-size: 13px; font-weight: 700; color: #0f4c81; }
-  .vis-card .vc-key  { font-size: 10px; color: #aaa; font-family: monospace; margin-top: 2px; }
+  .vis-card .vc-name { font-size: 12px; font-weight: 500; color: #555; }
+  .vis-card .vc-key  { font-size: 10px; color: #bbb; font-family: monospace; margin-top: 2px; }
 
   /* ── MODAL ── */
   #modal-overlay {
@@ -1057,50 +1057,65 @@ const THEME = {"name":"Customer360 Theme","textClasses":{"title":{"fontFace":"Se
 
 // ── Visual display names ──
 const VISUAL_LABELS = {
-  "*":                            "Global (All Visuals)",
-  "barChart":                     "Bar Chart",
-  "clusteredBarChart":            "Clustered Bar Chart",
-  "stackedBarChart":              "Stacked Bar Chart",
-  "hundredPercentStackedBarChart":"100% Stacked Bar Chart",
-  "columnChart":                  "Column Chart",
-  "clusteredColumnChart":         "Clustered Column Chart",
-  "stackedColumnChart":           "Stacked Column Chart",
+  // Global
+  "*":                             "Global (All Visuals)",
+  // Bar charts
+  "barChart":                      "Bar Chart",
+  "clusteredBarChart":             "Clustered Bar Chart",
+  "stackedBarChart":               "Stacked Bar Chart",
+  "hundredPercentStackedBarChart": "100% Stacked Bar Chart",
+  // Column charts
+  "columnChart":                   "Column Chart",
+  "clusteredColumnChart":          "Clustered Column Chart",
+  "stackedColumnChart":            "Stacked Column Chart",
   "hundredPercentStackedColumnChart": "100% Stacked Column Chart",
-  "lineChart":                    "Line Chart",
-  "areaChart":                    "Area Chart",
-  "stackedAreaChart":             "Stacked Area Chart",
-  "ribbonChart":                  "Ribbon Chart",
-  "waterfallChart":               "Waterfall Chart",
-  "scatterChart":                 "Scatter Chart",
-  "pieChart":                     "Pie Chart",
-  "donutChart":                   "Donut Chart",
-  "treemap":                      "Treemap",
-  "map":                          "Map",
-  "filledMap":                    "Filled Map",
-  "funnel":                       "Funnel",
-  "gauge":                        "Gauge",
-  "multiRowCard":                 "Multi-Row Card",
-  "kpi":                          "KPI",
-  "slicer":                       "Slicer",
-  "tableEx":                      "Table",
-  "matrix":                       "Matrix",
-  "lineClusteredColumnComboChart":"Line & Clustered Column Combo",
-  "lineStackedColumnComboChart":  "Line & Stacked Column Combo",
-  "decompositionTree":            "Decomposition Tree",
-  "decompositionTreeVisual":      "Decomposition Tree (New)",
+  // Line & Area charts
+  "lineChart":                     "Line Chart",
+  "areaChart":                     "Area Chart",
+  "stackedAreaChart":              "Stacked Area Chart",
   "hundredPercentStackedAreaChart":"100% Stacked Area Chart",
-  "advancedSlicerVisual":         "Advanced Slicer",
-  "listSlicer":                   "List Slicer",
-  "pivotTable":                   "Pivot Table",
-  "scorecard":                    "Scorecard",
-  "cardVisual":                   "Card (New)",
-  "bookmarkNavigator":            "Bookmark Navigator",
-  "pageNavigator":                "Page Navigator",
-  "azureMap":                     "Azure Map",
-  "shapeMap":                     "Shape Map",
-  "shape":                        "Shape",
-  "textbox":                      "Text Box",
-  "actionButton":                 "Button",
+  // Combo charts
+  "lineClusteredColumnComboChart": "Line & Clustered Column Combo",
+  "lineStackedColumnComboChart":   "Line & Stacked Column Combo",
+  "ribbonChart":                   "Ribbon Chart",
+  // Other cartesian
+  "waterfallChart":                "Waterfall Chart",
+  "scatterChart":                  "Scatter Chart",
+  "funnel":                        "Funnel",
+  // Pie / Donut / Treemap
+  "pieChart":                      "Pie Chart",
+  "donutChart":                    "Donut Chart",
+  "treemap":                       "Treemap",
+  // Maps
+  "map":                           "Map",
+  "filledMap":                     "Filled Map",
+  "shapeMap":                      "Shape Map",
+  "azureMap":                      "Azure Map",
+  // Cards & KPI
+  "card":                          "Card",
+  "cardVisual":                    "Card (New)",
+  "multiRowCard":                  "Multi-Row Card",
+  "kpi":                           "KPI",
+  "gauge":                         "Gauge",
+  "scorecard":                     "Scorecard",
+  // Tables
+  "tableEx":                       "Table",
+  "matrix":                        "Matrix",
+  "pivotTable":                    "Pivot Table",
+  // Slicers
+  "slicer":                        "Slicer",
+  "advancedSlicerVisual":          "Advanced Slicer",
+  "listSlicer":                    "List Slicer",
+  // AI / Analytics
+  "decompositionTree":             "Decomposition Tree",
+  "decompositionTreeVisual":       "Decomposition Tree (New)",
+  // Navigation & Buttons
+  "bookmarkNavigator":             "Bookmark Navigator",
+  "pageNavigator":                 "Page Navigator",
+  "actionButton":                  "Button",
+  // Static elements
+  "textbox":                       "Text Box",
+  "shape":                         "Shape",
 };
 
 let currentVisual = null;
@@ -1951,7 +1966,7 @@ function renderVisualPreview(vk, canvas, isModal) {
   const titleColor = rcv(vk,'title','fontColor','#0F4C81');
   const titleFontSz= Math.min(rcv(vk,'title','fontSize', 14), isModal?16:13);
   const titleBold  = rcv(vk,'title','bold', true);
-  const titleText  = rcv(vk,'title','text','') || 'My Report Title';
+  const titleText  = rcv(vk,'title','text','') || 'Title';
   const displayTitle = titleText.length > 28 ? titleText.slice(0,28)+'…' : titleText;
 
   // ── Background
@@ -2301,33 +2316,75 @@ function renderVisualPreview(vk, canvas, isModal) {
 
   // ── Slicer (canvas 2D) ──
   if (['slicer','advancedSlicerVisual','listSlicer'].includes(vk)) {
-    const hc    = rcv(vk,'header','fontColor','#0F4C81');
-    const hbg   = rcv(vk,'header','background','#FFFFFF');
+    const hc      = rcv(vk,'header','fontColor','#0F4C81');
+    const hbg     = rcv(vk,'header','background','#FFFFFF');
     const hFontSz = rcv(vk,'header','fontSize', 12);
-    const hShow = rcv(vk,'header','show', true);
-    const ic    = rcv(vk,'items','fontColor','#333333');
-    const ibg   = rcv(vk,'items','background','#FFFFFF');
+    const hShow   = rcv(vk,'header','show', true);
+    const ic      = rcv(vk,'items','fontColor','#333333');
+    const ibg     = rcv(vk,'items','background','#FFFFFF');
     const iFontSz = rcv(vk,'items','fontSize', 11);
-    const sliderCol = rcv(vk,'slider','color', col(0));
-    const ty = titleH + 2;
+    const accentCol = rcv(vk,'slider','color', col(0));
+    const mode    = rcv(vk,'data','mode','VerticalList');
+    const ty      = titleH + 2;
     const headerH = hShow ? hFontSz + 10 : 0;
+
+    // header
     if (hShow) {
       ctx.fillStyle=hbg; ctx.fillRect(0,ty,W,headerH);
       ctx.fillStyle=hc; ctx.font=`bold ${hFontSz}px Segoe UI`; ctx.textAlign='left';
       ctx.fillText('Region',8,ty+hFontSz+1);
-      ctx.strokeStyle='#e0e0e0'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(0,ty+headerH); ctx.lineTo(W,ty+headerH); ctx.stroke();
+      ctx.strokeStyle='#e0e0e0'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(0,ty+headerH); ctx.lineTo(W,ty+headerH); ctx.stroke();
     }
-    const rowH = iFontSz + 10;
+
     const items=['North','South','East','West','Central'];
-    items.slice(0,Math.floor((H-ty-headerH-4)/rowH)).forEach((item,i)=>{
-      const y=ty+headerH+4+i*rowH;
-      ctx.fillStyle=ibg; ctx.fillRect(0,y-1,W,rowH-1);
-      const boxSz = Math.max(10, iFontSz);
-      ctx.strokeStyle=sliderCol; ctx.lineWidth=1.5; ctx.strokeRect(8,y,boxSz,boxSz);
-      if (i<2) { ctx.fillStyle=sliderCol; ctx.fillRect(10,y+2,boxSz-4,boxSz-4); }
+    const content_y = ty + headerH + 4;
+
+    if (mode === 'Dropdown') {
+      // Dropdown: a single select-box with a chevron
+      const bh = iFontSz + 12;
+      ctx.fillStyle=ibg; ctx.fillRect(8,content_y,W-16,bh);
+      ctx.strokeStyle=accentCol; ctx.lineWidth=1.5; ctx.strokeRect(8,content_y,W-16,bh);
       ctx.fillStyle=ic; ctx.font=`${iFontSz}px Segoe UI`; ctx.textAlign='left';
-      ctx.fillText(item,8+boxSz+6,y+iFontSz-1);
-    });
+      ctx.fillText(items[0],14,content_y+bh*0.68);
+      // chevron
+      const cx=W-18, cy=content_y+bh/2;
+      ctx.beginPath(); ctx.moveTo(cx-4,cy-2); ctx.lineTo(cx,cy+3); ctx.lineTo(cx+4,cy-2);
+      ctx.strokeStyle=ic; ctx.lineWidth=1.5; ctx.stroke();
+
+    } else if (mode === 'HorizontalList') {
+      // Horizontal: items side by side as pills
+      const pillH = iFontSz + 8, gap = 6;
+      let px = 8;
+      items.forEach((item, i) => {
+        const pw = ctx.measureText(item).width + 16;
+        const selected = i === 0;
+        ctx.fillStyle = selected ? accentCol : ibg;
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(px, content_y, pw, pillH, 4);
+        else ctx.rect(px, content_y, pw, pillH);
+        ctx.fill();
+        ctx.strokeStyle = selected ? accentCol : '#ccc'; ctx.lineWidth=1; ctx.stroke();
+        ctx.fillStyle = selected ? '#fff' : ic;
+        ctx.font=`${iFontSz}px Segoe UI`; ctx.textAlign='center';
+        ctx.fillText(item, px + pw/2, content_y + pillH*0.7);
+        px += pw + gap;
+        if (px > W - 8) return;
+      });
+
+    } else {
+      // VerticalList (default): checkbox list
+      const rowH = iFontSz + 10;
+      items.slice(0, Math.floor((H - content_y) / rowH)).forEach((item, i) => {
+        const y = content_y + i * rowH;
+        ctx.fillStyle=ibg; ctx.fillRect(0,y-1,W,rowH-1);
+        const boxSz = Math.max(10, iFontSz);
+        ctx.strokeStyle=accentCol; ctx.lineWidth=1.5; ctx.strokeRect(8,y,boxSz,boxSz);
+        if (i < 2) { ctx.fillStyle=accentCol; ctx.fillRect(10,y+2,boxSz-4,boxSz-4); }
+        ctx.fillStyle=ic; ctx.font=`${iFontSz}px Segoe UI`; ctx.textAlign='left';
+        ctx.fillText(item, 8+boxSz+6, y+iFontSz-1);
+      });
+    }
     return null;
   }
 
@@ -2383,29 +2440,37 @@ function renderVisualPreview(vk, canvas, isModal) {
     const isChoro = vk==='filledMap'||vk==='shapeMap';
     const mapY = titleH, mapH = H - titleH;
     ctx.fillStyle='#cce8f7'; ctx.fillRect(0,mapY,W,mapH); // ocean
-    // Simplified continent polygons (relative coords 0..1 within map area)
-    const conts=[
-      [[.06,.17],[.28,.13],[.31,.38],[.25,.6],[.12,.55],[.07,.36]], // N.America
-      [[.17,.57],[.3,.57],[.33,.77],[.21,.9],[.14,.76]],            // S.America
-      [[.44,.12],[.57,.12],[.58,.35],[.44,.33]],                    // Europe
-      [[.44,.34],[.61,.34],[.61,.74],[.52,.88],[.44,.71]],          // Africa
-      [[.57,.09],[.95,.09],[.95,.51],[.78,.57],[.62,.46],[.57,.28]],// Asia
-      [[.76,.59],[.91,.59],[.92,.77],[.78,.81]],                    // Australia
+    // Continent outlines in 1000×500 coord space: x=(lon+180)/360*1000, y=(90-lat)/180*500
+    const _CP=[
+      'M33,69 L67,53 L119,83 L153,114 L172,158 L194,186 L231,197 L256,211 L275,181 L292,153 L306,133 L353,119 L344,83 L272,75 L231,78 Z', // N.America
+      'M286,228 L328,219 L344,233 L401,264 L401,272 L392,289 L381,314 L353,342 L342,356 L319,389 L311,400 L300,389 L300,333 L286,264 L278,256 L286,244 Z', // S.America
+      'M475,150 L483,122 L492,111 L519,106 L528,89 L542,56 L578,56 L583,100 L575,125 L556,144 L539,150 L525,128 L508,131 L500,139 L486,150 Z', // Europe
+      'M483,150 L528,147 L594,164 L625,217 L642,217 L617,281 L597,319 L589,333 L550,344 L542,331 L533,303 L533,267 L525,253 L508,239 L458,222 L453,192 L464,172 Z', // Africa
+      'M572,136 L606,119 L611,61 L778,56 L953,89 L892,125 L833,183 L778,222 L789,247 L725,228 L700,186 L672,183 L622,147 L617,142 Z', // Asia
+      'M861,283 L903,281 L925,328 L919,344 L903,356 L883,347 L819,339 L817,311 Z', // Australia
     ];
-    conts.forEach((pts,i)=>{
-      ctx.fillStyle = isChoro ? hexAlpha(col(i%THEME.dataColors.length),0.75) : '#b0c890';
-      ctx.beginPath();
-      pts.forEach(([x,y],j)=>j===0?ctx.moveTo(x*W,y*mapH+mapY):ctx.lineTo(x*W,y*mapH+mapY));
-      ctx.closePath(); ctx.fill();
-      ctx.strokeStyle='#7a9a60'; ctx.lineWidth=0.6; ctx.stroke();
+    const scX=W/1000, scY=mapH/500;
+    ctx.save(); ctx.translate(0,mapY); ctx.scale(scX,scY);
+    const lw=1.5/Math.min(scX,scY);
+    _CP.forEach((d,i)=>{
+      const p=new Path2D(d);
+      ctx.fillStyle=isChoro?hexAlpha(col(i%THEME.dataColors.length),0.8):'#8db87a';
+      ctx.fill(p);
+      ctx.strokeStyle=isChoro?'rgba(255,255,255,0.5)':'rgba(0,0,0,0.2)';
+      ctx.lineWidth=lw; ctx.stroke(p);
     });
+    ctx.restore();
     if (!isChoro) {
-      const bubbles=[{x:.2,y:.33,r:5},{x:.55,y:.24,r:9},{x:.52,y:.54,r:6},{x:.28,y:.71,r:4},{x:.83,y:.68,r:7}];
-      bubbles.forEach(({x,y,r},i)=>{ ctx.fillStyle=hexAlpha(col(i),0.8); ctx.beginPath(); ctx.arc(x*W,y*mapH+mapY,r*(isModal?1.6:1),0,Math.PI*2); ctx.fill(); });
+      const _cities=[{x:294,y:136,r:1.0},{x:500,y:108,r:0.8},{x:370,y:317,r:0.9},
+                     {x:508,y:233,r:0.7},{x:703,y:197,r:1.1},{x:822,y:139,r:1.2},
+                     {x:889,y:150,r:0.9},{x:919,y:344,r:0.8}];
+      const rb=isModal?7:5;
+      _cities.forEach(({x,y,r},i)=>{
+        ctx.fillStyle=hexAlpha(col(i%THEME.dataColors.length),0.8);
+        ctx.beginPath(); ctx.arc(x*scX,y*scY+mapY,rb*r,0,Math.PI*2);
+        ctx.fill(); ctx.strokeStyle='rgba(255,255,255,0.7)'; ctx.lineWidth=0.8; ctx.stroke();
+      });
     }
-    const lbl=vk==='filledMap'?'Filled Map':vk==='azureMap'?'Azure Map':vk==='shapeMap'?'Shape Map':'Map';
-    ctx.fillStyle='#444'; ctx.font=`${fontSize}px Segoe UI`; ctx.textAlign='center';
-    ctx.fillText(lbl,W/2,H-4);
     return null;
   }
 
@@ -2548,7 +2613,7 @@ function buildGrid(filter) {
 
     const info = document.createElement('div');
     info.className = 'vc-info';
-    info.innerHTML = `<div class="vc-name">${label}</div><div class="vc-key">${key}</div>`;
+    info.innerHTML = `<div class="vc-name">${label}</div>`;
 
     card.appendChild(previewWrap);
     card.appendChild(info);
