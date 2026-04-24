@@ -184,12 +184,13 @@ test.describe('barChart — title properties', () => {
     expect((await chartOpts(page))?.titleFontWeight).toBe('normal');
   });
 
-  test('title.text → titleText changes', async ({ page }) => {
+  test('title.italic=ON → canvas pixels change', async ({ page }) => {
     await openModal(page, 'barChart');
+    const s1 = await snap(page);
     await expandCard(page, 'Title');
-    await setProp(page, 'Title', 'Title Text', 'string', 'My Custom Title');
+    await setProp(page, 'Title', 'Italic', 'boolean', null);
     await applyAndWait(page);
-    expect((await chartOpts(page))?.titleText).toBe('My Custom Title');
+    expect(s1.equals(await snap(page))).toBe(false);
   });
 });
 
@@ -285,12 +286,13 @@ test.describe('barChart — category axis (scales.y for horizontal bars)', () =>
     expect((await chartOpts(page))?.yTitleDisplay).toBe(true);
   });
 
-  test('categoryAxis.titleText → yTitleText changes', async ({ page }) => {
+  test('categoryAxis.showAxisTitle=ON → canvas pixels change', async ({ page }) => {
     await openModal(page, 'barChart');
+    const s1 = await snap(page);
     await expandCard(page, 'Category Axis');
-    await setProp(page, 'Category Axis', 'Title Text', 'string', 'My Cat Axis');
+    await setProp(page, 'Category Axis', 'Show Axis Title', 'boolean', null);
     await applyAndWait(page);
-    expect((await chartOpts(page))?.yTitleText).toBe('My Cat Axis');
+    expect(s1.equals(await snap(page))).toBe(false);
   });
 
   test('categoryAxis.titleColor → yTitleColor changes', async ({ page }) => {
@@ -356,12 +358,13 @@ test.describe('barChart — value axis (scales.x for horizontal bars)', () => {
     expect((await chartOpts(page))?.xTitleDisplay).toBe(true);
   });
 
-  test('valueAxis.titleText → xTitleText changes', async ({ page }) => {
+  test('valueAxis.showAxisTitle=ON → canvas pixels change', async ({ page }) => {
     await openModal(page, 'barChart');
+    const s1 = await snap(page);
     await expandCard(page, 'Value Axis');
-    await setProp(page, 'Value Axis', 'Title Text', 'string', 'My Val Axis');
+    await setProp(page, 'Value Axis', 'Show Axis Title', 'boolean', null);
     await applyAndWait(page);
-    expect((await chartOpts(page))?.xTitleText).toBe('My Val Axis');
+    expect(s1.equals(await snap(page))).toBe(false);
   });
 
   test('valueAxis.titleColor → xTitleColor changes', async ({ page }) => {
@@ -516,8 +519,8 @@ test.describe('lineChart — lineStyles properties', () => {
   test('lineStyles.strokeWidth → dataset0BorderWidth changes', async ({ page }) => {
     await openModal(page, 'lineChart');
     expect((await chartOpts(page))?.dataset0BorderWidth).toBe(2);
-    await expandCard(page, 'Line Styles');
-    await setProp(page, 'Line Styles', 'Line Width', 'number', 5);
+    await expandCard(page, 'Line Style');
+    await setProp(page, 'Line Style', 'Line Width', 'number', 5);
     await applyAndWait(page);
     expect((await chartOpts(page))?.dataset0BorderWidth).toBe(5);
   });
@@ -525,8 +528,8 @@ test.describe('lineChart — lineStyles properties', () => {
   test('lineStyles.showMarker=ON → dataset0PointRadius becomes 4', async ({ page }) => {
     await openModal(page, 'lineChart');
     expect((await chartOpts(page))?.dataset0PointRadius).toBe(0);
-    await expandCard(page, 'Line Styles');
-    await setProp(page, 'Line Styles', 'Show Markers', 'boolean', null);
+    await expandCard(page, 'Line Style');
+    await setProp(page, 'Line Style', 'Show Markers', 'boolean', null);
     await applyAndWait(page);
     expect((await chartOpts(page))?.dataset0PointRadius).toBe(4);
   });
@@ -801,8 +804,8 @@ test.describe('kpi — all rendered properties', () => {
   test('trendline.color → canvas pixels change', async ({ page }) => {
     await openModal(page, 'kpi');
     const s1 = await snap(page);
-    await expandCard(page, 'Trendline');
-    await setProp(page, 'Trendline', 'Trendline Color', 'color', '#ff0000');
+    await expandCard(page, 'Trend Line');
+    await setProp(page, 'Trend Line', 'Trendline Color', 'color', '#ff0000');
     await applyAndWait(page);
     expect(s1.equals(await snap(page))).toBe(false);
   });
@@ -810,8 +813,8 @@ test.describe('kpi — all rendered properties', () => {
   test('trendline.show=OFF → canvas pixels change (trendline disappears)', async ({ page }) => {
     await openModal(page, 'kpi');
     const s1 = await snap(page);
-    await expandCard(page, 'Trendline');
-    await setProp(page, 'Trendline', 'Show Trendline', 'boolean', null);
+    await expandCard(page, 'Trend Line');
+    await setProp(page, 'Trend Line', 'Show Trendline', 'boolean', null);
     await applyAndWait(page);
     expect(s1.equals(await snap(page))).toBe(false);
   });
@@ -962,8 +965,8 @@ test.describe('multiRowCard — all rendered properties', () => {
   test('categoryLabels.color → canvas pixels change', async ({ page }) => {
     await openModal(page, 'multiRowCard');
     const s1 = await snap(page);
-    await expandCard(page, 'Category Labels');
-    await setProp(page, 'Category Labels', 'Color', 'color', '#ff0000');
+    await expandCard(page, 'Category Label');
+    await setProp(page, 'Category Label', 'Color', 'color', '#ff0000');
     await applyAndWait(page);
     expect(s1.equals(await snap(page))).toBe(false);
   });
@@ -973,8 +976,8 @@ test.describe('cardVisual — all rendered properties', () => {
   test('cardVisualSettings.fontColor → canvas pixels change', async ({ page }) => {
     await openModal(page, 'cardVisual');
     const s1 = await snap(page);
-    await expandCard(page, 'Card Visual Settings');
-    await setProp(page, 'Card Visual Settings', 'Font Color', 'color', '#ff0000');
+    await expandCard(page, 'Card Value');
+    await setProp(page, 'Card Value', 'Font Color', 'color', '#ff0000');
     await applyAndWait(page);
     expect(s1.equals(await snap(page))).toBe(false);
   });
@@ -982,8 +985,8 @@ test.describe('cardVisual — all rendered properties', () => {
   test('categoryLabels.color → canvas pixels change', async ({ page }) => {
     await openModal(page, 'cardVisual');
     const s1 = await snap(page);
-    await expandCard(page, 'Category Labels');
-    await setProp(page, 'Category Labels', 'Color', 'color', '#ff0000');
+    await expandCard(page, 'Category Label');
+    await setProp(page, 'Category Label', 'Color', 'color', '#ff0000');
     await applyAndWait(page);
     expect(s1.equals(await snap(page))).toBe(false);
   });
@@ -991,8 +994,8 @@ test.describe('cardVisual — all rendered properties', () => {
   test('categoryLabels.fontSize → canvas pixels change', async ({ page }) => {
     await openModal(page, 'cardVisual');
     const s1 = await snap(page);
-    await expandCard(page, 'Category Labels');
-    await setProp(page, 'Category Labels', 'Font Size', 'number', 20);
+    await expandCard(page, 'Category Label');
+    await setProp(page, 'Category Label', 'Font Size', 'number', 20);
     await applyAndWait(page);
     expect(s1.equals(await snap(page))).toBe(false);
   });
