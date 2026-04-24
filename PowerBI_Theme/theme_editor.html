@@ -2105,11 +2105,16 @@ function renderVisualPreview(vk, canvas, isModal) {
   const legendPos     = _lp.includes('right') ? 'right' : _lp.includes('left') ? 'left' : _lp.includes('bottom') ? 'bottom' : 'top';
   const legendColor   = rcv(vk,'legend','labelColor','#444444');
   const legendFontSz  = rcv(vk,'legend','fontSize', isModal?10:8);
+  const legendBold    = rcv(vk,'legend','bold', false);
+  const legendItalic  = rcv(vk,'legend','italic', false);
+  const legendFamily  = rcv(vk,'legend','fontFamily', 'Segoe UI');
 
   // ── Category axis
   const catShow    = rcv(vk,'categoryAxis','show', true);
   const catColor   = rcv(vk,'categoryAxis','labelColor','#666666');
   const catFontSz  = rcv(vk,'categoryAxis','fontSize', isModal?11:9);
+  const catBold    = rcv(vk,'categoryAxis','bold', false);
+  const catItalic  = rcv(vk,'categoryAxis','italic', false);
   const catGridShow= rcv(vk,'categoryAxis','gridlineShow', false);
   const catGridCol = rcv(vk,'categoryAxis','gridlineColor','#E0E0E0');
 
@@ -2117,12 +2122,17 @@ function renderVisualPreview(vk, canvas, isModal) {
   const valShow    = rcv(vk,'valueAxis','show', true);
   const valColor   = rcv(vk,'valueAxis','labelColor','#666666');
   const valFontSz  = rcv(vk,'valueAxis','fontSize', isModal?11:9);
+  const valBold    = rcv(vk,'valueAxis','bold', false);
+  const valItalic  = rcv(vk,'valueAxis','italic', false);
   const gridShow   = rcv(vk,'valueAxis','gridlineShow', true);
   const gridCol    = rcv(vk,'valueAxis','gridlineColor','#E0E0E0');
 
   // ── Data point
   const dpDefaultColor = rcv(vk,'dataPoint','defaultColor', null);
   const dpAlpha        = 1 - (rcv(vk,'dataPoint','fillTransparency', 0) / 100);
+  const dpBorderShow   = rcv(vk,'dataPoint','borderShow', false);
+  const dpBorderColor  = rcv(vk,'dataPoint','borderColor', '#E0E0E0');
+  const dpBorderSize   = rcv(vk,'dataPoint','borderSize', 1);
 
   // ── Data labels
   const labShow   = rcv(vk,'labels','show', false);
@@ -2130,11 +2140,13 @@ function renderVisualPreview(vk, canvas, isModal) {
   const labFontSz = rcv(vk,'labels','fontSize', isModal?9:8);
 
   // ── Title
-  const titleShow  = rcv(vk,'title','show', true);
-  const titleColor = rcv(vk,'title','fontColor','#0F4C81');
-  const titleFontSz= Math.min(rcv(vk,'title','fontSize', 14), isModal?16:13);
-  const titleBold  = rcv(vk,'title','bold', true);
-  const titleText  = rcv(vk,'title','text','') || 'Title';
+  const titleShow   = rcv(vk,'title','show', true);
+  const titleColor  = rcv(vk,'title','fontColor','#0F4C81');
+  const titleFontSz = Math.min(rcv(vk,'title','fontSize', 14), isModal?16:13);
+  const titleBold   = rcv(vk,'title','bold', true);
+  const titleItalic = rcv(vk,'title','italic', false);
+  const titleAlign  = (rcv(vk,'title','alignment','left')||'left').toLowerCase();
+  const titleText   = rcv(vk,'title','text','') || 'Title';
   const displayTitle = titleText.length > 28 ? titleText.slice(0,28)+'…' : titleText;
 
   // ── Background
@@ -2150,9 +2162,10 @@ function renderVisualPreview(vk, canvas, isModal) {
   if (titleShow) {
     titleH = titleFontSz + 6;
     ctx.fillStyle = titleColor;
-    ctx.font = `${titleBold?'bold ':''}${titleFontSz}px Segoe UI`;
-    ctx.textAlign = 'left';
-    ctx.fillText(displayTitle, 6, titleFontSz + 2);
+    ctx.font = [titleItalic?'italic':'', titleBold?'bold':'', `${titleFontSz}px`, 'Segoe UI'].filter(Boolean).join(' ');
+    ctx.textAlign = titleAlign === 'center' ? 'center' : titleAlign === 'right' ? 'right' : 'left';
+    const _tx = titleAlign === 'center' ? W/2 : titleAlign === 'right' ? W-6 : 6;
+    ctx.fillText(displayTitle, _tx, titleFontSz + 2);
   }
 
   // ── Border (canvas 2D: drawn before content so content paints on top at edges)
@@ -2179,30 +2192,44 @@ function renderVisualPreview(vk, canvas, isModal) {
   const fontSize = isModal ? 11 : 9;
 
   // ── Axis title settings (for Chart.js scales)
-  const catAxisTitleShow  = rcv(vk,'categoryAxis','showAxisTitle', false);
-  const catAxisTitleText  = rcv(vk,'categoryAxis','titleText', '');
-  const catAxisTitleColor = rcv(vk,'categoryAxis','titleColor', '#666666');
-  const valAxisTitleShow  = rcv(vk,'valueAxis','showAxisTitle', false);
-  const valAxisTitleText  = rcv(vk,'valueAxis','titleText', '');
-  const valAxisTitleColor = rcv(vk,'valueAxis','titleColor', '#666666');
+  const catAxisTitleShow   = rcv(vk,'categoryAxis','showAxisTitle', false);
+  const catAxisTitleText   = rcv(vk,'categoryAxis','titleText', '');
+  const catAxisTitleColor  = rcv(vk,'categoryAxis','titleColor', '#666666');
+  const catAxisTitleFontSz = rcv(vk,'categoryAxis','titleFontSize', isModal?11:9);
+  const catAxisTitleBold   = rcv(vk,'categoryAxis','titleBold', false);
+  const valAxisTitleShow   = rcv(vk,'valueAxis','showAxisTitle', false);
+  const valAxisTitleText   = rcv(vk,'valueAxis','titleText', '');
+  const valAxisTitleColor  = rcv(vk,'valueAxis','titleColor', '#666666');
+  const valAxisTitleFontSz = rcv(vk,'valueAxis','titleFontSize', isModal?11:9);
+  const valAxisTitleBold   = rcv(vk,'valueAxis','titleBold', false);
 
   // bx = base CATEGORY axis, by = base VALUE axis — spread into each chart's scales
-  const bx = { display:catShow, ticks:{color:catColor, font:{size:catFontSz}},
+  const bx = { display:catShow,
+               ticks:{color:catColor, font:{size:catFontSz, weight:catBold?'bold':'normal', style:catItalic?'italic':'normal'}},
                grid:{display:catGridShow, color:catGridCol}, border:{display:false},
-               title:{display:catAxisTitleShow && isModal, text:catAxisTitleText, color:catAxisTitleColor} };
-  const by = { display:valShow, ticks:{color:valColor, font:{size:valFontSz}},
+               title:{display:catAxisTitleShow && isModal, text:catAxisTitleText||'​', color:catAxisTitleColor,
+                      font:{size:catAxisTitleFontSz, weight:catAxisTitleBold?'bold':'normal'}} };
+  const by = { display:valShow,
+               ticks:{color:valColor, font:{size:valFontSz, weight:valBold?'bold':'normal', style:valItalic?'italic':'normal'}},
                grid:{display:gridShow, color:gridCol}, border:{display:false},
-               title:{display:valAxisTitleShow && isModal, text:valAxisTitleText, color:valAxisTitleColor} };
+               title:{display:valAxisTitleShow && isModal, text:valAxisTitleText||'​', color:valAxisTitleColor,
+                      font:{size:valAxisTitleFontSz, weight:valAxisTitleBold?'bold':'normal'}} };
+
+  // border helper for bar/column datasets
+  const bord = dpBorderShow ? {borderColor:dpBorderColor, borderWidth:dpBorderSize} : {borderColor:'transparent', borderWidth:0};
+
   // Chart.js plugins.title handles title rendering so Chart.js canvas-clear doesn't erase it
   const basePlugins = {
-    legend:{ display:legendShow && isModal, position:legendPos, labels:{font:{size:legendFontSz}, color:legendColor, boxWidth:10} },
+    legend:{ display:legendShow && isModal, position:legendPos,
+             labels:{font:{size:legendFontSz, weight:legendBold?'bold':'normal', style:legendItalic?'italic':'normal', family:legendFamily},
+                     color:legendColor, boxWidth:10} },
     tooltip:{ enabled:false },
     title:{
       display: titleShow,
       text: displayTitle,
       color: titleColor,
-      font:{ size: titleFontSz, weight: titleBold ? 'bold' : 'normal', family: 'Segoe UI' },
-      align: 'start',
+      font:{ size: titleFontSz, weight: titleBold ? 'bold' : 'normal', style: titleItalic ? 'italic' : 'normal', family: 'Segoe UI' },
+      align: titleAlign === 'center' ? 'center' : titleAlign === 'right' ? 'end' : 'start',
       padding:{ top:2, bottom:4 }
     }
   };
@@ -2213,11 +2240,11 @@ function renderVisualPreview(vk, canvas, isModal) {
     const stacked  = vk==='stackedBarChart'||vk==='hundredPercentStackedBarChart';
     const pct      = vk==='hundredPercentStackedBarChart';
     const datasets = vk==='barChart'
-      ? [{ label:'A', data:SD1, backgroundColor:sc(0) }]
+      ? [{ label:'A', data:SD1, backgroundColor:sc(0), ...bord }]
       : [
-          { label:'A', data:SD1, backgroundColor:sc(0) },
-          { label:'B', data:SD2, backgroundColor:sc(1) },
-          { label:'C', data:SD3, backgroundColor:sc(2) },
+          { label:'A', data:SD1, backgroundColor:sc(0), ...bord },
+          { label:'B', data:SD2, backgroundColor:sc(1), ...bord },
+          { label:'C', data:SD3, backgroundColor:sc(2), ...bord },
         ];
     return new Chart(ctx,{
       type:'bar',
@@ -2233,11 +2260,11 @@ function renderVisualPreview(vk, canvas, isModal) {
     const stacked  = vk==='stackedColumnChart'||vk==='hundredPercentStackedColumnChart';
     const pct      = vk==='hundredPercentStackedColumnChart';
     const datasets = vk==='columnChart'
-      ? [{ label:'A', data:SD1, backgroundColor:sc(0) }]
+      ? [{ label:'A', data:SD1, backgroundColor:sc(0), ...bord }]
       : [
-          { label:'A', data:SD1, backgroundColor:sc(0) },
-          { label:'B', data:SD2, backgroundColor:sc(1) },
-          { label:'C', data:SD3, backgroundColor:sc(2) },
+          { label:'A', data:SD1, backgroundColor:sc(0), ...bord },
+          { label:'B', data:SD2, backgroundColor:sc(1), ...bord },
+          { label:'C', data:SD3, backgroundColor:sc(2), ...bord },
         ];
     return new Chart(ctx,{
       type:'bar',
