@@ -8,6 +8,7 @@
     "test:report": "playwright show-report"
   },
   "dependencies": {
+    "@playwright/test": "^1.56.1",
     "chart.js": "^4.5.1"
   }
 }
