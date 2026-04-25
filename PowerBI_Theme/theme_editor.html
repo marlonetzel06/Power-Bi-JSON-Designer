@@ -3199,7 +3199,12 @@ function getModifiedCount(vk) {
 
 // ── Reset Visual / Card ──
 function resetVisual(vk) {
-  if (THEME.visualStyles) delete THEME.visualStyles[vk];
+  if (!THEME.visualStyles) return;
+  if (THEME_INITIAL && THEME_INITIAL.visualStyles && THEME_INITIAL.visualStyles[vk]) {
+    THEME.visualStyles[vk] = JSON.parse(JSON.stringify(THEME_INITIAL.visualStyles[vk]));
+  } else {
+    delete THEME.visualStyles[vk];
+  }
   updateJSON(); buildSidebar(); buildGrid();
 }
 
