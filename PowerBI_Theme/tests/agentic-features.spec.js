@@ -136,11 +136,11 @@ test('applyPreset earth: sets earth-tone data colors', async ({ page }) => {
   expect(dc0).toBe('#8B5E3C');
 });
 
-test('applyPreset highcontrast: sets background #000000', async ({ page }) => {
-  await page.evaluate(() => applyPreset('highcontrast'));
+test('applyPreset midnight: sets dark background', async ({ page }) => {
+  await page.evaluate(() => applyPreset('midnight'));
   await page.waitForTimeout(150);
   const bg = await page.evaluate(() => THEME.background);
-  expect(bg).toBe('#000000');
+  expect(bg).toBe('#0D1117');
 });
 
 test('applyPreset resets preset-select to placeholder', async ({ page }) => {
@@ -157,23 +157,44 @@ test('palette gen button: exists in DOM', async ({ page }) => {
   expect(btn).toBeTruthy();
 });
 
-test('generatePalette: produces 8 hex color strings', async ({ page }) => {
-  const colors = await page.evaluate(() => { generatePalette(); return THEME.dataColors; });
+test('palette popover: applyHarmony sets 8 hex dataColors', async ({ page }) => {
+  const colors = await page.evaluate(() => {
+    const hsl = hexToHSL('#1F8AC0');
+    const hues = HARMONIES.Analogous(hsl.h);
+    const palette = hues.map(hu => {
+      const h = ((hu % 360) + 360) % 360;
+      return hslToHex(h, hsl.s, hsl.l);
+    });
+    applyHarmony('Analogous', palette);
+    return THEME.dataColors;
+  });
   expect(colors).toHaveLength(8);
   colors.forEach(c => expect(c).toMatch(/^#[0-9A-Fa-f]{6}$/));
 });
 
-test('generatePalette: changes from original colors', async ({ page }) => {
+test('palette popover: applyHarmony changes dataColors', async ({ page }) => {
   const before = await page.evaluate(() => [...THEME.dataColors]);
-  await page.evaluate(() => { THEME.dataColors[0] = '#FF0000'; generatePalette(); });
+  await page.evaluate(() => {
+    const hsl = hexToHSL('#FF0000');
+    const hues = HARMONIES.Triadic(hsl.h);
+    const palette = hues.map(hu => {
+      const h = ((hu % 360) + 360) % 360;
+      return hslToHex(h, hsl.s, hsl.l);
+    });
+    applyHarmony('Triadic', palette);
+  });
   const after = await page.evaluate(() => [...THEME.dataColors]);
-  // at least some colors should differ from original Customer360 defaults
   const different = after.filter((c, i) => c !== before[i]);
   expect(different.length).toBeGreaterThan(0);
 });
 
-test('generatePalette: updates data-color swatch inputs', async ({ page }) => {
-  await page.evaluate(() => { THEME.dataColors[0] = '#FF0000'; generatePalette(); });
+test('palette popover: applyHarmony updates swatch inputs', async ({ page }) => {
+  await page.evaluate(() => {
+    const hsl = hexToHSL('#2563EB');
+    const hues = HARMONIES.Complementary(hsl.h);
+    const palette = hues.map(hu => hslToHex(((hu%360)+360)%360, hsl.s, hsl.l));
+    applyHarmony('Complementary', palette);
+  });
   await page.waitForTimeout(100);
   const swatches = await page.locator('#data-colors input[type="color"]').evaluateAll(
     els => els.map(e => e.value)
@@ -392,11 +413,19 @@ test('dark mode: toggleDarkMode() twice returns to light mode', async ({ page })
   expect(hasDark).toBe(false);
 });
 
-test('dark mode: toggle button icon switches between moon and sun', async ({ page }) => {
-  const before = await page.locator('#dark-mode-toggle').textContent();
+test('dark mode: toggle button shows sun in light mode, moon in dark mode', async ({ page }) => {
+  // Start in light mode — sun should be visible, moon hidden
+  await page.evaluate(() => { document.documentElement.removeAttribute('data-dark'); _dmUpdateIcon(false); });
+  const sunVisible = await page.locator('#dm-icon-sun').evaluate(el => el.style.display !== 'none');
+  const moonHidden = await page.locator('#dm-icon-moon').evaluate(el => el.style.display === 'none');
+  expect(sunVisible).toBe(true);
+  expect(moonHidden).toBe(true);
+  // Toggle to dark — moon should be visible, sun hidden
   await page.evaluate(() => toggleDarkMode());
-  const after = await page.locator('#dark-mode-toggle').textContent();
-  expect(before).not.toBe(after);
+  const moonVisible = await page.locator('#dm-icon-moon').evaluate(el => el.style.display !== 'none');
+  const sunHidden = await page.locator('#dm-icon-sun').evaluate(el => el.style.display === 'none');
+  expect(moonVisible).toBe(true);
+  expect(sunHidden).toBe(true);
 });
 
 test('dark mode: persists to localStorage', async ({ page }) => {
