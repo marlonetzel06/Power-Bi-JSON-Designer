@@ -689,7 +689,7 @@ Chart.register({
           <option value="earth">Earth Tones</option>
         </select>
         <button class="tb-btn" onclick="openPresetSave()">＋ Save</button>
-        <button class="tb-btn" id="preset-manage-btn" onclick="openPresetManager()" title="Manage saved presets" style="display:none;">&#x1F5D1; Presets</button>
+        <button id="preset-delete-btn" title="Delete this preset" style="display:none;background:none;border:none;cursor:pointer;color:#c0392b;font-size:16px;line-height:1;padding:2px 4px;" onclick="deleteSelectedPreset()">×</button>
         <div id="preset-save-wrap">
           <input id="preset-save-name" type="text" placeholder="Name…" onkeydown="if(event.key==='Enter')confirmPresetSave()">
           <button class="ps-btn ps-btn-ok" onclick="confirmPresetSave()">OK</button>
@@ -3224,7 +3224,8 @@ function showPageSizePreview(w, h) {
 }
 
 function applyPreset(key) {
-  if (!key) return;
+  const deleteBtn = document.getElementById('preset-delete-btn');
+  if (!key) { if (deleteBtn) deleteBtn.style.display = 'none'; return; }
   let p;
   if (key.startsWith('custom:')) {
     const customs = JSON.parse(localStorage.getItem('pbi-custom-presets') || '[]');
@@ -3243,9 +3244,27 @@ function applyPreset(key) {
     const ni = document.getElementById('theme-name-input');
     if (ni) ni.value = p.name;
   }
-  document.getElementById('preset-select').value = '';
+  if (key.startsWith('custom:')) {
+    if (deleteBtn) deleteBtn.style.display = '';
+  } else {
+    document.getElementById('preset-select').value = '';
+    if (deleteBtn) deleteBtn.style.display = 'none';
+  }
   reinitGlobalBarColors();
   updateJSON(); buildGrid();
+}
+
+function deleteSelectedPreset() {
+  const sel = document.getElementById('preset-select');
+  const key = sel.value;
+  if (!key.startsWith('custom:')) return;
+  const name = sel.options[sel.selectedIndex].text;
+  if (!confirm(`Delete preset "${name}"?`)) return;
+  const customs = JSON.parse(localStorage.getItem('pbi-custom-presets') || '[]');
+  localStorage.setItem('pbi-custom-presets', JSON.stringify(customs.filter(c => c._key !== key)));
+  sel.value = '';
+  document.getElementById('preset-delete-btn').style.display = 'none';
+  loadCustomPresets();
 }
 
 function openPresetSave() {
@@ -3290,11 +3309,7 @@ function loadCustomPresets() {
   const existing = sel.querySelector('optgroup[label="My Presets"]');
   if (existing) existing.remove();
   const customs = JSON.parse(localStorage.getItem('pbi-custom-presets') || '[]');
-  if (!customs.length) {
-    const manageBtn = document.getElementById('preset-manage-btn');
-    if (manageBtn) manageBtn.style.display = 'none';
-    return;
-  }
+  if (!customs.length) return;
   const grp = document.createElement('optgroup');
   grp.label = 'My Presets';
   customs.forEach(c => {
@@ -3304,21 +3319,6 @@ function loadCustomPresets() {
     grp.appendChild(opt);
   });
   sel.appendChild(grp);
-  const manageBtn = document.getElementById('preset-manage-btn');
-  if (manageBtn) manageBtn.style.display = '';
-}
-
-function openPresetManager() {
-  const customs = JSON.parse(localStorage.getItem('pbi-custom-presets') || '[]');
-  if (!customs.length) { alert('No saved presets.'); return; }
-  const lines = customs.map((c, i) => `${i + 1}. ${c.name}`).join('\n');
-  const input = prompt(`Saved presets:\n${lines}\n\nEnter number(s) to delete (comma-separated), or cancel:`);
-  if (!input) return;
-  const indices = input.split(',').map(s => parseInt(s.trim()) - 1).filter(i => i >= 0 && i < customs.length);
-  if (!indices.length) return;
-  const remaining = customs.filter((_, i) => !indices.includes(i));
-  localStorage.setItem('pbi-custom-presets', JSON.stringify(remaining));
-  loadCustomPresets();
 }
 
 function reinitGlobalBarColors() {
