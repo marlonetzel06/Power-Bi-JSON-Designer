@@ -399,6 +399,23 @@
   }
   .tb-btn-import { border: 1px solid #1f8ac0; background: #fff; color: #1f8ac0; }
   .tb-btn-import:hover { background: #e8f4fc; }
+  .import-wrap { position: relative; display: inline-block; }
+  .import-dropdown {
+    display: none; position: fixed;
+    background: #fff; border: 1px solid #d0dce8; border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.12); min-width: 160px; z-index: 9999;
+    overflow: hidden;
+  }
+  .import-dropdown.open { display: block; }
+  .import-dropdown button {
+    display: block; width: 100%; padding: 8px 14px; text-align: left;
+    background: none; border: none; font-size: 12px; font-weight: 500;
+    color: #333; cursor: pointer; white-space: nowrap;
+  }
+  .import-dropdown button:hover { background: #e8f4fc; color: #1f8ac0; }
+  html[data-dark] .import-dropdown { background: #24263e; border-color: #373963; }
+  html[data-dark] .import-dropdown button { color: #c9d1d9; }
+  html[data-dark] .import-dropdown button:hover { background: #1e2038; color: #89b4fa; }
   .tb-btn-delta  { border: 1px solid #7b5ea7; background: #fff; color: #7b5ea7; }
   .tb-btn-delta:hover { background: #f3eefe; }
 
@@ -582,8 +599,8 @@
   #palette-base-color { width: 28px; height: 28px; border: 1.5px solid #c8d8e8; border-radius: 4px; cursor: pointer; padding: 1px; }
   .ph-row { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
   .ph-row-label { font-size: 10px; color: #666; width: 90px; flex-shrink: 0; }
-  .ph-swatches { display: flex; gap: 3px; flex: 1; }
-  .ph-swatch { width: 22px; height: 22px; border-radius: 4px; cursor: default; border: 1px solid rgba(0,0,0,.08); }
+  .ph-swatches { display: flex; gap: 2px; flex: 1; min-width: 0; }
+  .ph-swatch { width: 18px; height: 18px; border-radius: 3px; cursor: default; border: 1px solid rgba(0,0,0,.08); flex-shrink: 0; }
   .ph-apply-btn {
     font-size: 10px; padding: 2px 8px; border-radius: 4px; cursor: pointer;
     border: 1px solid #c8d8e8; background: #f0f5fb; color: #0f4c81;
@@ -664,22 +681,29 @@ Chart.register({
     <div id="theme-toolbar">
       <div id="theme-toolbar-right">
         <select id="preset-select" onchange="applyPreset(this.value)">
-          <option value="">Preset wählen…</option>
+          <option value="">Choose preset…</option>
           <option value="corporate">Corporate Blue</option>
           <option value="dark">Dark Mode</option>
           <option value="slate">Slate Professional</option>
           <option value="midnight">Midnight Executive</option>
           <option value="earth">Earth Tones</option>
         </select>
-        <button class="tb-btn" onclick="openPresetSave()">＋ Speichern</button>
-        <button class="tb-btn" id="preset-manage-btn" onclick="openPresetManager()" title="Manage saved presets" style="display:none;">&#x1F5D1; Presets</button>
+        <button class="tb-btn" onclick="openPresetSave()">＋ Save</button>
+        <button id="preset-delete-btn" title="Delete this preset" style="display:none;background:none;border:none;cursor:pointer;color:#c0392b;font-size:16px;line-height:1;padding:2px 4px;" onclick="deleteSelectedPreset()">×</button>
         <div id="preset-save-wrap">
           <input id="preset-save-name" type="text" placeholder="Name…" onkeydown="if(event.key==='Enter')confirmPresetSave()">
           <button class="ps-btn ps-btn-ok" onclick="confirmPresetSave()">OK</button>
           <button class="ps-btn" onclick="closePresetSave()">✕</button>
         </div>
-        <button class="tb-btn tb-btn-import" onclick="document.getElementById('theme-import-file').click()">Import JSON</button>
+        <div class="import-wrap" id="import-wrap">
+          <button class="tb-btn tb-btn-import" onclick="toggleImportDropdown(event)">Import ▾</button>
+          <div class="import-dropdown" id="import-dropdown">
+            <button onclick="closeImportDropdown(); document.getElementById('theme-import-file').click()">From JSON file</button>
+            <button onclick="closeImportDropdown(); document.getElementById('pbip-import-file').click()">From PBIP folder</button>
+          </div>
+        </div>
         <input type="file" id="theme-import-file" accept=".json" style="display:none" onchange="handleImportFile(this)">
+        <input type="file" id="pbip-import-file" webkitdirectory style="display:none" onchange="handlePBIPImport(this)">
         <button id="dark-mode-toggle" onclick="toggleDarkMode()" title="Toggle dark / light mode">
           <svg id="dm-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
           <svg id="dm-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -3200,7 +3224,8 @@ function showPageSizePreview(w, h) {
 }
 
 function applyPreset(key) {
-  if (!key) return;
+  const deleteBtn = document.getElementById('preset-delete-btn');
+  if (!key) { if (deleteBtn) deleteBtn.style.display = 'none'; return; }
   let p;
   if (key.startsWith('custom:')) {
     const customs = JSON.parse(localStorage.getItem('pbi-custom-presets') || '[]');
@@ -3219,9 +3244,27 @@ function applyPreset(key) {
     const ni = document.getElementById('theme-name-input');
     if (ni) ni.value = p.name;
   }
-  document.getElementById('preset-select').value = '';
+  if (key.startsWith('custom:')) {
+    if (deleteBtn) deleteBtn.style.display = '';
+  } else {
+    document.getElementById('preset-select').value = '';
+    if (deleteBtn) deleteBtn.style.display = 'none';
+  }
   reinitGlobalBarColors();
   updateJSON(); buildGrid();
+}
+
+function deleteSelectedPreset() {
+  const sel = document.getElementById('preset-select');
+  const key = sel.value;
+  if (!key.startsWith('custom:')) return;
+  const name = sel.options[sel.selectedIndex].text;
+  if (!confirm(`Delete preset "${name}"?`)) return;
+  const customs = JSON.parse(localStorage.getItem('pbi-custom-presets') || '[]');
+  localStorage.setItem('pbi-custom-presets', JSON.stringify(customs.filter(c => c._key !== key)));
+  sel.value = '';
+  document.getElementById('preset-delete-btn').style.display = 'none';
+  loadCustomPresets();
 }
 
 function openPresetSave() {
@@ -3263,16 +3306,12 @@ function confirmPresetSave() {
 function loadCustomPresets() {
   const sel = document.getElementById('preset-select');
   if (!sel) return;
-  const existing = sel.querySelector('optgroup[label="Eigene Presets"]');
+  const existing = sel.querySelector('optgroup[label="My Presets"]');
   if (existing) existing.remove();
   const customs = JSON.parse(localStorage.getItem('pbi-custom-presets') || '[]');
-  if (!customs.length) {
-    const manageBtn = document.getElementById('preset-manage-btn');
-    if (manageBtn) manageBtn.style.display = 'none';
-    return;
-  }
+  if (!customs.length) return;
   const grp = document.createElement('optgroup');
-  grp.label = 'Eigene Presets';
+  grp.label = 'My Presets';
   customs.forEach(c => {
     const opt = document.createElement('option');
     opt.value = c._key;
@@ -3280,21 +3319,6 @@ function loadCustomPresets() {
     grp.appendChild(opt);
   });
   sel.appendChild(grp);
-  const manageBtn = document.getElementById('preset-manage-btn');
-  if (manageBtn) manageBtn.style.display = '';
-}
-
-function openPresetManager() {
-  const customs = JSON.parse(localStorage.getItem('pbi-custom-presets') || '[]');
-  if (!customs.length) { alert('Keine gespeicherten Presets.'); return; }
-  const lines = customs.map((c, i) => `${i + 1}. ${c.name}`).join('\n');
-  const input = prompt(`Gespeicherte Presets:\n${lines}\n\nNummer(n) zum Löschen (kommagetrennt), oder Abbrechen:`);
-  if (!input) return;
-  const indices = input.split(',').map(s => parseInt(s.trim()) - 1).filter(i => i >= 0 && i < customs.length);
-  if (!indices.length) return;
-  const remaining = customs.filter((_, i) => !indices.includes(i));
-  localStorage.setItem('pbi-custom-presets', JSON.stringify(remaining));
-  loadCustomPresets();
 }
 
 function reinitGlobalBarColors() {
@@ -3305,6 +3329,23 @@ function reinitGlobalBarColors() {
   const inputs = document.querySelectorAll('#data-colors input[type="color"]');
   inputs.forEach((inp,i) => { if(THEME.dataColors[i]) inp.value=THEME.dataColors[i].toLowerCase(); });
 }
+
+// ── Import Dropdown ──
+function toggleImportDropdown(e) {
+  e.stopPropagation();
+  const dd = document.getElementById('import-dropdown');
+  if (dd.classList.contains('open')) { dd.classList.remove('open'); return; }
+  const r = e.currentTarget.getBoundingClientRect();
+  dd.style.top = (r.bottom + 4) + 'px';
+  dd.style.left = r.left + 'px';
+  dd.classList.add('open');
+}
+function closeImportDropdown() {
+  document.getElementById('import-dropdown').classList.remove('open');
+}
+document.addEventListener('click', function(e) {
+  if (!document.getElementById('import-wrap').contains(e.target)) closeImportDropdown();
+});
 
 // ── JSON Import ──
 function handleImportFile(inputEl) {
@@ -3317,6 +3358,143 @@ function handleImportFile(inputEl) {
   };
   reader.readAsText(file);
   inputEl.value = '';
+}
+
+// ── PBIP Import ──
+async function handlePBIPImport(inputEl) {
+  const files = Array.from(inputEl.files);
+  inputEl.value = '';
+
+  // Tier 1: read theme file directly from StaticResources/SharedResources/BaseThemes/
+  const themeFile = files.find(f =>
+    f.webkitRelativePath.includes('BaseThemes') &&
+    f.webkitRelativePath.includes('StaticResources') &&
+    f.name.endsWith('.json')
+  ) || files.find(f =>
+    f.webkitRelativePath.includes('BaseThemes') && f.name.endsWith('.json')
+  );
+
+  if (themeFile) {
+    try { loadThemeFromJSON(JSON.parse(await themeFile.text())); }
+    catch(e) { alert('Invalid theme JSON: ' + e.message); }
+    return;
+  }
+
+  // Tier 2: extract colors + styles from definition/pages/*/visuals/*/visual.json
+  const visualFiles = files.filter(f =>
+    f.webkitRelativePath.includes('/visuals/') && f.name === 'visual.json'
+  );
+  if (!visualFiles.length) {
+    alert('No theme data found in this folder.\n\nExpected either:\n• StaticResources/SharedResources/BaseThemes/<name>.json\n• definition/pages/*/visuals/*/visual.json\n\nMake sure you selected the .Report folder of a .pbip project.');
+    return;
+  }
+  loadThemeFromJSON(await extractThemeFromVisuals(visualFiles));
+}
+
+// ── PBIP ValueExtractor (JS port of Python ValueExtractor + FontStandardizer) ──
+const _PBIP_HEX = /^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
+const _PBIP_SKIP_OBJ = new Set(['stylePreset']);
+const _PBIP_DYN_OBJ  = new Set(['referenceLabel','referenceLabelDetail','referenceLabelValue','referenceLabelTitle']);
+const _PBIP_SLICER   = new Set(['advancedSlicerVisual','slicerVisual','listSlicer','actionButton']);
+const _PBIP_VALID_SEL= new Set(['default','interaction:hover','selection:selected','interaction:hoverSelected','selection:unselected']);
+const _PBIP_BAD_PROP = new Set(['paragraphs','text','name','imageUrl','imageType']);
+const _PBIP_FONT_MAP = {fontFamily:'fontFace',fontSize:'fontSize',fontColor:'color',color:'color',bold:'bold',italic:'italic',underline:'underline',fontBold:'bold',fontItalic:'italic',fontUnderline:'underline'};
+
+function pbipVal(v) {
+  if (v === null || v === undefined) return null;
+  if (typeof v !== 'object') return v;
+  if (Array.isArray(v)) { const a = v.map(pbipVal).filter(x => x !== null); return a.length ? a : null; }
+  if ('expr' in v) return pbipExpr(v.expr);
+  if (v.solid?.color) return v.solid.color;
+  const out = {};
+  for (const [k, x] of Object.entries(v)) { const r = pbipVal(x); if (r !== null && r !== undefined) out[k] = r; }
+  return Object.keys(out).length ? out : null;
+}
+function pbipExpr(e) {
+  if (!e || typeof e !== 'object') return null;
+  if ('Measure' in e || 'ResourcePackageItem' in e) return null;
+  if ('Literal' in e) return pbipLit(e.Literal);
+  if ('ThemeDataColor' in e) return {expr: e};
+  return null;
+}
+function pbipLit(l) {
+  if (!l || !('Value' in l)) return null;
+  const v = l.Value;
+  return typeof v === 'string' ? pbipStr(v) : v;
+}
+function pbipStr(v) {
+  if ((v.startsWith("'") && v.endsWith("'")) || (v.startsWith('"') && v.endsWith('"'))) v = v.slice(1,-1);
+  const lo = v.toLowerCase();
+  if (lo === 'true') return true;
+  if (lo === 'false') return false;
+  if (['0','1','2','3'].includes(v)) return parseInt(v);
+  const n = Number(v); return (!isNaN(n) && v !== '') ? n : v;
+}
+function pbipFont(fontFamily) {
+  if (typeof fontFamily !== 'string') return 'Segoe UI';
+  for (const p of fontFamily.replace(/\\"/g,'"').replace(/^['"]|['"]$/g,'').split(',')) {
+    const c = p.trim().replace(/^['"]|['"]$/g,'');
+    if (c && !c.startsWith('wf_')) return c;
+  }
+  return 'Segoe UI';
+}
+function pbipProps(properties) {
+  const out = {};
+  for (const [k, v] of Object.entries(properties)) {
+    if (_PBIP_BAD_PROP.has(k) || typeof k !== 'string' || k.startsWith('dynamic')) continue;
+    let val = pbipVal(v);
+    if (val === null || val === undefined) continue;
+    if (k === 'fontFamily') val = pbipFont(val);
+    out[_PBIP_FONT_MAP[k] ? _PBIP_FONT_MAP[k] : k] = val;
+  }
+  return Object.keys(out).length ? out : null;
+}
+function pbipColors(obj, freq) {
+  if (!obj || typeof obj !== 'object') return;
+  for (const val of Object.values(obj)) {
+    if (typeof val === 'string' && _PBIP_HEX.test(val)) { freq[val] = (freq[val]||0)+1; }
+    else if (val && typeof val === 'object') {
+      if (val.solid?.color && _PBIP_HEX.test(val.solid.color)) { freq[val.solid.color] = (freq[val.solid.color]||0)+1; }
+      const lit = val?.expr?.Literal?.Value;
+      if (typeof lit === 'string') { const m = lit.match(/'(#[0-9a-fA-F]{6,8})'/); if (m) freq[m[1]] = (freq[m[1]]||0)+1; }
+      pbipColors(val, freq);
+    }
+  }
+}
+
+async function extractThemeFromVisuals(visualFiles) {
+  const freq = {}, visualStyles = {};
+  for (const file of visualFiles) {
+    let vd; try { vd = JSON.parse(await file.text()); } catch { continue; }
+    pbipColors(vd, freq);
+    const vType = vd?.visual?.visualType;
+    const objects = vd?.visual?.objects || {};
+    if (!vType || !Object.keys(objects).length) continue;
+    const isSlicer = _PBIP_SLICER.has(vType);
+    if (!visualStyles[vType]) visualStyles[vType] = {'*':{}};
+    for (const [card, items] of Object.entries(objects)) {
+      if (_PBIP_SKIP_OBJ.has(card) || (!isSlicer && _PBIP_DYN_OBJ.has(card))) continue;
+      if (!Array.isArray(items)) continue;
+      const resolved = [];
+      for (const item of items) {
+        if (!item?.properties) continue;
+        const selId = item.selector?.id || null;
+        if (selId && selId !== 'default' && !_PBIP_VALID_SEL.has(selId)) continue;
+        const props = pbipProps(item.properties);
+        if (!props) continue;
+        if (isSlicer && selId && selId !== 'default') resolved.push({$id: selId, ...props});
+        else resolved.push(props);
+      }
+      if (!resolved.length) continue;
+      const existing = visualStyles[vType]['*'][card];
+      if (!existing) { visualStyles[vType]['*'][card] = resolved; }
+      else { for (const r of resolved) { if (!existing.some(e => JSON.stringify(e)===JSON.stringify(r))) existing.push(r); } }
+    }
+  }
+  const dataColors = Object.entries(freq)
+    .filter(([c]) => !['#FFFFFF','#ffffff','#000000','#000'].includes(c))
+    .sort((a,b) => b[1]-a[1]).slice(0,8).map(([c]) => c);
+  return {dataColors, visualStyles};
 }
 
 function loadThemeFromJSON(json) {
@@ -3431,25 +3609,24 @@ function applyHarmony(name, colors) {
 function shufflePalette() {
   const base = document.getElementById('palette-base-color').value;
   const hsl = hexToHSL(base);
-  const jitter = () => (Math.random() - 0.5) * 20;
-  const hues = (_lastHarmony
-    ? Object.entries(HARMONIES).find(([n]) => n === _lastHarmony.name)?.[1]
-    : HARMONIES.Analogous)(hsl.h);
-  const colors = (hues || [0,30,60,90,120,150,210,270]).map(hu => {
-    const h = ((hu % 360) + 360) % 360;
-    const s = Math.max(20, Math.min(92, hsl.s + jitter()));
-    const l = Math.max(22, Math.min(76, hsl.l + jitter()));
-    return hslToHex(h, s, l);
-  });
+  const sJit = (Math.random() - 0.5) * 24;
+  const lJit = (Math.random() - 0.5) * 20;
   const container = document.getElementById('palette-harmony-rows');
-  container.querySelectorAll('.ph-row').forEach((row, ri) => {
-    const name = row.querySelector('.ph-row-label').textContent;
-    if (name === (_lastHarmony && _lastHarmony.name)) {
-      row.querySelectorAll('.ph-swatch').forEach((sw, i) => { sw.style.background = colors[i]; sw.title = colors[i]; });
-      row.querySelector('.ph-apply-btn').onclick = () => applyHarmony(name, colors);
-    }
+  Object.entries(HARMONIES).forEach(([name, fn], ri) => {
+    const hues = fn(hsl.h);
+    const colors = hues.map((hu, i) => {
+      const h = ((hu % 360) + 360) % 360;
+      const lOff = name === 'Monochromatic' ? (i - 3.5) * 8 + lJit : lJit;
+      const s = Math.max(20, Math.min(92, hsl.s + sJit));
+      const l = Math.max(22, Math.min(76, hsl.l + lOff));
+      return hslToHex(h, s, l);
+    });
+    const row = container.querySelectorAll('.ph-row')[ri];
+    if (!row) return;
+    row.querySelectorAll('.ph-swatch').forEach((sw, i) => { sw.style.background = colors[i]; sw.title = colors[i]; });
+    row.querySelector('.ph-apply-btn').onclick = () => applyHarmony(name, colors);
+    if (_lastHarmony && name === _lastHarmony.name) _lastHarmony = { name, colors };
   });
-  renderPalettePopover();
 }
 
 function hexToHSL(hex) {
