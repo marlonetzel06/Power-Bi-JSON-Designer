@@ -534,6 +534,16 @@
 
   html[data-dark] #modal-settings-pane button[style] { filter: brightness(0.8) saturate(0.9); }
   html[data-dark] .gb-typo-label { color: #89b4fa; }
+
+  #grid-search {
+    flex: 1; min-width: 0; box-sizing: border-box;
+    font-size: 12px; padding: 6px 10px; border-radius: 6px;
+    border: 1px solid #c8d8ea; outline: none;
+    background: #fff; color: #333;
+  }
+  html[data-dark] #grid-search {
+    background: #1e2038; color: #c0caf5; border-color: #373963;
+  }
   html[data-dark] .gb-typo-font,
   html[data-dark] .gb-typo-size { background: #1e2038; border-color: #373963; color: #c0caf5; }
   html[data-dark] .gb-typo-bold { color: #a9b1d6; }
@@ -691,7 +701,7 @@ Chart.register({
         <!-- Row 0: Theme name -->
         <div class="gb-row">
           <span class="gb-pill">Theme Name</span>
-          <input id="theme-name-input" type="text" value="Customer360 Theme" placeholder="Theme name…">
+          <input id="theme-name-input" type="text" value="" placeholder="Theme name">
         </div>
 
         <!-- Row 1: Canvas colors + Data palette -->
@@ -795,7 +805,7 @@ Chart.register({
       <button onclick="openEditModal('__page__','Page Settings')" style="font-size:12px;padding:5px 14px;border-radius:6px;border:1px solid #1f8ac0;background:#fff;color:#1f8ac0;cursor:pointer;font-weight:600;">Edit</button>
     </div>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-      <input id="grid-search" type="text" placeholder="&#x1F50D; Filter visuals…" oninput="buildGrid(this.value)" style="flex:1;font-size:12px;padding:6px 10px;border-radius:6px;border:1px solid #c8d8ea;outline:none;background:#fff;color:#333;">
+      <input id="grid-search" type="text" placeholder="&#x1F50D; Filter visuals…" oninput="buildGrid(this.value)">
     </div>
     <div id="visual-grid"></div>
   </section>
@@ -1735,6 +1745,8 @@ function downloadJSON() {
   a.click();
 }
 
+let _userSetThemeName = false;
+
 // ── Global bar init ──
 function initGlobalBar() {
   [
@@ -1797,8 +1809,7 @@ function initGlobalBar() {
   // bind theme name input
   const ni = document.getElementById('theme-name-input');
   if (ni) {
-    ni.value = THEME.name || 'Customer360 Theme';
-    ni.addEventListener('input', () => { THEME.name = ni.value; updateJSON(); });
+    ni.addEventListener('input', () => { _userSetThemeName = true; THEME.name = ni.value; updateJSON(); });
   }
 }
 
@@ -2310,6 +2321,7 @@ function renderVisualPreview(vk, canvas, isModal) {
     return null;
   }
   const colors = THEME.dataColors;
+  const isDark = document.documentElement.hasAttribute('data-dark');
 
   // ── Legend
   const legendShow    = rcv(vk,'legend','show',true);
@@ -2328,7 +2340,8 @@ function renderVisualPreview(vk, canvas, isModal) {
   const catBold    = rcv(vk,'categoryAxis','bold', false);
   const catItalic  = rcv(vk,'categoryAxis','italic', false);
   const catGridShow= rcv(vk,'categoryAxis','gridlineShow', false);
-  const catGridCol = rcv(vk,'categoryAxis','gridlineColor','#E0E0E0');
+  const _catGridColRaw = rcv(vk,'categoryAxis','gridlineColor','#E0E0E0');
+  const catGridCol = (isDark && _catGridColRaw.toUpperCase()==='#E0E0E0') ? '#373963' : _catGridColRaw;
 
   // ── Value axis
   const valShow    = rcv(vk,'valueAxis','show', true);
@@ -2337,7 +2350,8 @@ function renderVisualPreview(vk, canvas, isModal) {
   const valBold    = rcv(vk,'valueAxis','bold', false);
   const valItalic  = rcv(vk,'valueAxis','italic', false);
   const gridShow   = rcv(vk,'valueAxis','gridlineShow', true);
-  const gridCol    = rcv(vk,'valueAxis','gridlineColor','#E0E0E0');
+  const _gridColRaw = rcv(vk,'valueAxis','gridlineColor','#E0E0E0');
+  const gridCol    = (isDark && _gridColRaw.toUpperCase()==='#E0E0E0') ? '#373963' : _gridColRaw;
 
   // ── Data point
   const dpDefaultColor = rcv(vk,'dataPoint','defaultColor', null);
@@ -2589,9 +2603,10 @@ function renderVisualPreview(vk, canvas, isModal) {
 
   // ── Pie ──
   if (vk==='pieChart') {
+    const segBorder = isDark ? '#1e2038' : '#f8fafd';
     return new Chart(ctx,{
       type:'pie',
-      data:{ labels:SL, datasets:[{ data:SD1, backgroundColor:colors.map((c,i)=>sc(i)) }] },
+      data:{ labels:SL, datasets:[{ data:SD1, backgroundColor:colors.map((c,i)=>sc(i)), borderColor:segBorder, borderWidth:2 }] },
       options:{ ...baseOpts, cutout:0 }
     });
   }
@@ -2599,9 +2614,10 @@ function renderVisualPreview(vk, canvas, isModal) {
   // ── Donut ──
   if (vk==='donutChart') {
     const ir = rcv(vk,'innerRadius','innerRadiusRatio',50);
+    const segBorder = isDark ? '#1e2038' : '#f8fafd';
     return new Chart(ctx,{
       type:'doughnut',
-      data:{ labels:SL, datasets:[{ data:SD1, backgroundColor:colors.map((c,i)=>sc(i)) }] },
+      data:{ labels:SL, datasets:[{ data:SD1, backgroundColor:colors.map((c,i)=>sc(i)), borderColor:segBorder, borderWidth:2 }] },
       options:{ ...baseOpts, cutout:`${ir}%` }
     });
   }
@@ -2724,11 +2740,13 @@ function renderVisualPreview(vk, canvas, isModal) {
   // ── Slicer (canvas 2D) ──
   if (['slicer','advancedSlicerVisual','listSlicer'].includes(vk)) {
     const hc      = rcv(vk,'slicerHeader','fontColor','#0F4C81');
-    const hbg     = rcv(vk,'slicerHeader','background','#FFFFFF');
+    const _hbgRaw = rcv(vk,'slicerHeader','background','#FFFFFF');
+    const hbg     = (isDark && _hbgRaw.toUpperCase()==='#FFFFFF') ? '#24263e' : _hbgRaw;
     const hFontSz = rcv(vk,'slicerHeader','textSize', 12);
     const hShow   = rcv(vk,'slicerHeader','show', true);
-    const ic      = rcv(vk,'slicerItems','fontColor','#333333');
-    const ibg     = rcv(vk,'slicerItems','background','#FFFFFF');
+    const ic      = isDark ? '#c0caf5' : rcv(vk,'slicerItems','fontColor','#333333');
+    const _ibgRaw = rcv(vk,'slicerItems','background','#FFFFFF');
+    const ibg     = (isDark && _ibgRaw.toUpperCase()==='#FFFFFF') ? '#1e2038' : _ibgRaw;
     const iFontSz = rcv(vk,'slicerItems','textSize', 11);
     const accentCol = rcv(vk,'slider','color', col(0));
     const mode    = rcv(vk,'data','mode','VerticalList');
@@ -2740,7 +2758,7 @@ function renderVisualPreview(vk, canvas, isModal) {
       ctx.fillStyle=hbg; ctx.fillRect(0,ty,W,headerH);
       ctx.fillStyle=hc; ctx.font=`bold ${hFontSz}px Segoe UI`; ctx.textAlign='left';
       ctx.fillText('Region',8,ty+hFontSz+1);
-      ctx.strokeStyle='#e0e0e0'; ctx.lineWidth=1;
+      ctx.strokeStyle=isDark?'#373963':'#e0e0e0'; ctx.lineWidth=1;
       ctx.beginPath(); ctx.moveTo(0,ty+headerH); ctx.lineTo(W,ty+headerH); ctx.stroke();
     }
 
@@ -2797,9 +2815,11 @@ function renderVisualPreview(vk, canvas, isModal) {
 
   // ── Table (canvas 2D) ──
   if (vk==='tableEx'||vk==='pivotTable') {
-    const hbg = rcv(vk,'columnHeaders','backColor','#0F4C81');
-    const hfc = rcv(vk,'columnHeaders','fontColor','#FFFFFF');
+    const hbg   = rcv(vk,'columnHeaders','backColor','#0F4C81');
+    const hfc   = rcv(vk,'columnHeaders','fontColor','#FFFFFF');
+    const rowBg = rcv(vk,'values','backColor','#FFFFFF');
     const banded = rcv(vk,'values','backColorSecondary','#F0F6FB');
+    const rowFc = rcv(vk,'values','fontColor','#333333');
     const cols=['Name','Region','Sales','Growth'];
     const rows=[['Adams','North','$1,284','▲ 12%'],['Brown','South','$942','▼ 3%'],['Clark','East','$1,830','▲ 8%']];
     const cw=W/cols.length, rh=(H-titleH)/(rows.length+1);
@@ -2807,37 +2827,40 @@ function renderVisualPreview(vk, canvas, isModal) {
     ctx.fillRect(0,titleH,W,rh);
     cols.forEach((c,i)=>{ ctx.fillStyle=hfc; ctx.font=`bold ${fontSize}px Segoe UI`; ctx.textAlign='center'; ctx.fillText(c,cw*i+cw/2,titleH+rh*0.68); });
     rows.forEach((row,ri)=>{
-      if(ri%2===1){ ctx.fillStyle=banded; ctx.fillRect(0,(ri+1)*rh+titleH,W,rh); }
+      ctx.fillStyle=ri%2===1?banded:rowBg; ctx.fillRect(0,(ri+1)*rh+titleH,W,rh);
       row.forEach((cell,ci)=>{
-        ctx.fillStyle=cell.includes('▲')?'#2A9D8F':cell.includes('▼')?'#E76F51':'#333';
+        ctx.fillStyle=cell.includes('▲')?'#2A9D8F':cell.includes('▼')?'#E76F51':rowFc;
         ctx.font=`${fontSize}px Segoe UI`; ctx.textAlign='center';
         ctx.fillText(cell,cw*ci+cw/2,(ri+1)*rh+titleH+rh*0.65);
       });
     });
-    ctx.strokeStyle='#e0e0e0'; ctx.lineWidth=1;
+    ctx.strokeStyle=isDark?'#373963':'#e0e0e0'; ctx.lineWidth=1;
     for(let r=0;r<=rows.length+1;r++){ ctx.beginPath(); ctx.moveTo(0,r*rh+titleH); ctx.lineTo(W,r*rh+titleH); ctx.stroke(); }
     return null;
   }
 
   // ── Matrix (canvas 2D) ──
   if (vk==='matrix') {
-    const hbg = rcv(vk,'columnHeaders','backColor','#0F4C81');
-    const hfc = rcv(vk,'columnHeaders','fontColor','#FFFFFF');
-    const rbg = rcv(vk,'rowHeaders','backColor','#FFFFFF');
+    const hbg   = rcv(vk,'columnHeaders','backColor','#0F4C81');
+    const hfc   = rcv(vk,'columnHeaders','fontColor','#FFFFFF');
+    const rbg   = rcv(vk,'rowHeaders','backColor','#FFFFFF');
+    const rowFc = rcv(vk,'values','fontColor','#333333');
+    const totBg = rcv(vk,'subTotals','backColor','#E8F0F7');
+    const totFc = rcv(vk,'subTotals','fontColor','#0F4C81');
     const cols=['','Q1','Q2','Q3']; const rows=[['North',42,68,55],['South',30,45,60],['East',20,38,49],['Total',92,151,164]];
     const cw=W/cols.length, rh=(H-titleH)/(rows.length+1);
     ctx.fillStyle=hbg; ctx.fillRect(0,titleH,W,rh);
     cols.forEach((c,i)=>{ ctx.fillStyle=hfc; ctx.font=`bold ${fontSize}px Segoe UI`; ctx.textAlign='center'; ctx.fillText(c,cw*i+cw/2,titleH+rh*0.7); });
     rows.forEach((row,ri)=>{
       const isTot = ri===rows.length-1;
-      ctx.fillStyle=isTot?'#E8F0F7':rbg; ctx.fillRect(0,(ri+1)*rh+titleH,W,rh);
+      ctx.fillStyle=isTot?totBg:rbg; ctx.fillRect(0,(ri+1)*rh+titleH,W,rh);
       row.forEach((cell,ci)=>{
-        ctx.fillStyle=isTot?'#0F4C81':'#333'; ctx.font=`${isTot?'bold ':''}${fontSize}px Segoe UI`;
+        ctx.fillStyle=isTot?totFc:rowFc; ctx.font=`${isTot?'bold ':''}${fontSize}px Segoe UI`;
         ctx.textAlign=ci===0?'left':'right';
         ctx.fillText(cell,ci===0?6:cw*(ci+1)-4,(ri+1)*rh+titleH+rh*0.68);
       });
     });
-    ctx.strokeStyle='#e0e0e0'; ctx.lineWidth=1;
+    ctx.strokeStyle=isDark?'#373963':'#e0e0e0'; ctx.lineWidth=1;
     for(let r=0;r<=rows.length+1;r++){ ctx.beginPath(); ctx.moveTo(0,r*rh+titleH); ctx.lineTo(W,r*rh+titleH); ctx.stroke(); }
     return null;
   }
@@ -3191,9 +3214,11 @@ function applyPreset(key) {
    'firstLevelElements','secondLevelElements','thirdLevelElements','fourthLevelElements','secondaryBackground'
   ].forEach(k => { if (p[k]) THEME[k] = p[k]; });
   if (Array.isArray(p.dataColors)) THEME.dataColors = [...p.dataColors];
-  THEME.name = p.name;
-  const ni = document.getElementById('theme-name-input');
-  if (ni) ni.value = p.name;
+  if (!_userSetThemeName) {
+    THEME.name = p.name;
+    const ni = document.getElementById('theme-name-input');
+    if (ni) ni.value = p.name;
+  }
   document.getElementById('preset-select').value = '';
   reinitGlobalBarColors();
   updateJSON(); buildGrid();
