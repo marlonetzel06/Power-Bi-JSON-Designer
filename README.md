@@ -12,7 +12,7 @@ A web-based editor for creating and customizing Power BI theme files (`.json`). 
 - **Live preview** — see changes reflected in real time
 - **JSON export** — download the finished theme file ready for import into Power BI Desktop
 - **Supports all common visuals** — bar charts, line charts, cards, tables, slicers, and more
-- **Example theme included** — `Customer360_Theme.json` as a ready-to-use starting point
+
 
 ### Funktionen
 
@@ -20,7 +20,7 @@ A web-based editor for creating and customizing Power BI theme files (`.json`). 
 - **Live-Vorschau** — Änderungen werden in Echtzeit angezeigt
 - **JSON-Export** — fertiges Theme herunterladen und direkt in Power BI Desktop importieren
 - **Unterstützt alle gängigen Visuals** — Balkendiagramme, Liniendiagramme, Karten, Tabellen, Slicer und mehr
-- **Beispiel-Theme enthalten** — `Customer360_Theme.json` als fertiger Ausgangspunkt
+
 
 ---
 
