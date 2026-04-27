@@ -15,7 +15,7 @@
 const { test, expect } = require('playwright/test');
 const path = require('path');
 
-const FILE_URL = 'file://' + path.resolve(__dirname, '..', 'theme_editor.html');
+const FILE_URL = 'file://' + path.resolve(__dirname, '..', 'pbi-json-designer.html');
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

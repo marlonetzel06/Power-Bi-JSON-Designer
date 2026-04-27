@@ -2,7 +2,7 @@
 /**
  * agentic-features.spec.js
  *
- * Functional tests for the 8 agentic-workflow features added to theme_editor.html:
+ * Functional tests for the 8 agentic-workflow features added to pbi-json-designer.html:
  *  1. Theme Name Editor
  *  2. JSON Import
  *  3. Preset Library
@@ -15,7 +15,7 @@
 const { test, expect } = require('playwright/test');
 const path = require('path');
 
-const FILE_URL = 'file://' + path.resolve(__dirname, '..', 'theme_editor.html');
+const FILE_URL = 'file://' + path.resolve(__dirname, '..', 'pbi-json-designer.html');
 
 test.beforeEach(async ({ page }) => {
   await page.goto(FILE_URL);
