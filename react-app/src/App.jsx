@@ -11,6 +11,11 @@ export default function App() {
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
+    if (darkMode) {
+      document.documentElement.setAttribute('data-dark', '');
+    } else {
+      document.documentElement.removeAttribute('data-dark');
+    }
   }, [darkMode]);
 
   return (

@@ -79,13 +79,7 @@ const useThemeStore = create((set, get) => ({
 
   toggleDarkMode: () => set((s) => {
     const next = !s.darkMode;
-    if (next) {
-      document.documentElement.setAttribute('data-dark', '');
-      localStorage.setItem('pbi-editor-dark', '1');
-    } else {
-      document.documentElement.removeAttribute('data-dark');
-      localStorage.setItem('pbi-editor-dark', '0');
-    }
+    localStorage.setItem('pbi-editor-dark', next ? '1' : '0');
     return { darkMode: next };
   }),
 
