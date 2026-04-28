@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+/* Custom scrollbar */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #c0d4e8 transparent;
+}
+.scrollbar-thin::-webkit-scrollbar { width: 6px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: #c0d4e8; border-radius: 3px; }
+
+html[data-dark] .scrollbar-thin { scrollbar-color: #2a3558 transparent; }
+html[data-dark] .scrollbar-thin::-webkit-scrollbar-thumb { background: #2a3558; }
+
+/* Toggle switch */
+.toggle { position: relative; width: 36px; height: 20px; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute; inset: 0;
+  background: #ccc; border-radius: 20px; cursor: pointer;
+  transition: background .2s;
+}
+.toggle-slider:before {
+  content: ""; position: absolute;
+  width: 14px; height: 14px; left: 3px; top: 3px;
+  background: #fff; border-radius: 50%; transition: transform .2s;
+}
+.toggle input:checked + .toggle-slider { background: #1f8ac0; }
+.toggle input:checked + .toggle-slider:before { transform: translateX(16px); }
+
+html[data-dark] .toggle-slider { background: #474a6e; }
+html[data-dark] .toggle input:checked + .toggle-slider { background: #89b4fa; }
+html[data-dark] .toggle-slider:before { background: #1e2038; }
+
+/* JSON syntax colors */
+.json-key  { color: #89b4fa; }
+.json-str  { color: #a6e3a1; }
+.json-num  { color: #fab387; }
+.json-bool { color: #f38ba8; }
+.json-null { color: #6c7086; }
+
+/* Color input reset */
+input[type="color"] { padding: 0; }
+input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; border-radius: 3px; }
+input[type="color"]::-webkit-color-swatch { border: none; border-radius: 3px; }
