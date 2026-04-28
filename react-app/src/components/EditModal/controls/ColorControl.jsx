@@ -2,7 +2,7 @@ import useThemeStore from '../../../store/themeStore';
 
 export default function ColorControl({ prop, value, visualKey, cardKey }) {
   const { setCardProp } = useThemeStore();
-  const color = (value || prop.default || '#888888').toString().toLowerCase();
+  const color = (value || prop.def || prop.default || '#888888').toString().toLowerCase();
 
   return (
     <label className="flex items-center justify-between gap-2 text-xs text-[#555] dark:text-[#a9b1d6]">

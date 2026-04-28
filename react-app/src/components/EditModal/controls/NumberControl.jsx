@@ -4,7 +4,7 @@ import { VALIDATION } from '../../../constants/enums';
 export default function NumberControl({ prop, value, visualKey, cardKey }) {
   const { setCardProp } = useThemeStore();
   const v = VALIDATION[prop.key] || {};
-  const num = value ?? prop.default ?? v.min ?? 0;
+  const num = value ?? prop.def ?? prop.default ?? v.min ?? 0;
 
   return (
     <label className="flex items-center justify-between gap-2 text-xs text-[#555] dark:text-[#a9b1d6]">

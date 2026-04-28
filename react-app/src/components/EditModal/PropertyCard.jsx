@@ -10,16 +10,20 @@ import TextControl from './controls/TextControl';
 const CONTROL_MAP = {
   color: ColorControl,
   toggle: ToggleControl,
+  boolean: ToggleControl,
   number: NumberControl,
   dropdown: DropdownControl,
+  enum: DropdownControl,
   text: TextControl,
+  string: TextControl,
 };
 
 export default function PropertyCard({ visualKey, cardKey, cardDef }) {
   const [collapsed, setCollapsed] = useState(true);
   const { getCardData, rcv, isModified } = useThemeStore();
-  const displayName = CARD_NAME_MAP[cardKey] || cardDef.label || cardKey;
-  const isWild = visualKey === '*';
+  const displayName = CARD_NAME_MAP[cardKey] || cardKey;
+  // cardDef can be an array (from CARD_DEFS) or an object with { label, props }
+  const props = Array.isArray(cardDef) ? cardDef : (cardDef.props || []);
   const cardData = getCardData(visualKey, cardKey) || {};
   const hasChanges = Object.keys(cardData).length > 0;
 
@@ -38,7 +42,7 @@ export default function PropertyCard({ visualKey, cardKey, cardDef }) {
       {!collapsed && (
         <div className="bg-[#fafbfe] px-4 py-3 border-t border-[#e6edf5] dark:bg-[#1e2038] dark:border-[#2d3555]">
           <div className="flex flex-col gap-2">
-            {(cardDef.props || []).map(prop => {
+            {props.map(prop => {
               const Control = CONTROL_MAP[prop.type] || TextControl;
               const value = rcv(visualKey, cardKey, prop.key);
               return (

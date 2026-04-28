@@ -10,14 +10,19 @@ const HARMONIES = {
   Monochromatic:  h => [h, h, h, h, h, h, h, h],
 };
 
+// Per-index saturation & lightness offsets to ensure each color within a palette is distinct
+const S_OFFSETS = [0, -8, 12, -15, 8, -20, 15, -5];
+const L_OFFSETS = [0, 10, -10, 18, -18, 25, -25, 8];
+
 function generateHarmonyColors(name, fn, hsl, sJitter = 0, lJitter = 0) {
   const [hh, ss, ll] = hsl;
   const hues = fn(hh);
   return hues.map((hu, i) => {
     const h = ((hu % 360) + 360) % 360;
-    const lOff = name === 'Monochromatic' ? (i - 3.5) * 8 + lJitter : lJitter;
-    const s = Math.max(20, Math.min(92, ss + sJitter));
-    const l = Math.max(22, Math.min(76, ll + lOff));
+    const sOff = name === 'Monochromatic' ? 0 : S_OFFSETS[i] || 0;
+    const lOff = name === 'Monochromatic' ? (i - 3.5) * 10 : (L_OFFSETS[i] || 0);
+    const s = Math.max(25, Math.min(95, ss + sOff + sJitter));
+    const l = Math.max(20, Math.min(78, ll + lOff + lJitter));
     return hslToHex(h, s, l);
   });
 }
@@ -51,8 +56,8 @@ export default function PalettePopover() {
   }
 
   function shuffle() {
-    const sJ = (Math.random() - 0.5) * 24;
-    const lJ = (Math.random() - 0.5) * 20;
+    const sJ = (Math.random() - 0.5) * 40;
+    const lJ = (Math.random() - 0.5) * 30;
     buildRows(baseColor, sJ, lJ);
   }
 

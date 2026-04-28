@@ -12,6 +12,7 @@ const useThemeStore = create((set, get) => ({
   pageSettings: {},
   currentVisual: null,
   jsonPanelOpen: false,
+  previewPanelOpen: false,
   darkMode: localStorage.getItem('pbi-editor-dark') === '1',
   userSetThemeName: false,
 
@@ -76,6 +77,7 @@ const useThemeStore = create((set, get) => ({
 
   setCurrentVisual: (key) => set({ currentVisual: key }),
   toggleJsonPanel: () => set((s) => ({ jsonPanelOpen: !s.jsonPanelOpen })),
+  togglePreviewPanel: () => set((s) => ({ previewPanelOpen: !s.previewPanelOpen })),
 
   toggleDarkMode: () => set((s) => {
     const next = !s.darkMode;
@@ -152,6 +154,12 @@ const useThemeStore = create((set, get) => ({
   // Resolve a card property value, falling back to global '*' then to a fallback
   rcv: (vk, card, prop, fb) => {
     const s = get();
+    // Page settings are stored separately
+    if (vk === '__page__') {
+      const ps = s.pageSettings[card];
+      if (ps && ps[prop] !== undefined && ps[prop] !== null) return ps[prop];
+      return fb;
+    }
     try {
       const v = resolveVal(s.theme.visualStyles[vk]['*'][card][0][prop]);
       if (v !== undefined && v !== null) return v;

@@ -3,7 +3,7 @@ import useThemeStore from '../../../store/themeStore';
 export default function DropdownControl({ prop, value, visualKey, cardKey }) {
   const { setCardProp } = useThemeStore();
   const options = prop.options || [];
-  const val = value ?? prop.default ?? '';
+  const val = value ?? prop.def ?? prop.default ?? '';
 
   return (
     <label className="flex items-center justify-between gap-2 text-xs text-[#555] dark:text-[#a9b1d6]">

@@ -246,7 +246,7 @@ test('import/export: menu opens with options', async ({ page }) => {
 
 // ── Sign In Button ────────────────────────────────────────────────────────────
 
-test('sign in button: exists for Azure AD auth', async ({ page }) => {
+test('sign in button: hidden when MSAL not configured', async ({ page }) => {
   const btn = page.locator('button', { hasText: 'Sign In' });
-  await expect(btn).toBeVisible();
+  await expect(btn).toHaveCount(0);
 });

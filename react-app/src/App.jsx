@@ -4,10 +4,11 @@ import GlobalBar from './components/GlobalBar/GlobalBar';
 import JSONPanel from './components/JSONPanel/JSONPanel';
 import VisualGrid from './components/VisualGrid/VisualGrid';
 import EditModal from './components/EditModal/EditModal';
+import PreviewPanel from './components/PreviewPanel/PreviewPanel';
 import { useEffect } from 'react';
 
 export default function App() {
-  const { darkMode, jsonPanelOpen } = useThemeStore();
+  const { darkMode, jsonPanelOpen, previewPanelOpen, togglePreviewPanel } = useThemeStore();
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
@@ -29,6 +30,9 @@ export default function App() {
 
       {/* JSON Panel */}
       {jsonPanelOpen && <JSONPanel />}
+
+      {/* Preview Panel */}
+      {previewPanelOpen && <PreviewPanel onClose={togglePreviewPanel} />}
 
       {/* Edit Modal */}
       <EditModal />

@@ -3,8 +3,10 @@ import PresetSelector from './PresetSelector';
 import ImportExportMenu from './ImportExportMenu';
 import LoginButton from '../Auth/LoginButton';
 
+const hasMsal = !!import.meta.env.VITE_MSAL_CLIENT_ID;
+
 export default function Toolbar() {
-  const { theme, setThemeName, toggleJsonPanel, jsonPanelOpen, toggleDarkMode, darkMode } = useThemeStore();
+  const { theme, setThemeName, toggleJsonPanel, jsonPanelOpen, togglePreviewPanel, previewPanelOpen, toggleDarkMode, darkMode } = useThemeStore();
 
   return (
     <div className="flex items-center justify-between gap-2.5 mb-3 flex-wrap">
@@ -25,13 +27,19 @@ export default function Toolbar() {
           {jsonPanelOpen ? '{ } Hide JSON' : '{ } Show JSON'}
         </button>
         <button
+          onClick={togglePreviewPanel}
+          className="text-xs px-3 py-1.5 rounded-md border border-[#c8d8ea] bg-white text-[#555] font-semibold cursor-pointer hover:border-[#1f8ac0] hover:text-[#1f8ac0] dark:bg-[#24263e] dark:text-[#89b4fa] dark:border-[#373963]"
+        >
+          {previewPanelOpen ? '📊 Hide Preview' : '📊 Preview'}
+        </button>
+        <button
           onClick={toggleDarkMode}
           className="w-[34px] h-[34px] rounded-full border-[1.5px] border-[#c8d8ea] bg-white cursor-pointer text-[17px] flex items-center justify-center shrink-0 hover:bg-[#f0f5fb] hover:border-[#1f8ac0] dark:border-[#373963] dark:bg-[#24263e] dark:hover:bg-[#2d3055]"
           title="Toggle dark mode"
         >
           {darkMode ? '🌙' : '☀️'}
         </button>
-        <LoginButton />
+        {hasMsal && <LoginButton />}
       </div>
     </div>
   );

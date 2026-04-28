@@ -1,7 +1,6 @@
 import useThemeStore from '../../store/themeStore';
 import { VISUAL_LABELS } from '../../constants/visualNames';
 import { VISUAL_SCHEMA, CARD_DEFS } from '../../constants/visualSpecs';
-import { PBI_PAGE_SIZES } from '../../constants/enums';
 import PropertyCard from './PropertyCard';
 import CopyVisualDialog from '../CopyVisualDialog/CopyVisualDialog';
 import { useState } from 'react';
@@ -13,7 +12,7 @@ export default function EditModal() {
   if (!currentVisual) return null;
   const isPage = currentVisual === '__page__';
   const label = isPage ? 'Page Settings' : (VISUAL_LABELS[currentVisual] || currentVisual);
-  const cardKeys = isPage ? [] : (VISUAL_SCHEMA[currentVisual] || []);
+  const cardKeys = VISUAL_SCHEMA[currentVisual] || [];
 
   return (
     <div className="fixed inset-0 bg-black/45 z-50 flex items-stretch justify-center">
@@ -52,57 +51,19 @@ export default function EditModal() {
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-5 py-4">
-          {isPage ? (
-            <PageSettingsPanel />
-          ) : (
-            <div className="flex flex-col gap-3">
-              {cardKeys.map(key => {
-                const def = CARD_DEFS[key];
-                if (!def) return null;
-                return <PropertyCard key={key} visualKey={currentVisual} cardKey={key} cardDef={def} />;
-              })}
-              {cardKeys.length === 0 && (
-                <div className="text-center text-xs text-[#999] py-8">No configurable properties for this visual.</div>
-              )}
-            </div>
-          )}
+          <div className="flex flex-col gap-3">
+            {cardKeys.map(key => {
+              const def = CARD_DEFS[key];
+              if (!def) return null;
+              return <PropertyCard key={key} visualKey={currentVisual} cardKey={key} cardDef={def} />;
+            })}
+            {cardKeys.length === 0 && (
+              <div className="text-center text-xs text-[#999] py-8">No configurable properties for this visual.</div>
+            )}
+          </div>
         </div>
       </div>
       {showCopy && <CopyVisualDialog sourceVisual={currentVisual} onClose={() => setShowCopy(false)} />}
-    </div>
-  );
-}
-
-function PageSettingsPanel() {
-  const { pageSettings } = useThemeStore();
-  const store = useThemeStore;
-
-  return (
-    <div className="text-xs text-[#555] dark:text-[#a9b1d6]">
-      <div className="bg-white border border-[#e6edf5] rounded-lg p-4 dark:bg-[#24263e] dark:border-[#2d3555]">
-        <div className="text-[13px] font-bold text-[#0f4c81] mb-3 dark:text-[#89b4fa]">Canvas Size</div>
-        <div className="flex gap-3 items-center flex-wrap">
-          <select
-            value={pageSettings.preset || 'default'}
-            onChange={(e) => {
-              const s = useThemeStore.getState();
-              const p = PBI_PAGE_SIZES[e.target.value] || PBI_PAGE_SIZES['default'];
-              useThemeStore.setState({
-                pageSettings: { ...s.pageSettings, preset: e.target.value, canvasWidth: p.w, canvasHeight: p.h }
-              });
-            }}
-            className="text-xs px-2 py-1 border border-[#ccd] rounded dark:bg-[#1e2038] dark:border-[#373963] dark:text-[#c0caf5]"
-          >
-            {Object.entries(PBI_PAGE_SIZES).map(([k, v]) => (
-              <option key={k} value={k}>{v.label} ({v.w}×{v.h})</option>
-            ))}
-          </select>
-          <input type="number" value={pageSettings.canvasWidth || 1280} className="w-[70px] text-xs px-1 py-1 border border-[#ccd] rounded dark:bg-[#1e2038] dark:border-[#373963] dark:text-[#c0caf5]" readOnly />
-          <span>×</span>
-          <input type="number" value={pageSettings.canvasHeight || 720} className="w-[70px] text-xs px-1 py-1 border border-[#ccd] rounded dark:bg-[#1e2038] dark:border-[#373963] dark:text-[#c0caf5]" readOnly />
-        </div>
-        <div className="mt-4 text-[10px] text-[#999]">More page-level settings (background, wallpaper, filter pane) coming soon.</div>
-      </div>
     </div>
   );
 }
