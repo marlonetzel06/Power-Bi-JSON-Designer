@@ -5,16 +5,12 @@ export default function LoginButton() {
   const { instance, accounts } = useMsal();
   const isAuthenticated = useIsAuthenticated();
 
-  async function handleLogin() {
-    try {
-      await instance.loginPopup(loginRequest);
-    } catch (e) {
-      console.error('Login failed:', e);
-    }
+  function handleLogin() {
+    instance.loginRedirect(loginRequest);
   }
 
   function handleLogout() {
-    instance.logoutPopup();
+    instance.logoutRedirect({ postLogoutRedirectUri: window.location.origin });
   }
 
   if (isAuthenticated) {

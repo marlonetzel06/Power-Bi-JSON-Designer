@@ -22,7 +22,7 @@ function PreviewContent() {
       <div className="flex flex-col items-center justify-center h-full text-center px-6 gap-3">
         <div className="text-3xl">🔒</div>
         <div className="text-[13px] font-semibold text-[#0f4c81] dark:text-[#89b4fa]">Nicht angemeldet</div>
-        <div className="text-[11px] text-[#777] dark:text-[#505373]">
+        <div className="text-[11px] text-[#777] dark:text-[#7982a9]">
           Melde dich über den <strong>Sign In</strong>-Button in der Toolbar an, um die Live-Preview zu laden.
         </div>
       </div>
@@ -63,7 +63,7 @@ function NoMsalMessage() {
     <div className="flex flex-col items-center justify-center h-full text-center px-6 gap-3">
       <div className="text-3xl">🔑</div>
       <div className="text-[13px] font-semibold text-[#0f4c81] dark:text-[#89b4fa]">Azure AD nicht konfiguriert</div>
-      <div className="text-[11px] text-[#777] dark:text-[#505373] leading-relaxed">
+      <div className="text-[11px] text-[#777] dark:text-[#7982a9] leading-relaxed">
         Um die Live-Preview zu nutzen, konfiguriere die <code className="bg-[#f0f5fb] px-1 rounded text-[10px] dark:bg-[#24263e]">.env.local</code> Datei mit deinen Azure AD Credentials:
       </div>
       <pre className="text-[10px] text-left bg-[#f8fafd] border border-[#e6edf5] rounded-lg p-3 w-full overflow-x-auto dark:bg-[#24263e] dark:border-[#373963] dark:text-[#a9b1d6]">
@@ -72,25 +72,19 @@ VITE_MSAL_AUTHORITY=https://login.../<tenant-id>
 VITE_PBI_REPORT_ID=<report-id>
 VITE_PBI_WORKSPACE_ID=<workspace-id>`}
       </pre>
-      <div className="text-[10px] text-[#999] dark:text-[#505373]">Dann den Dev-Server neu starten.</div>
+      <div className="text-[10px] text-[#999] dark:text-[#7982a9]">Dann den Dev-Server neu starten.</div>
     </div>
   );
 }
 
-export default function PreviewPanel({ onClose }) {
+export default function PreviewPanel() {
   return (
     <div className="w-[520px] shrink-0 border-l border-[#e0e6ed] bg-white flex flex-col dark:bg-[#1e2038] dark:border-[#2d3555]">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-[#e6edf5] shrink-0 dark:border-[#2d3555]">
+      <div className="flex items-center px-4 py-2.5 border-b border-[#e6edf5] shrink-0 dark:border-[#2d3555]">
         <span className="text-[13px] font-bold text-[#0f4c81] dark:text-[#89b4fa]">
           📊 Live Preview
         </span>
-        <button
-          onClick={onClose}
-          className="w-6 h-6 rounded-full bg-[#f3f6fa] text-[#888] font-bold text-sm flex items-center justify-center cursor-pointer hover:bg-[#e8edf4] dark:bg-[#2d3055] dark:text-[#a9b1d6]"
-        >
-          ×
-        </button>
       </div>
 
       {/* Content */}

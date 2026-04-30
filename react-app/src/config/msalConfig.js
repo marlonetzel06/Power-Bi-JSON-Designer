@@ -21,7 +21,11 @@ export const msalConfig = {
 };
 
 export const loginRequest = {
-  scopes: ['https://analysis.windows.net/powerbi/api/.default'],
+  scopes: [
+    'https://analysis.windows.net/powerbi/api/Report.Read.All',
+    'openid',
+    'profile',
+  ],
 };
 
 /**

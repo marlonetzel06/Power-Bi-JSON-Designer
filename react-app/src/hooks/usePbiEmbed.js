@@ -6,6 +6,25 @@ import { loginRequest, pbiConfig } from '../config/msalConfig';
  * Hook to acquire a Power BI access token and provide embed config.
  * Returns { getEmbedToken, embedConfig, isReady, error }
  */
+function buildEmbedUrl() {
+  const base = `https://app.powerbi.com/reportEmbed?reportId=${pbiConfig.reportId}`;
+  return pbiConfig.workspaceId ? `${base}&groupId=${pbiConfig.workspaceId}` : base;
+}
+
+function buildConfig(token) {
+  return {
+    type: 'report',
+    id: pbiConfig.reportId,
+    embedUrl: buildEmbedUrl(),
+    accessToken: token,
+    tokenType: 0, // 0 = Aad (User Owns Data), 1 = Embed (App Owns Data)
+    settings: {
+      panes: { filters: { visible: false }, pageNavigation: { visible: true } },
+      background: 1, // Transparent
+    },
+  };
+}
+
 export default function usePbiEmbed() {
   const { instance, accounts } = useMsal();
   const isAuthenticated = useIsAuthenticated();
@@ -23,43 +42,21 @@ export default function usePbiEmbed() {
         account: accounts[0],
       });
       const token = resp.accessToken;
-      const config = {
-        type: 'report',
-        id: pbiConfig.reportId,
-        embedUrl: `https://app.powerbi.com/reportEmbed?reportId=${pbiConfig.reportId}&groupId=${pbiConfig.workspaceId}`,
-        accessToken: token,
-        tokenType: 1, // Aad
-        settings: {
-          panes: { filters: { visible: false }, pageNavigation: { visible: false } },
-          background: 1, // Transparent
-        },
-      };
+      console.log('PBI token scopes:', resp.scopes);
+      console.log('PBI embed URL:', buildEmbedUrl());
+      const config = buildConfig(token);
       setEmbedConfig(config);
       setError(null);
       return config;
     } catch (e) {
-      // If silent fails, try popup
+      console.error('Token acquisition failed:', e);
+      // If silent fails, use redirect
       try {
-        const resp = await instance.acquireTokenPopup(loginRequest);
-        const token = resp.accessToken;
-        const config = {
-          type: 'report',
-          id: pbiConfig.reportId,
-          embedUrl: `https://app.powerbi.com/reportEmbed?reportId=${pbiConfig.reportId}&groupId=${pbiConfig.workspaceId}`,
-          accessToken: token,
-          tokenType: 1,
-          settings: {
-            panes: { filters: { visible: false }, pageNavigation: { visible: false } },
-            background: 1,
-          },
-        };
-        setEmbedConfig(config);
-        setError(null);
-        return config;
+        await instance.acquireTokenRedirect(loginRequest);
       } catch (e2) {
         setError(e2.message);
-        return null;
       }
+      return null;
     }
   }, [instance, accounts, isAuthenticated]);
 

@@ -218,15 +218,18 @@ test('global bar: shows semantic color sections', async ({ page }) => {
 });
 
 test('global bar: collapse/expand toggle works', async ({ page }) => {
-  // Click collapse
-  await page.locator('button', { hasText: 'Collapse' }).click();
-  await page.waitForTimeout(200);
-  // Semantic color inputs should be hidden
-  await expect(page.locator('text=Expand')).toBeVisible();
-  // Click expand
-  await page.locator('button', { hasText: 'Expand' }).click();
-  await page.waitForTimeout(200);
-  await expect(page.locator('text=Collapse')).toBeVisible();
+  const header = page.locator('text=Global Colors & Typography');
+  await expect(header).toBeVisible();
+  // Click header to collapse
+  await header.click();
+  await page.waitForTimeout(300);
+  // Semantic color inputs should be hidden (grid-rows-[0fr])
+  const section = page.locator('.grid-rows-\\[0fr\\]');
+  await expect(section).toHaveCount(1);
+  // Click header again to expand
+  await header.click();
+  await page.waitForTimeout(300);
+  await expect(section).toHaveCount(0);
 });
 
 // ── Import/Export Menu ────────────────────────────────────────────────────────

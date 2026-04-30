@@ -1,12 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import useThemeStore from '../../store/themeStore';
 import { VISUAL_LABELS } from '../../constants/visualNames';
 import VisualCard from './VisualCard';
+import { useIsAuthenticated } from '@azure/msal-react';
+import usePbiEmbed from '../../hooks/usePbiEmbed';
+
+const hasMsal = !!import.meta.env.VITE_MSAL_CLIENT_ID;
 
 export default function VisualGrid() {
   const [filter, setFilter] = useState('');
   const { setCurrentVisual } = useThemeStore();
   const term = filter.toLowerCase();
+
+  // Acquire PBI token once for all cards
+  const isAuthenticated = useIsAuthenticated();
+  const { embedConfig, getEmbedToken } = usePbiEmbed();
+
+  useEffect(() => {
+    if (hasMsal && isAuthenticated && !embedConfig) {
+      getEmbedToken?.();
+    }
+  }, [isAuthenticated, embedConfig, getEmbedToken]);
 
   const visuals = Object.entries(VISUAL_LABELS).filter(([key, label]) =>
     !term || label.toLowerCase().includes(term) || key.toLowerCase().includes(term)
@@ -18,7 +32,7 @@ export default function VisualGrid() {
       <div className="bg-[#f0f5fb] border border-[#c8d8ea] rounded-lg px-4 py-2.5 mb-3 flex items-center justify-between dark:bg-[#1e2038] dark:border-[#2d3555]">
         <div>
           <span className="text-[13px] font-bold text-[#0f4c81] dark:text-[#89b4fa]">Page Settings</span>
-          <span className="text-[11px] text-[#666] ml-2.5 dark:text-[#505373]">Canvas size, background, wallpaper, filter pane</span>
+          <span className="text-[11px] text-[#666] ml-2.5 dark:text-[#7982a9]">Canvas size, background, wallpaper, filter pane</span>
         </div>
         <button
           onClick={() => setCurrentVisual('__page__')}
@@ -42,7 +56,7 @@ export default function VisualGrid() {
       {/* Grid */}
       <div className="grid grid-cols-[repeat(auto-fill,minmax(275px,1fr))] gap-4">
         {visuals.map(([key, label]) => (
-          <VisualCard key={key} visualKey={key} label={label} />
+          <VisualCard key={key} visualKey={key} label={label} embedConfig={embedConfig} />
         ))}
       </div>
     </div>

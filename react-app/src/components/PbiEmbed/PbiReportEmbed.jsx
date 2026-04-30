@@ -9,8 +9,9 @@ import { buildExportTheme } from '../../utils/themeBuilder';
  * Props:
  *   embedConfig - from usePbiEmbed hook
  *   className   - optional CSS class for the container
+ *   targetPage  - optional display name of the page to navigate to after load
  */
-export default function PbiReportEmbed({ embedConfig, className = '' }) {
+export default function PbiReportEmbed({ embedConfig, className = '', targetPage }) {
   const reportRef = useRef(null);
   const { theme, pageSettings } = useThemeStore();
 
@@ -24,6 +25,22 @@ export default function PbiReportEmbed({ embedConfig, className = '' }) {
       console.warn('Theme apply failed:', e);
     }
   }, [theme, pageSettings]);
+
+  const navigateToPage = useCallback(async () => {
+    const report = reportRef.current;
+    if (!report || !targetPage) return;
+    try {
+      const pages = await report.getPages();
+      const page = pages.find(p => p.displayName === targetPage);
+      if (page) {
+        await page.setActive();
+      } else {
+        console.warn(`PBI page "${targetPage}" not found. Available:`, pages.map(p => p.displayName));
+      }
+    } catch (e) {
+      console.warn('Page navigation failed:', e);
+    }
+  }, [targetPage]);
 
   // Re-apply theme whenever it changes
   useEffect(() => {
@@ -46,7 +63,7 @@ export default function PbiReportEmbed({ embedConfig, className = '' }) {
       embedConfig={embedConfig}
       eventHandlers={
         new Map([
-          ['loaded', () => { applyTheme(); }],
+          ['loaded', () => { navigateToPage(); applyTheme(); }],
           ['error', (event) => { console.error('PBI embed error:', event.detail); }],
         ])
       }

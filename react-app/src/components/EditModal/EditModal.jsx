@@ -3,7 +3,12 @@ import { VISUAL_LABELS } from '../../constants/visualNames';
 import { VISUAL_SCHEMA, CARD_DEFS } from '../../constants/visualSpecs';
 import PropertyCard from './PropertyCard';
 import CopyVisualDialog from '../CopyVisualDialog/CopyVisualDialog';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useIsAuthenticated } from '@azure/msal-react';
+import usePbiEmbed from '../../hooks/usePbiEmbed';
+import PbiReportEmbed from '../PbiEmbed/PbiReportEmbed';
+
+const hasMsal = !!import.meta.env.VITE_MSAL_CLIENT_ID;
 
 export default function EditModal() {
   const { currentVisual, setCurrentVisual, theme, pageSettings, resetVisual } = useThemeStore();
@@ -49,21 +54,79 @@ export default function EditModal() {
           </div>
         </div>
 
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto px-5 py-4">
-          <div className="flex flex-col gap-3">
-            {cardKeys.map(key => {
-              const def = CARD_DEFS[key];
-              if (!def) return null;
-              return <PropertyCard key={key} visualKey={currentVisual} cardKey={key} cardDef={def} />;
-            })}
-            {cardKeys.length === 0 && (
-              <div className="text-center text-xs text-[#999] py-8">No configurable properties for this visual.</div>
-            )}
+        {/* Body — split: properties left, preview right */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Properties */}
+          <div className="flex-1 overflow-y-auto px-5 py-4 min-w-0">
+            <div className="flex flex-col gap-3">
+              {cardKeys.map(key => {
+                const def = CARD_DEFS[key];
+                if (!def) return null;
+                return <PropertyCard key={key} visualKey={currentVisual} cardKey={key} cardDef={def} />;
+              })}
+              {cardKeys.length === 0 && (
+                <div className="text-center text-xs text-[#999] py-8">No configurable properties for this visual.</div>
+              )}
+            </div>
           </div>
+
+          {/* Live Preview */}
+          {hasMsal && (
+            <div className="w-[480px] shrink-0 border-l border-[#e6edf5] bg-white flex flex-col dark:bg-[#1e2038] dark:border-[#2d3555]">
+              <div className="px-3 py-2 border-b border-[#e6edf5] dark:border-[#2d3555]">
+                <span className="text-[11px] font-bold text-[#0f4c81] dark:text-[#89b4fa]">📊 Live Preview</span>
+              </div>
+              <div className="flex-1 overflow-hidden p-1.5">
+                <EmbedPreview />
+              </div>
+            </div>
+          )}
         </div>
       </div>
       {showCopy && <CopyVisualDialog sourceVisual={currentVisual} onClose={() => setShowCopy(false)} />}
     </div>
   );
+}
+
+function EmbedPreview() {
+  const isAuthenticated = useIsAuthenticated();
+  const { getEmbedToken, embedConfig, error } = usePbiEmbed();
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated && !embedConfig && !loading) {
+      setLoading(true);
+      getEmbedToken?.().finally(() => setLoading(false));
+    }
+  }, [isAuthenticated, embedConfig, loading, getEmbedToken]);
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-center px-4 gap-2">
+        <div className="text-2xl">🔒</div>
+        <div className="text-[11px] text-[#777] dark:text-[#7982a9]">
+          Melde dich über <strong>Sign In</strong> an.
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-full text-xs text-[#999]">Loading report...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-center px-4 gap-2">
+        <div className="text-xl">⚠️</div>
+        <div className="text-[10px] text-[#d44] leading-relaxed">{error}</div>
+      </div>
+    );
+  }
+
+  if (embedConfig) {
+    return <PbiReportEmbed embedConfig={embedConfig} className="w-full h-full rounded-md overflow-hidden" />;
+  }
+
+  return null;
 }

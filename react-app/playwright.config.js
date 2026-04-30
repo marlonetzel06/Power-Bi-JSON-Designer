@@ -9,7 +9,7 @@ export default defineConfig({
     headless: true,
   },
   webServer: {
-    command: 'node ./node_modules/vite/bin/vite.js',
+    command: '"C:\\Program Files\\nodejs\\node.exe" ./node_modules/vite/bin/vite.js',
     port: 5173,
     reuseExistingServer: true,
     timeout: 15000,
