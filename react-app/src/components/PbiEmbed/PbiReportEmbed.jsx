@@ -13,6 +13,7 @@ import { buildExportTheme } from '../../utils/themeBuilder';
  */
 export default function PbiReportEmbed({ embedConfig, className = '', targetPage }) {
   const reportRef = useRef(null);
+  const hasNavigatedRef = useRef(false);
   const { theme, pageSettings } = useThemeStore();
 
   const applyTheme = useCallback(async () => {
@@ -27,12 +28,15 @@ export default function PbiReportEmbed({ embedConfig, className = '', targetPage
   }, [theme, pageSettings]);
 
   const navigateToPage = useCallback(async () => {
+    if (hasNavigatedRef.current) return;
     const report = reportRef.current;
     if (!report || !targetPage) return;
     try {
       const pages = await report.getPages();
-      const page = pages.find(p => p.displayName === targetPage);
+      const target = targetPage.trim().toLowerCase();
+      const page = pages.find(p => p.displayName.trim().toLowerCase() === target);
       if (page) {
+        hasNavigatedRef.current = true;
         await page.setActive();
       } else {
         console.warn(`PBI page "${targetPage}" not found. Available:`, pages.map(p => p.displayName));

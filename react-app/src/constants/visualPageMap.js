@@ -5,6 +5,8 @@
  * After the report loads, the app navigates to the correct page via report.setPage().
  */
 export const VISUAL_PAGE_MAP = {
+  'barChart':                      'Bar Chart',
+  'columnChart':                   'Coumn Chart',
   'stackedBarChart':               'Stacked Bar chart',
   'stackedColumnChart':            'Stacked Column Chart',
   'clusteredBarChart':             'Grouped Bar chart',
@@ -26,6 +28,8 @@ export const VISUAL_PAGE_MAP = {
   'azureMap':                      'Azure Maps',
   'gauge':                         'Gauge Chart',
   'kpi':                           'KPI Card',
+  'card':                          'KPI Card',
+  'cardVisual':                    'KPI Card',
   'multiRowCard':                  'KPI Card (muiliticard view)',
   'slicer':                        'Slicer',
   'actionButton':                  'Button Slicer',
@@ -33,5 +37,5 @@ export const VISUAL_PAGE_MAP = {
   'matrix':                        'Matrix',
   'listSlicer':                    'List Slicer',
   'textbox':                       'Text slicer',
-  // 'treemap':                    'Heatmap',  // unclear mapping — enable if needed
+  'treemap':                       'Heatmap',
 };

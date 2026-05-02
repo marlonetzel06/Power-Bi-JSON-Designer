@@ -1,26 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import useThemeStore from '../../store/themeStore';
 import { VISUAL_LABELS } from '../../constants/visualNames';
 import VisualCard from './VisualCard';
-import { useIsAuthenticated } from '@azure/msal-react';
-import usePbiEmbed from '../../hooks/usePbiEmbed';
-
-const hasMsal = !!import.meta.env.VITE_MSAL_CLIENT_ID;
 
 export default function VisualGrid() {
   const [filter, setFilter] = useState('');
   const { setCurrentVisual } = useThemeStore();
   const term = filter.toLowerCase();
-
-  // Acquire PBI token once for all cards
-  const isAuthenticated = useIsAuthenticated();
-  const { embedConfig, getEmbedToken } = usePbiEmbed();
-
-  useEffect(() => {
-    if (hasMsal && isAuthenticated && !embedConfig) {
-      getEmbedToken?.();
-    }
-  }, [isAuthenticated, embedConfig, getEmbedToken]);
 
   const visuals = Object.entries(VISUAL_LABELS).filter(([key, label]) =>
     !term || label.toLowerCase().includes(term) || key.toLowerCase().includes(term)
@@ -54,9 +40,9 @@ export default function VisualGrid() {
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(275px,1fr))] gap-4">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(420px,1fr))] gap-4">
         {visuals.map(([key, label]) => (
-          <VisualCard key={key} visualKey={key} label={label} embedConfig={embedConfig} />
+          <VisualCard key={key} visualKey={key} label={label} />
         ))}
       </div>
     </div>

@@ -1,10 +1,10 @@
 import useThemeStore from '../../store/themeStore';
 import { VISUAL_LABELS } from '../../constants/visualNames';
 import { VISUAL_SCHEMA, CARD_DEFS } from '../../constants/visualSpecs';
+import { VISUAL_PAGE_MAP } from '../../constants/visualPageMap';
 import PropertyCard from './PropertyCard';
 import CopyVisualDialog from '../CopyVisualDialog/CopyVisualDialog';
-import { useState, useEffect } from 'react';
-import { useIsAuthenticated } from '@azure/msal-react';
+import { useState } from 'react';
 import usePbiEmbed from '../../hooks/usePbiEmbed';
 import PbiReportEmbed from '../PbiEmbed/PbiReportEmbed';
 
@@ -77,7 +77,7 @@ export default function EditModal() {
                 <span className="text-[11px] font-bold text-[#0f4c81] dark:text-[#89b4fa]">📊 Live Preview</span>
               </div>
               <div className="flex-1 overflow-hidden p-1.5">
-                <EmbedPreview />
+                <EmbedPreview targetPage={VISUAL_PAGE_MAP[currentVisual]} />
               </div>
             </div>
           )}
@@ -88,17 +88,8 @@ export default function EditModal() {
   );
 }
 
-function EmbedPreview() {
-  const isAuthenticated = useIsAuthenticated();
-  const { getEmbedToken, embedConfig, error } = usePbiEmbed();
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (isAuthenticated && !embedConfig && !loading) {
-      setLoading(true);
-      getEmbedToken?.().finally(() => setLoading(false));
-    }
-  }, [isAuthenticated, embedConfig, loading, getEmbedToken]);
+function EmbedPreview({ targetPage }) {
+  const { embedConfig, isAuthenticated, error } = usePbiEmbed();
 
   if (!isAuthenticated) {
     return (
@@ -111,10 +102,6 @@ function EmbedPreview() {
     );
   }
 
-  if (loading) {
-    return <div className="flex items-center justify-center h-full text-xs text-[#999]">Loading report...</div>;
-  }
-
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center px-4 gap-2">
@@ -124,9 +111,9 @@ function EmbedPreview() {
     );
   }
 
-  if (embedConfig) {
-    return <PbiReportEmbed embedConfig={embedConfig} className="w-full h-full rounded-md overflow-hidden" />;
+  if (!embedConfig) {
+    return <div className="flex items-center justify-center h-full text-xs text-[#999]">Loading report...</div>;
   }
 
-  return null;
+  return <PbiReportEmbed embedConfig={embedConfig} targetPage={targetPage} className="w-full h-full rounded-md overflow-hidden" />;
 }
