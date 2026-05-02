@@ -33,6 +33,8 @@ export default function PbiReportEmbed({ embedConfig, className = '', targetPage
     const report = reportRef.current;
     if (!report || !targetPage) return;
     try {
+      // Small delay to ensure pages API is ready after render
+      await new Promise(r => setTimeout(r, 200));
       const pages = await report.getPages();
       const target = targetPage.trim().toLowerCase();
       const page = pages.find(p => p.displayName.trim().toLowerCase() === target);
@@ -68,8 +70,8 @@ export default function PbiReportEmbed({ embedConfig, className = '', targetPage
       embedConfig={embedConfig}
       eventHandlers={
         new Map([
-          ['loaded', () => { navigateToPage(); applyTheme(); }],
-          ['rendered', () => { onRendered?.(); }],
+          ['loaded', () => { applyTheme(); }],
+          ['rendered', () => { navigateToPage().then(() => onRendered?.()); }],
           ['error', (event) => { console.error('PBI embed error:', event.detail); }],
         ])
       }
