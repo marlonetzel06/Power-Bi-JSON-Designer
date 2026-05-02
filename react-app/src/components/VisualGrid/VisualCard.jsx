@@ -58,10 +58,17 @@ function CardPreview({ visualKey, embedConfig, onRendered }) {
     },
   };
 
-  // CSS zoom: render at 1.5x size, scale down to fit card for better readability
+  // Visuals that are placed small on the PBI page need more zoom to be recognizable
+  const needsExtraZoom = ['tableEx', 'matrix', 'slicer', 'listSlicer', 'advancedSlicerVisual'].includes(visualKey);
+  const scale = needsExtraZoom ? 0.5 : 0.667;
+  const size = needsExtraZoom ? '200%' : '150%';
+
   return (
     <div className="absolute inset-0 overflow-hidden">
-      <div className="w-[150%] h-[150%] origin-top-left scale-[0.667]">
+      <div
+        className="origin-top-left"
+        style={{ width: size, height: size, transform: `scale(${scale})` }}
+      >
         <PbiReportEmbed
           embedConfig={cardConfig}
           targetPage={pageName}
