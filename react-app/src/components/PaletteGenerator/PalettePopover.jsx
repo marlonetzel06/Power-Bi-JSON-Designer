@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import useThemeStore from '../../store/themeStore';
 import { hexToHSL, hslToHex } from '../../utils/colorUtils';
-import { Palette, Shuffle, X } from 'lucide-react';
+import { Palette, Shuffle, X, Lock, Unlock, Undo2, Plus, Minus } from 'lucide-react';
 import Button from '../ui/Button';
 
 /* ── helpers ─────────────────────────────────────────────── */
@@ -146,13 +147,36 @@ function generatePalette(config, baseH, baseS, baseL, sJitter, lJitter) {
   });
 }
 
+/* ── Mini Bar Preview ─────────────────────────────────────── */
+function MiniBarPreview({ colors }) {
+  const total = colors.length;
+  return (
+    <div className="flex items-end gap-[2px] h-[32px]" title="Preview">
+      {colors.map((c, i) => (
+        <div
+          key={i}
+          className="flex-1 rounded-t-[2px]"
+          style={{ background: c, height: `${30 + Math.sin(i * 1.2) * 40 + 30}%` }}
+        />
+      ))}
+    </div>
+  );
+}
+
 /* ── component ───────────────────────────────────────────── */
 export default function PalettePopover() {
-  const { theme, setDataColor } = useThemeStore();
+  const { theme, setDataColor, setDataColors, addDataColor, removeDataColor } = useThemeStore();
   const [open, setOpen] = useState(false);
   const [baseColor, setBaseColor] = useState(theme.dataColors?.[0] || '#1F8AC0');
   const [rows, setRows] = useState([]);
+  const [locked, setLocked] = useState([]); // indices of locked colors
+  const [prevColors, setPrevColors] = useState(null); // for undo
+  const [pos, setPos] = useState({ top: 0, left: 0 });
   const wrapRef = useRef(null);
+  const btnRef = useRef(null);
+  const popRef = useRef(null);
+
+  const colorCount = theme.dataColors?.length || 8;
 
   useEffect(() => {
     if (open) buildRows(baseColor);
@@ -160,7 +184,10 @@ export default function PalettePopover() {
 
   useEffect(() => {
     function outside(e) {
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false);
+      if (
+        wrapRef.current && !wrapRef.current.contains(e.target) &&
+        popRef.current && !popRef.current.contains(e.target)
+      ) setOpen(false);
     }
     if (open) document.addEventListener('click', outside, true);
     return () => document.removeEventListener('click', outside, true);
@@ -168,28 +195,63 @@ export default function PalettePopover() {
 
   function buildRows(hex, sJ = 0, lJ = 0) {
     const [h, s, l] = hexToHSL(hex);
-    const r = Object.entries(HARMONY_DEFS).map(([name, config]) => ({
-      name,
-      colors: generatePalette(config, h, s, l, sJ, lJ),
-    }));
+    const r = Object.entries(HARMONY_DEFS).map(([name, config]) => {
+      let colors = generatePalette(config, h, s, l, sJ, lJ);
+      // Adjust to current color count
+      if (colors.length < colorCount) {
+        // Extend by interpolation
+        while (colors.length < colorCount) colors.push(colors[colors.length - 1]);
+      } else if (colors.length > colorCount) {
+        colors = colors.slice(0, colorCount);
+      }
+      return { name, colors };
+    });
     setRows(r);
   }
 
   function shuffle() {
-    const sJ = (Math.random() - 0.5) * 36;   // ±18 saturation jitter
-    const lJ = (Math.random() - 0.5) * 28;   // ±14 lightness jitter
+    const sJ = (Math.random() - 0.5) * 36;
+    const lJ = (Math.random() - 0.5) * 28;
     buildRows(baseColor, sJ, lJ);
   }
 
   function applyHarmony(colors) {
-    colors.forEach((c, i) => setDataColor(i, c.toUpperCase()));
-    setOpen(false);
+    // Save current for undo
+    setPrevColors([...theme.dataColors]);
+    // Apply, respecting locks
+    const newColors = colors.map((c, i) => {
+      if (locked.includes(i) && i < theme.dataColors.length) return theme.dataColors[i];
+      return c.toUpperCase();
+    });
+    setDataColors(newColors);
+  }
+
+  function undo() {
+    if (!prevColors) return;
+    setDataColors(prevColors);
+    setPrevColors(null);
+  }
+
+  function toggleLock(i) {
+    setLocked(prev => prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i]);
   }
 
   return (
     <div ref={wrapRef} className="relative inline-block">
       <Button
-        onClick={() => { setBaseColor(theme.dataColors?.[0] || '#1F8AC0'); setOpen(!open); }}
+        ref={btnRef}
+        onClick={() => {
+          setBaseColor(theme.dataColors?.[0] || '#1F8AC0');
+          setLocked([]);
+          if (!open && btnRef.current) {
+            const rect = btnRef.current.getBoundingClientRect();
+            const left = Math.min(rect.left, window.innerWidth - 480);
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const top = spaceBelow > 440 ? rect.bottom + 6 : Math.max(8, rect.top - 440);
+            setPos({ top, left });
+          }
+          setOpen(!open);
+        }}
         variant="secondary"
         size="sm"
         title="Generate color harmony"
@@ -197,14 +259,20 @@ export default function PalettePopover() {
         <Palette size={13} />
         Palette
       </Button>
-      {open && (
-        <div className="absolute z-[500] top-full left-0 mt-1.5 bg-white border border-[#d0dce8] rounded-[10px] p-3.5 w-[370px] shadow-lg dark:bg-[#24263e] dark:border-[#373963] dark:shadow-[0_6px_24px_rgba(0,0,0,.5)]">
-          <h4 className="text-xs font-bold text-[#0f4c81] mb-2.5 pb-2 border-b border-[#e6edf5] flex items-center justify-between dark:text-[#89b4fa] dark:border-b-[#373963]">
+      {open && createPortal(
+        <div
+          ref={popRef}
+          className="bg-white border border-[#d0dce8] rounded-[10px] p-3.5 w-[460px] shadow-lg dark:bg-[#24263e] dark:border-[#373963] dark:shadow-[0_6px_24px_rgba(0,0,0,.5)]"
+          style={{ position: 'fixed', zIndex: 99999, top: pos.top, left: pos.left }}
+        >
+          {/* Header */}
+          <div className="text-xs font-bold text-[#0f4c81] mb-2.5 pb-2 border-b border-[#e6edf5] flex items-center justify-between dark:text-[#89b4fa] dark:border-b-[#373963]">
             <span className="flex items-center gap-1.5">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="13.5" cy="6.5" r="1.5"/><circle cx="19.5" cy="10.5" r="1.5"/><circle cx="13.5" cy="17.5" r="1.5"/><circle cx="8.5" cy="13.5" r="1.5"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>
-              Palette &nbsp;<span className="font-normal text-[11px] text-[#aaa]">Base:</span>
+              <Palette size={13} />
+              Palette Generator
             </span>
             <span className="flex items-center gap-2">
+              <span className="text-[10px] font-normal text-[#aaa]">Base:</span>
               <input
                 type="color"
                 value={baseColor.toLowerCase()}
@@ -218,21 +286,65 @@ export default function PalettePopover() {
                 <X size={14} />
               </button>
             </span>
-          </h4>
+          </div>
 
+          {/* Current palette with lock toggles */}
+          <div className="mb-2.5 pb-2 border-b border-[#e6edf5] dark:border-b-[#373963]">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[10px] font-semibold text-[#666] dark:text-[#7982a9]">Current ({colorCount} colors)</span>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => addDataColor('#888888')}
+                  className="w-5 h-5 flex items-center justify-center rounded border border-[#c8d8e8] bg-[#f0f5fb] text-[#0f4c81] cursor-pointer hover:bg-[#dceefa] dark:bg-[#2d3055] dark:border-[#373963] dark:text-[#89b4fa]"
+                  title="Add color"
+                >
+                  <Plus size={10} />
+                </button>
+                <button
+                  onClick={() => { if (colorCount > 1) removeDataColor(colorCount - 1); }}
+                  className="w-5 h-5 flex items-center justify-center rounded border border-[#c8d8e8] bg-[#f0f5fb] text-[#0f4c81] cursor-pointer hover:bg-[#dceefa] dark:bg-[#2d3055] dark:border-[#373963] dark:text-[#89b4fa] disabled:opacity-30"
+                  title="Remove last color"
+                  disabled={colorCount <= 1}
+                >
+                  <Minus size={10} />
+                </button>
+              </div>
+            </div>
+            <div className="flex gap-1">
+              {theme.dataColors.map((c, i) => (
+                <div key={i} className="flex flex-col items-center gap-0.5">
+                  <div
+                    className="w-[28px] h-[28px] rounded-[4px] border border-black/[.08] shrink-0"
+                    style={{ background: c }}
+                    title={c}
+                  />
+                  <button
+                    onClick={() => toggleLock(i)}
+                    className={`w-4 h-4 flex items-center justify-center rounded transition-colors ${locked.includes(i) ? 'text-[#1f8ac0]' : 'text-[#ccc] hover:text-[#888]'}`}
+                    title={locked.includes(i) ? 'Unlock' : 'Lock (keep during Apply)'}
+                  >
+                    {locked.includes(i) ? <Lock size={9} /> : <Unlock size={9} />}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Harmony rows */}
           {rows.map(row => (
             <div key={row.name} className="flex items-center gap-1.5 mb-1.5">
-              <span className="text-[10px] text-[#666] w-[90px] shrink-0 dark:text-[#7982a9]">{row.name}</span>
+              <span className="text-[10px] text-[#666] w-[85px] shrink-0 dark:text-[#7982a9]">{row.name}</span>
               <div className="flex gap-0.5 flex-1 min-w-0">
                 {row.colors.map((c, i) => (
                   <div
                     key={i}
-                    className="w-[28px] h-[28px] rounded-[4px] border border-black/[.08] shrink-0 transition-transform hover:scale-110 hover:z-10"
-                    style={{ background: c }}
-                    title={c}
+                    className={`w-[28px] h-[28px] rounded-[4px] border shrink-0 transition-transform hover:scale-110 hover:z-10 ${locked.includes(i) ? 'border-[#1f8ac0] border-[2px]' : 'border-black/[.08]'}`}
+                    style={{ background: locked.includes(i) && i < theme.dataColors.length ? theme.dataColors[i] : c }}
+                    title={locked.includes(i) ? `🔒 ${theme.dataColors[i]}` : c}
                   />
                 ))}
               </div>
+              <MiniBarPreview colors={row.colors} />
               <button
                 onClick={() => applyHarmony(row.colors)}
                 className="text-[10px] px-2 py-0.5 rounded border border-[#c8d8e8] bg-[#f0f5fb] text-[#0f4c81] cursor-pointer whitespace-nowrap shrink-0 hover:bg-[#dceefa] hover:border-[#1f8ac0] dark:bg-[#2d3055] dark:border-[#373963] dark:text-[#89b4fa]"
@@ -242,13 +354,19 @@ export default function PalettePopover() {
             </div>
           ))}
 
-          <div className="flex justify-end mt-2.5 pt-2 border-t border-[var(--border-default)]">
+          {/* Footer actions */}
+          <div className="flex justify-between items-center mt-2.5 pt-2 border-t border-[var(--border-default)]">
+            <Button onClick={undo} variant="ghost" size="sm" disabled={!prevColors} title="Undo last apply">
+              <Undo2 size={13} />
+              Undo
+            </Button>
             <Button onClick={shuffle} variant="secondary" size="sm">
               <Shuffle size={13} />
               Shuffle
             </Button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

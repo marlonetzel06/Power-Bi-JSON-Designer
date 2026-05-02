@@ -1,6 +1,6 @@
 import useThemeStore from './store/themeStore';
 import Toolbar from './components/Toolbar/Toolbar';
-import GlobalBar from './components/GlobalBar/GlobalBar';
+import Sidebar from './components/Sidebar/Sidebar';
 import JSONPanel from './components/JSONPanel/JSONPanel';
 import VisualGrid from './components/VisualGrid/VisualGrid';
 import EditModal from './components/EditModal/EditModal';
@@ -20,16 +20,18 @@ export default function App() {
   }, [darkMode]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[var(--bg-base)] text-[var(--text-default)]">
-      {/* Main content */}
-      <div className="flex-1 overflow-y-auto p-5">
-        <Toolbar />
-        <GlobalBar />
-        <VisualGrid />
-      </div>
+    <div className="flex flex-col h-screen overflow-hidden bg-[var(--bg-base)] text-[var(--text-default)]">
+      {/* Sticky Header */}
+      <Toolbar />
 
-      {/* JSON Panel */}
-      {jsonPanelOpen && <JSONPanel />}
+      {/* Three-column layout: Sidebar | Grid | JSON */}
+      <div className="flex flex-1 min-h-0">
+        <Sidebar />
+        <main className="flex-1 overflow-y-auto p-5">
+          <VisualGrid />
+        </main>
+        {jsonPanelOpen && <JSONPanel />}
+      </div>
 
       {/* Edit Modal — includes live preview */}
       <EditModal />

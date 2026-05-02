@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 
 const HEX_REGEX = /^#[0-9A-Fa-f]{6}$/;
 
@@ -8,6 +9,7 @@ export default function HexColorInput({ value, onChange, swatchClassName }) {
   const [localHex, setLocalHex] = useState(storeHex);
   const [isFocused, setIsFocused] = useState(false);
   const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
   const popRef = useRef(null);
   const swatchRef = useRef(null);
 
@@ -16,6 +18,18 @@ export default function HexColorInput({ value, onChange, swatchClassName }) {
   useEffect(() => {
     if (!isFocused) setLocalHex(storeHex);
   }, [storeHex, isFocused]);
+
+  const openPicker = useCallback(() => {
+    if (swatchRef.current) {
+      const rect = swatchRef.current.getBoundingClientRect();
+      // Position below the swatch, flip up if too close to bottom
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const top = spaceBelow > 140 ? rect.bottom + 4 : rect.top - 140;
+      const left = Math.min(rect.left, window.innerWidth - 130);
+      setPos({ top, left });
+    }
+    setOpen(o => !o);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -33,14 +47,15 @@ export default function HexColorInput({ value, onChange, swatchClassName }) {
     <div className="relative inline-flex">
       <div
         ref={swatchRef}
-        onClick={() => setOpen((o) => !o)}
+        onClick={openPicker}
         className={swatchClassName || 'w-8 h-8 border-[1.5px] border-[var(--border-subtle)] rounded-[var(--radius-sm)] cursor-pointer shrink-0'}
         style={{ backgroundColor: storeHex }}
       />
-      {open && (
+      {open && createPortal(
         <div
           ref={popRef}
-          className="absolute left-0 top-full mt-1 z-50 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-[var(--radius-md)] shadow-lg p-2 flex flex-col gap-2"
+          className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-[var(--radius-md)] shadow-lg p-2 flex flex-col gap-2"
+          style={{ position: 'fixed', zIndex: 99999, top: pos.top, left: pos.left }}
         >
           <input
             type="color"
@@ -66,7 +81,8 @@ export default function HexColorInput({ value, onChange, swatchClassName }) {
             className="w-[100px] text-[11px] font-mono px-1.5 py-1 border border-[var(--border-subtle)] rounded-[var(--radius-sm)] text-center bg-[var(--bg-surface)] text-[var(--text-default)]"
             spellCheck={false}
           />
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

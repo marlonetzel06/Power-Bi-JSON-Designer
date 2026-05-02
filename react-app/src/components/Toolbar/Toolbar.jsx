@@ -12,30 +12,26 @@ export default function Toolbar() {
   const { theme, setThemeName, toggleJsonPanel, jsonPanelOpen, toggleDarkMode, darkMode } = useThemeStore();
 
   return (
-    <div className="mb-4">
-      <div className="flex items-baseline gap-2 mb-2">
-        <h1 className="text-lg font-bold text-[var(--text-primary)] leading-tight">
+    <header className="sticky top-0 z-30 bg-[var(--bg-surface)] border-b border-[var(--border-default)] px-5 py-2.5 flex items-center justify-between gap-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+      <div className="flex items-center gap-4">
+        <h1 className="text-sm font-bold text-[var(--text-primary)] whitespace-nowrap">
           Power BI Theme Designer
         </h1>
-        <span className="text-xs text-[var(--text-muted)] font-medium">
-          Visual Theme Editor
-        </span>
+        <input
+          id="theme-name-input"
+          type="text"
+          value={theme.name}
+          onChange={(e) => setThemeName(e.target.value)}
+          className="text-sm font-semibold text-[var(--text-primary)] border-0 border-b-2 border-[var(--border-subtle)] bg-transparent outline-none px-1.5 py-0.5 w-[200px] focus:border-[var(--color-primary)] transition-colors"
+        />
       </div>
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-      <input
-        id="theme-name-input"
-        type="text"
-        value={theme.name}
-        onChange={(e) => setThemeName(e.target.value)}
-        className="text-sm font-bold text-[var(--text-primary)] border-0 border-b-2 border-[var(--border-subtle)] bg-transparent outline-none px-1 py-0.5 min-w-[200px] flex-1 max-w-[340px] focus:border-[var(--color-primary)] transition-colors"
-      />
       <div className="flex gap-2 items-center flex-wrap">
         <PresetSelector />
         <ImportMenu />
         <ExportMenu />
-        <Button onClick={toggleJsonPanel} variant="ghost">
+        <Button onClick={toggleJsonPanel} variant="ghost" size="sm">
           <Braces size={14} />
-          {jsonPanelOpen ? 'Hide JSON' : 'Show JSON'}
+          {jsonPanelOpen ? 'Hide JSON' : 'JSON'}
         </Button>
         <Button
           onClick={toggleDarkMode}
@@ -47,7 +43,6 @@ export default function Toolbar() {
         </Button>
         {hasMsal && <LoginButton />}
       </div>
-      </div>
-    </div>
+    </header>
   );
 }

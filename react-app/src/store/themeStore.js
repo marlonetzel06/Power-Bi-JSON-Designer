@@ -31,6 +31,21 @@ const useThemeStore = create((set, get) => ({
     return { theme: { ...s.theme, dataColors: dc } };
   }),
 
+  setDataColors: (colors) => set((s) => ({
+    theme: { ...s.theme, dataColors: [...colors] },
+  })),
+
+  addDataColor: (hex) => set((s) => ({
+    theme: { ...s.theme, dataColors: [...s.theme.dataColors, hex || '#888888'] },
+  })),
+
+  removeDataColor: (index) => set((s) => {
+    const dc = [...s.theme.dataColors];
+    if (dc.length <= 1) return {};
+    dc.splice(index, 1);
+    return { theme: { ...s.theme, dataColors: dc } };
+  }),
+
   setTextClass: (cls, prop, value) => set((s) => {
     const tc = deepClone(s.theme.textClasses);
     if (!tc[cls]) tc[cls] = {};
