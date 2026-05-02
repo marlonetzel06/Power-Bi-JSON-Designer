@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 /**
  * Module-level embed concurrency queue.
- * Limits how many PowerBIEmbed iframes render simultaneously.
+ * Limits how many PowerBIEmbed iframes load simultaneously.
+ * Once an embed finishes rendering, it releases its slot so the next can start.
  */
 const MAX_CONCURRENT = 3;
 let _activeCount = 0;
@@ -37,16 +38,19 @@ function releaseSlot(id) {
 
 /**
  * Hook that manages a single card's position in the embed queue.
- * Returns { hasSlot } — only render the embed when hasSlot is true.
+ * Returns { hasSlot, onRendered } — render embed when hasSlot is true,
+ * call onRendered() when the embed fires its 'rendered' event to free the slot.
  */
 export default function useEmbedQueue(shouldQueue) {
   const [hasSlot, setHasSlot] = useState(false);
   const idRef = useRef(Math.random().toString(36).slice(2));
+  const releasedRef = useRef(false);
 
   useEffect(() => {
     if (!shouldQueue) return;
     let cancelled = false;
     const id = idRef.current;
+    releasedRef.current = false;
 
     requestSlot(id).then(() => {
       if (!cancelled) setHasSlot(true);
@@ -54,15 +58,17 @@ export default function useEmbedQueue(shouldQueue) {
 
     return () => {
       cancelled = true;
-      releaseSlot(id);
+      if (!releasedRef.current) releaseSlot(id);
       setHasSlot(false);
     };
   }, [shouldQueue]);
 
-  // Notify queue when this embed is done rendering (call from onRendered)
+  // Call this when the embed has finished rendering to free the slot for the next card
   const onRendered = useCallback(() => {
-    // Slot stays active — no release on render.
-    // Release only happens on unmount (visibility lost / component destroyed).
+    if (!releasedRef.current) {
+      releasedRef.current = true;
+      releaseSlot(idRef.current);
+    }
   }, []);
 
   return { hasSlot, onRendered };

@@ -31,7 +31,7 @@ function getVisualIcon(visualKey) {
   return '📊';
 }
 
-function CardPreview({ visualKey, embedConfig }) {
+function CardPreview({ visualKey, embedConfig, onRendered }) {
   const pageName = VISUAL_PAGE_MAP[visualKey];
 
   if (!pageName || !embedConfig) {
@@ -60,6 +60,7 @@ function CardPreview({ visualKey, embedConfig }) {
         <PbiReportEmbed
           embedConfig={cardConfig}
           targetPage={pageName}
+          onRendered={onRendered}
           className="w-full h-full pointer-events-none"
         />
       </div>
@@ -83,7 +84,7 @@ export default function VisualCard({ visualKey, label }) {
   const wantsEmbed = hasPageMap && isVisible && !!embedConfig;
 
   // Concurrency queue: only 3 embeds load at a time
-  const { hasSlot } = useEmbedQueue(wantsEmbed);
+  const { hasSlot, onRendered } = useEmbedQueue(wantsEmbed);
 
   const showEmbed = wantsEmbed && hasSlot;
   const showLoading = hasPageMap && isVisible && (isAuthenticated && !embedConfig || wantsEmbed && !hasSlot);
@@ -108,10 +109,14 @@ export default function VisualCard({ visualKey, label }) {
     >
       <div className="bg-[#f8fafd] flex items-center justify-center h-[236px] overflow-hidden relative dark:bg-[#1e2038]">
         {showEmbed ? (
-          <CardPreview visualKey={visualKey} embedConfig={embedConfig} />
+          <CardPreview visualKey={visualKey} embedConfig={embedConfig} onRendered={onRendered} />
         ) : showLoading ? (
           <div className="text-center">
-            <div className="text-lg animate-spin mb-1">⏳</div>
+            <div className="flex justify-center gap-1 mb-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#1f8ac0] dark:bg-[#89b4fa] animate-pulse" />
+              <div className="w-1.5 h-1.5 rounded-full bg-[#1f8ac0] dark:bg-[#89b4fa] animate-pulse [animation-delay:150ms]" />
+              <div className="w-1.5 h-1.5 rounded-full bg-[#1f8ac0] dark:bg-[#89b4fa] animate-pulse [animation-delay:300ms]" />
+            </div>
             <div className="text-[10px] text-[#999] dark:text-[#7982a9]">Loading preview…</div>
           </div>
         ) : (

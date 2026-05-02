@@ -10,8 +10,9 @@ import { buildExportTheme } from '../../utils/themeBuilder';
  *   embedConfig - from usePbiEmbed hook
  *   className   - optional CSS class for the container
  *   targetPage  - optional display name of the page to navigate to after load
+ *   onRendered  - optional callback when embed finishes rendering (for queue release)
  */
-export default function PbiReportEmbed({ embedConfig, className = '', targetPage }) {
+export default function PbiReportEmbed({ embedConfig, className = '', targetPage, onRendered }) {
   const reportRef = useRef(null);
   const hasNavigatedRef = useRef(false);
   const { theme, pageSettings } = useThemeStore();
@@ -68,6 +69,7 @@ export default function PbiReportEmbed({ embedConfig, className = '', targetPage
       eventHandlers={
         new Map([
           ['loaded', () => { navigateToPage(); applyTheme(); }],
+          ['rendered', () => { onRendered?.(); }],
           ['error', (event) => { console.error('PBI embed error:', event.detail); }],
         ])
       }
