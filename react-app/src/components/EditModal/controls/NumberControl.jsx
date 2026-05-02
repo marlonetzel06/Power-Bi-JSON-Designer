@@ -7,7 +7,7 @@ export default function NumberControl({ prop, value, visualKey, cardKey }) {
   const num = value ?? prop.def ?? prop.default ?? v.min ?? 0;
 
   return (
-    <label className="flex items-center justify-between gap-2 text-xs text-[#555] dark:text-[#a9b1d6]">
+    <label className="flex items-center justify-between gap-2 text-xs text-[var(--text-secondary)]">
       <span className="flex-1 min-w-0 truncate">{prop.label || prop.key}</span>
       <input
         type="number"
@@ -21,7 +21,7 @@ export default function NumberControl({ prop, value, visualKey, cardKey }) {
           if (v.max != null && n > v.max) n = v.max;
           setCardProp(visualKey, cardKey, prop.key, n);
         }}
-        className="w-[70px] px-1.5 py-1 text-xs text-right border border-[#ccd] rounded outline-none focus:border-[#1f8ac0] dark:bg-[#1e2038] dark:border-[#373963] dark:text-[#c0caf5]"
+        className="w-[70px] px-1.5 py-1 text-xs text-right border border-[var(--border-subtle)] rounded-[var(--radius-sm)] outline-none focus:border-[var(--color-primary)] bg-[var(--bg-surface)] text-[var(--text-default)]"
       />
     </label>
   );

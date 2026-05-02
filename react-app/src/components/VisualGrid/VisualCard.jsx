@@ -5,40 +5,45 @@ import { VISUAL_PAGE_MAP } from '../../constants/visualPageMap';
 import usePbiEmbed from '../../hooks/usePbiEmbed';
 import useEmbedQueue from '../../hooks/useEmbedQueue';
 import PbiReportEmbed from '../PbiEmbed/PbiReportEmbed';
+import {
+  BarChart3, LineChart, PieChart, Map, Hash, Table2,
+  SlidersHorizontal, Brain, MousePointer, Pencil, Settings, FileText, ScatterChart
+} from 'lucide-react';
 
 const CATEGORY_ICONS = {
-  'Bar Charts': '📊',
-  'Column Charts': '📊',
-  'Line & Area': '📈',
-  'Combo Charts': '📈',
-  'Other Cartesian': '📊',
-  'Pie / Donut / Tree': '🍩',
-  'Maps': '🗺️',
-  'Cards & KPI': '🔢',
-  'Tables': '📋',
-  'Slicers': '🎚️',
-  'AI / Analytics': '🧠',
-  'Navigation & Buttons': '🔘',
-  'Static Elements': '✏️',
+  'Bar Charts': BarChart3,
+  'Column Charts': BarChart3,
+  'Line & Area': LineChart,
+  'Combo Charts': LineChart,
+  'Other Cartesian': ScatterChart,
+  'Pie / Donut / Tree': PieChart,
+  'Maps': Map,
+  'Cards & KPI': Hash,
+  'Tables': Table2,
+  'Slicers': SlidersHorizontal,
+  'AI / Analytics': Brain,
+  'Navigation & Buttons': MousePointer,
+  'Static Elements': Pencil,
 };
 
 function getVisualIcon(visualKey) {
-  if (visualKey === '*') return '⚙️';
-  if (visualKey === '__page__') return '📄';
+  if (visualKey === '*') return Settings;
+  if (visualKey === '__page__') return FileText;
   for (const [category, keys] of Object.entries(VISUAL_CATEGORIES)) {
-    if (keys.includes(visualKey)) return CATEGORY_ICONS[category] || '📊';
+    if (keys.includes(visualKey)) return CATEGORY_ICONS[category] || BarChart3;
   }
-  return '📊';
+  return BarChart3;
 }
 
 function CardPreview({ visualKey, embedConfig, onRendered }) {
   const pageName = VISUAL_PAGE_MAP[visualKey];
+  const Icon = getVisualIcon(visualKey);
 
   if (!pageName || !embedConfig) {
     return (
-      <div className="text-center">
-        <div className="text-4xl mb-1">{getVisualIcon(visualKey)}</div>
-        <div className="text-[#1f8ac0] text-[10px] mt-1 dark:text-[#89b4fa]">Click to configure</div>
+      <div className="text-center flex flex-col items-center justify-center gap-1">
+        <Icon size={32} className="text-[var(--text-muted)] opacity-40" />
+        <div className="text-[var(--color-primary)] text-[10px] mt-1">Click to configure</div>
       </div>
     );
   }
@@ -101,41 +106,43 @@ export default function VisualCard({ visualKey, label }) {
     return () => observer.disconnect();
   }, [hasPageMap]);
 
+  const Icon = getVisualIcon(visualKey);
+
   return (
     <div
       ref={cardRef}
-      className="bg-white rounded-[10px] overflow-hidden shadow-sm cursor-pointer border-2 border-transparent transition-all hover:border-[#1f8ac0] hover:shadow-md flex flex-col dark:bg-[#24263e] dark:shadow-[0_1px_4px_rgba(0,0,0,.4)] dark:hover:border-[#89b4fa] relative"
+      className="bg-[var(--bg-surface)] rounded-[var(--radius-md)] overflow-hidden shadow-sm cursor-pointer border-2 border-transparent transition-all duration-150 hover:border-[var(--color-primary)] hover:shadow-md hover:-translate-y-0.5 flex flex-col relative"
       onClick={() => setCurrentVisual(visualKey)}
     >
-      <div className="bg-[#f8fafd] flex items-center justify-center h-[236px] overflow-hidden relative dark:bg-[#1e2038]">
+      <div className="bg-[var(--bg-elevated)] flex items-center justify-center h-[236px] overflow-hidden relative">
         {showEmbed ? (
           <CardPreview visualKey={visualKey} embedConfig={embedConfig} onRendered={onRendered} />
         ) : showLoading ? (
           <div className="text-center">
-            <div className="flex justify-center gap-1 mb-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#1f8ac0] dark:bg-[#89b4fa] animate-pulse" />
-              <div className="w-1.5 h-1.5 rounded-full bg-[#1f8ac0] dark:bg-[#89b4fa] animate-pulse [animation-delay:150ms]" />
-              <div className="w-1.5 h-1.5 rounded-full bg-[#1f8ac0] dark:bg-[#89b4fa] animate-pulse [animation-delay:300ms]" />
+            <div className="flex justify-center gap-1.5 mb-2">
+              <div className="w-2 h-2 rounded-full bg-[var(--color-primary)] animate-pulse" />
+              <div className="w-2 h-2 rounded-full bg-[var(--color-primary)] animate-pulse [animation-delay:150ms]" />
+              <div className="w-2 h-2 rounded-full bg-[var(--color-primary)] animate-pulse [animation-delay:300ms]" />
             </div>
-            <div className="text-[10px] text-[#999] dark:text-[#7982a9]">Loading preview…</div>
+            <div className="text-[11px] text-[var(--text-muted)]">Loading preview…</div>
           </div>
         ) : (
-          <div className="text-center">
-            <div className="text-4xl mb-1">{getVisualIcon(visualKey)}</div>
-            <div className="text-[#1f8ac0] text-[10px] mt-1 dark:text-[#89b4fa]">Click to configure</div>
+          <div className="text-center flex flex-col items-center justify-center gap-1">
+            <Icon size={32} className="text-[var(--text-muted)] opacity-40" />
+            <div className="text-[var(--color-primary)] text-[11px] mt-1">Click to configure</div>
           </div>
         )}
         {/* Clickable overlay — ensures click always works even over iframe */}
         <div className="absolute inset-0 z-10" />
         {modified && (
           <div
-            className="absolute top-1.5 right-1.5 w-[9px] h-[9px] rounded-full bg-[#1f8ac0] border-[1.5px] border-white z-20"
+            className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-[var(--color-primary)] border-[1.5px] border-[var(--bg-surface)] z-20"
             title={`${modCount} card(s) customized`}
           />
         )}
       </div>
-      <div className="px-3.5 py-2.5">
-        <div className="text-xs font-medium text-[#555] dark:text-[#a9b1d6]">{label}</div>
+      <div className="px-4 py-3">
+        <div className="text-xs font-medium text-[var(--text-secondary)]">{label}</div>
       </div>
     </div>
   );

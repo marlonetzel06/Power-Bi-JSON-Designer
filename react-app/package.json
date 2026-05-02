@@ -13,10 +13,12 @@
     "@azure/msal-browser": "^5.8.0",
     "@azure/msal-react": "^5.3.1",
     "@tailwindcss/vite": "^4.2.4",
+    "lucide-react": "^1.14.0",
     "powerbi-client": "^2.23.10",
     "powerbi-client-react": "^2.0.2",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
+    "react-hot-toast": "^2.6.0",
     "tailwindcss": "^4.2.4",
     "zustand": "^5.0.12"
   },

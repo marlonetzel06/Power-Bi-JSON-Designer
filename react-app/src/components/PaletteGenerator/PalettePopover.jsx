@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import useThemeStore from '../../store/themeStore';
 import { hexToHSL, hslToHex } from '../../utils/colorUtils';
+import { Palette, Shuffle, X } from 'lucide-react';
+import Button from '../ui/Button';
 
 /* ── helpers ─────────────────────────────────────────────── */
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
@@ -186,13 +188,15 @@ export default function PalettePopover() {
 
   return (
     <div ref={wrapRef} className="relative inline-block">
-      <button
+      <Button
         onClick={() => { setBaseColor(theme.dataColors?.[0] || '#1F8AC0'); setOpen(!open); }}
-        className="text-xs px-2 py-1.5 rounded-md border border-[#c8d8ea] bg-white text-[#555] font-medium cursor-pointer hover:border-[#1f8ac0] hover:text-[#1f8ac0] dark:bg-[#24263e] dark:border-[#373963] dark:text-[#a9b1d6] dark:hover:border-[#89b4fa] dark:hover:text-[#89b4fa]"
+        variant="secondary"
+        size="sm"
         title="Generate color harmony"
       >
-        ✨ Palette
-      </button>
+        <Palette size={13} />
+        Palette
+      </Button>
       {open && (
         <div className="absolute z-[500] top-full left-0 mt-1.5 bg-white border border-[#d0dce8] rounded-[10px] p-3.5 w-[370px] shadow-lg dark:bg-[#24263e] dark:border-[#373963] dark:shadow-[0_6px_24px_rgba(0,0,0,.5)]">
           <h4 className="text-xs font-bold text-[#0f4c81] mb-2.5 pb-2 border-b border-[#e6edf5] flex items-center justify-between dark:text-[#89b4fa] dark:border-b-[#373963]">
@@ -209,9 +213,9 @@ export default function PalettePopover() {
               />
               <button
                 onClick={() => setOpen(false)}
-                className="bg-transparent border-none cursor-pointer text-sm text-[#888] leading-none"
+                className="bg-transparent border-none cursor-pointer text-[var(--text-muted)] hover:text-[var(--text-default)] transition-colors leading-none"
               >
-                ✕
+                <X size={14} />
               </button>
             </span>
           </h4>
@@ -238,13 +242,11 @@ export default function PalettePopover() {
             </div>
           ))}
 
-          <div className="flex justify-end mt-2.5 pt-2 border-t border-[#e6edf5] dark:border-t-[#373963]">
-            <button
-              onClick={shuffle}
-              className="text-[11px] px-3 py-1 rounded-[5px] border border-[#c8d8e8] bg-[#f8fafd] text-[#555] cursor-pointer hover:border-[#1f8ac0] hover:text-[#1f8ac0] dark:bg-[#2d3055] dark:border-[#373963] dark:text-[#a9b1d6] dark:hover:text-[#89b4fa]"
-            >
-              🔀 Shuffle
-            </button>
+          <div className="flex justify-end mt-2.5 pt-2 border-t border-[var(--border-default)]">
+            <Button onClick={shuffle} variant="secondary" size="sm">
+              <Shuffle size={13} />
+              Shuffle
+            </Button>
           </div>
         </div>
       )}

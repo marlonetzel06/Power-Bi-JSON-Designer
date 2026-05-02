@@ -2,6 +2,57 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ─── Design Tokens ────────────────────────────────── */
+:root {
+  --color-primary: #1f8ac0;
+  --color-primary-hover: #1a7aad;
+  --color-primary-light: #e8f4fc;
+  --color-danger: #d44;
+  --color-danger-light: #fff0f0;
+
+  --bg-base: #f0f2f5;
+  --bg-surface: #ffffff;
+  --bg-elevated: #f8fafd;
+  --bg-muted: #f0f5fb;
+
+  --text-primary: #0f4c81;
+  --text-default: #333333;
+  --text-secondary: #555555;
+  --text-muted: #888888;
+
+  --border-default: #e6edf5;
+  --border-subtle: #c8d8ea;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+}
+
+.dark {
+  --color-primary: #89b4fa;
+  --color-primary-hover: #a0c4fb;
+  --color-primary-light: #1e2038;
+  --color-danger: #f38ba8;
+  --color-danger-light: #2a1a2a;
+
+  --bg-base: #1a1b2e;
+  --bg-surface: #24263e;
+  --bg-elevated: #1e2038;
+  --bg-muted: #2d3055;
+
+  --text-primary: #89b4fa;
+  --text-default: #c0caf5;
+  --text-secondary: #a9b1d6;
+  --text-muted: #7982a9;
+
+  --border-default: #2d3555;
+  --border-subtle: #373963;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+}
+
 /* Custom scrollbar */
 .scrollbar-thin {
   scrollbar-width: thin;

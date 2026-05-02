@@ -34,13 +34,13 @@ export default function HexColorInput({ value, onChange, swatchClassName }) {
       <div
         ref={swatchRef}
         onClick={() => setOpen((o) => !o)}
-        className={swatchClassName || 'w-8 h-8 border-[1.5px] border-[#c8d8e8] rounded cursor-pointer shrink-0 dark:border-[#373963]'}
+        className={swatchClassName || 'w-8 h-8 border-[1.5px] border-[var(--border-subtle)] rounded-[var(--radius-sm)] cursor-pointer shrink-0'}
         style={{ backgroundColor: storeHex }}
       />
       {open && (
         <div
           ref={popRef}
-          className="absolute left-0 top-full mt-1 z-50 bg-white border border-[#c8d8e8] rounded-lg shadow-lg p-2 flex flex-col gap-2 dark:bg-[#24263e] dark:border-[#373963]"
+          className="absolute left-0 top-full mt-1 z-50 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-[var(--radius-md)] shadow-lg p-2 flex flex-col gap-2"
         >
           <input
             type="color"
@@ -63,7 +63,7 @@ export default function HexColorInput({ value, onChange, swatchClassName }) {
             }}
             onFocus={() => { setIsFocused(true); setLocalHex(storeHex); }}
             onBlur={() => setIsFocused(false)}
-            className="w-[100px] text-[11px] font-mono px-1.5 py-1 border border-[#c8d8e8] rounded text-center bg-white dark:bg-[#1e2038] dark:border-[#373963] dark:text-[#c0caf5]"
+            className="w-[100px] text-[11px] font-mono px-1.5 py-1 border border-[var(--border-subtle)] rounded-[var(--radius-sm)] text-center bg-[var(--bg-surface)] text-[var(--text-default)]"
             spellCheck={false}
           />
         </div>

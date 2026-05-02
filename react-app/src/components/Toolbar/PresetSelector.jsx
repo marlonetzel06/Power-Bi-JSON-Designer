@@ -2,6 +2,8 @@ import { useState, useRef } from 'react';
 import useThemeStore from '../../store/themeStore';
 import { PRESETS } from '../../constants/presets';
 import useLocalStorage from '../../hooks/useLocalStorage';
+import { Save, X } from 'lucide-react';
+import Button from '../ui/Button';
 
 export default function PresetSelector() {
   const { applyPreset, theme, userSetThemeName } = useThemeStore();
@@ -55,7 +57,7 @@ export default function PresetSelector() {
         ref={selectRef}
         onChange={handlePresetChange}
         defaultValue=""
-        className="text-xs px-2 py-1.5 rounded-md border border-[#c8d8ea] bg-white text-[#333] cursor-pointer dark:bg-[#1e2038] dark:border-[#373963] dark:text-[#c0caf5]"
+        className="text-xs px-2 py-1.5 rounded-[var(--radius-sm)] border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-default)] cursor-pointer"
       >
         <option value="">Preset…</option>
         <optgroup label="Built-in">
@@ -71,13 +73,14 @@ export default function PresetSelector() {
           </optgroup>
         )}
       </select>
-      <button
+      <Button
         onClick={() => setSaveOpen(!saveOpen)}
-        className="text-xs px-2 py-1.5 rounded-md border border-[#c8d8ea] bg-white text-[#555] cursor-pointer hover:border-[#1f8ac0] hover:text-[#1f8ac0] dark:bg-[#24263e] dark:border-[#373963] dark:text-[#a9b1d6]"
+        variant="ghost"
+        size="icon"
         title="Save current as preset"
       >
-        💾
-      </button>
+        <Save size={14} />
+      </Button>
       {saveOpen && (
         <div className="flex items-center gap-1">
           <input
@@ -85,11 +88,11 @@ export default function PresetSelector() {
             value={saveName}
             onChange={(e) => setSaveName(e.target.value)}
             placeholder="Preset name…"
-            className="text-[11px] px-2 py-1 rounded border border-[#c8d8ea] w-[120px] outline-none focus:border-[#1f8ac0] dark:bg-[#1e2038] dark:border-[#373963] dark:text-[#c0caf5]"
+            className="text-[11px] px-2 py-1 rounded-[var(--radius-sm)] border border-[var(--border-subtle)] w-[120px] outline-none focus:border-[var(--color-primary)] bg-[var(--bg-surface)] text-[var(--text-default)]"
             onKeyDown={(e) => e.key === 'Enter' && handleSave()}
           />
-          <button onClick={handleSave} className="text-[11px] px-2 py-0.5 rounded bg-[#1f8ac0] text-white border-none cursor-pointer">OK</button>
-          <button onClick={() => setSaveOpen(false)} className="text-[11px] px-2 py-0.5 rounded border border-[#c8d8ea] bg-white cursor-pointer dark:bg-[#24263e] dark:border-[#373963] dark:text-[#c0caf5]">✕</button>
+          <Button onClick={handleSave} variant="primary" size="sm">OK</Button>
+          <Button onClick={() => setSaveOpen(false)} variant="ghost" size="sm"><X size={12} /></Button>
         </div>
       )}
     </div>
