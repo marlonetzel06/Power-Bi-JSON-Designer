@@ -28,6 +28,8 @@ function buildConfig(token) {
 // Module-level shared state
 let _cachedConfig = null;
 let _fetchPromise = null;
+let _tokenExpiresAt = 0;
+let _refreshTimer = null;
 const _listeners = new Set();
 
 function notify() {
@@ -55,16 +57,25 @@ export default function usePbiEmbed() {
     if (!isAuthenticated || !accounts.length || _cachedConfig || _fetchPromise || fetchedRef.current) return;
     fetchedRef.current = true;
 
-    _fetchPromise = (async () => {
+    const acquireToken = async () => {
       try {
         const resp = await instance.acquireTokenSilent({
           ...loginRequest,
           account: accounts[0],
         });
         const token = resp.accessToken;
-        console.log('PBI token scopes:', resp.scopes);
-        console.log('PBI embed URL:', buildEmbedUrl());
         _cachedConfig = buildConfig(token);
+        // Schedule refresh 5 minutes before expiry
+        if (resp.expiresOn) {
+          _tokenExpiresAt = resp.expiresOn.getTime();
+          const refreshIn = Math.max((_tokenExpiresAt - Date.now()) - 5 * 60 * 1000, 30000);
+          clearTimeout(_refreshTimer);
+          _refreshTimer = setTimeout(() => {
+            _cachedConfig = null;
+            fetchedRef.current = false;
+            acquireToken();
+          }, refreshIn);
+        }
         notify();
       } catch (e) {
         console.error('Token acquisition failed, trying redirect:', e);
@@ -76,7 +87,9 @@ export default function usePbiEmbed() {
       } finally {
         _fetchPromise = null;
       }
-    })();
+    };
+
+    _fetchPromise = acquireToken();
   }, [isAuthenticated, accounts, instance]);
 
   return {

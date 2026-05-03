@@ -41,10 +41,13 @@ function releaseSlot(id) {
  * Returns { hasSlot, onRendered } — render embed when hasSlot is true,
  * call onRendered() when the embed fires its 'rendered' event to free the slot.
  */
+const SLOT_TIMEOUT_MS = 20000;
+
 export default function useEmbedQueue(shouldQueue) {
   const [hasSlot, setHasSlot] = useState(false);
   const idRef = useRef(Math.random().toString(36).slice(2));
   const releasedRef = useRef(false);
+  const timeoutRef = useRef(null);
 
   useEffect(() => {
     if (!shouldQueue) return;
@@ -53,11 +56,21 @@ export default function useEmbedQueue(shouldQueue) {
     releasedRef.current = false;
 
     requestSlot(id).then(() => {
-      if (!cancelled) setHasSlot(true);
+      if (!cancelled) {
+        setHasSlot(true);
+        // Auto-release slot after timeout to prevent deadlocks
+        timeoutRef.current = setTimeout(() => {
+          if (!releasedRef.current) {
+            releasedRef.current = true;
+            releaseSlot(id);
+          }
+        }, SLOT_TIMEOUT_MS);
+      }
     });
 
     return () => {
       cancelled = true;
+      clearTimeout(timeoutRef.current);
       if (!releasedRef.current) releaseSlot(id);
       setHasSlot(false);
     };
@@ -67,6 +80,7 @@ export default function useEmbedQueue(shouldQueue) {
   const onRendered = useCallback(() => {
     if (!releasedRef.current) {
       releasedRef.current = true;
+      clearTimeout(timeoutRef.current);
       releaseSlot(idRef.current);
     }
   }, []);

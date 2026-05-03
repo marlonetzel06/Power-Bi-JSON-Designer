@@ -4,7 +4,7 @@ import { VISUAL_SCHEMA, CARD_DEFS } from '../../constants/visualSpecs';
 import { VISUAL_PAGE_MAP } from '../../constants/visualPageMap';
 import PropertyCard from './PropertyCard';
 import CopyVisualDialog from '../CopyVisualDialog/CopyVisualDialog';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import usePbiEmbed from '../../hooks/usePbiEmbed';
 import PbiReportEmbed from '../PbiEmbed/PbiReportEmbed';
 import Button from '../ui/Button';
@@ -16,6 +16,14 @@ const hasMsal = !!import.meta.env.VITE_MSAL_CLIENT_ID;
 export default function EditModal() {
   const { currentVisual, setCurrentVisual, theme, pageSettings, resetVisual } = useThemeStore();
   const [showCopy, setShowCopy] = useState(false);
+
+  // Close on ESC key
+  useEffect(() => {
+    if (!currentVisual) return;
+    const handleKey = (e) => { if (e.key === 'Escape') setCurrentVisual(null); };
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [currentVisual, setCurrentVisual]);
 
   if (!currentVisual) return null;
   const isPage = currentVisual === '__page__';

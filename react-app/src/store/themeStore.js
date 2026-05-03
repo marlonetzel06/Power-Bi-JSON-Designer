@@ -192,4 +192,7 @@ function resolveVal(v) {
   return v;
 }
 
+// Expose store for Playwright tests
+if (typeof window !== 'undefined') window.__themeStore = useThemeStore;
+
 export default useThemeStore;

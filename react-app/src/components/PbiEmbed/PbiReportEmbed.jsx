@@ -3,6 +3,7 @@ import { PowerBIEmbed } from 'powerbi-client-react';
 import { models } from 'powerbi-client';
 import useThemeStore from '../../store/themeStore';
 import { buildExportTheme } from '../../utils/themeBuilder';
+import { toast } from '../ui/Toast';
 
 /**
  * Embeds a Power BI report and applies the current theme live.
@@ -72,7 +73,10 @@ export default function PbiReportEmbed({ embedConfig, className = '', targetPage
         new Map([
           ['loaded', () => { applyTheme(); }],
           ['rendered', () => { navigateToPage().then(() => onRendered?.()); }],
-          ['error', (event) => { console.error('PBI embed error:', event.detail); }],
+          ['error', (event) => {
+            console.error('PBI embed error:', event.detail);
+            toast.error('Embed failed: ' + (event.detail?.message || 'Unknown error'));
+          }],
         ])
       }
       getEmbeddedComponent={(report) => { reportRef.current = report; }}

@@ -3,9 +3,10 @@ import Toolbar from './components/Toolbar/Toolbar';
 import Sidebar from './components/Sidebar/Sidebar';
 import JSONPanel from './components/JSONPanel/JSONPanel';
 import VisualGrid from './components/VisualGrid/VisualGrid';
-import EditModal from './components/EditModal/EditModal';
 import { ToastProvider } from './components/ui/Toast';
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
+
+const EditModal = lazy(() => import('./components/EditModal/EditModal'));
 
 export default function App() {
   const { darkMode, jsonPanelOpen } = useThemeStore();
@@ -34,7 +35,9 @@ export default function App() {
       </div>
 
       {/* Edit Modal — includes live preview */}
-      <EditModal />
+      <Suspense fallback={null}>
+        <EditModal />
+      </Suspense>
 
       <ToastProvider />
     </div>

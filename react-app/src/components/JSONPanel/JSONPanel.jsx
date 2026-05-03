@@ -47,6 +47,8 @@ export default function JSONPanel() {
         className="flex-1 overflow-y-auto px-4 py-4 text-[12px] font-mono whitespace-pre text-[#cdd6f4] scrollbar-thin"
         dangerouslySetInnerHTML={{ __html: highlighted }}
       />
+      {/* Hidden raw JSON for test access */}
+      <script type="application/json" data-testid="json-raw">{jsonStr}</script>
     </aside>
   );
 }
