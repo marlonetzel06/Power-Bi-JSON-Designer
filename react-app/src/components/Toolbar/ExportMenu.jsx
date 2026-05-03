@@ -50,7 +50,7 @@ export default function ExportMenu() {
 
   return (
     <div className="relative inline-block">
-      <Button ref={btnRef} onClick={() => setOpen(!open)} variant="primary">
+      <Button ref={btnRef} onClick={() => setOpen(!open)} variant="ghost">
         <Download size={14} />
         Export
       </Button>

@@ -57,7 +57,7 @@ export default function PresetSelector() {
         ref={selectRef}
         onChange={handlePresetChange}
         defaultValue=""
-        className="text-xs px-2 py-1.5 rounded-[var(--radius-sm)] border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-default)] cursor-pointer"
+        className="text-xs px-2 py-1.5 rounded-[var(--radius-sm)] border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-default)] cursor-pointer outline-none"
       >
         <option value="">Preset…</option>
         <optgroup label="Built-in">

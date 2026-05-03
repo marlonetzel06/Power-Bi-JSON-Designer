@@ -81,7 +81,7 @@ export default function ImportMenu() {
 
   return (
     <div className="relative inline-block">
-      <Button ref={btnRef} onClick={() => setOpen(!open)} variant="secondary">
+      <Button ref={btnRef} onClick={() => setOpen(!open)} variant="ghost">
         <Upload size={14} />
         Import
       </Button>

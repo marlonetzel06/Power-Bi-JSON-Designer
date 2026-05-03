@@ -29,7 +29,7 @@ export default function LoginButton() {
   }
 
   return (
-    <Button onClick={handleLogin} variant="primary">
+    <Button onClick={handleLogin} variant="ghost">
       <LogIn size={14} />
       Sign In
     </Button>

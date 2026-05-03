@@ -4,24 +4,26 @@
 
 /* ─── Design Tokens ────────────────────────────────── */
 :root {
-  --color-primary: #1f8ac0;
-  --color-primary-hover: #1a7aad;
-  --color-primary-light: #e8f4fc;
+  --color-primary: #006ba9;
+  --color-primary-hover: #004266;
+  --color-primary-light: #e6f0f8;
+  --color-accent: #29b4aa;
+  --color-accent-light: #e6f5f4;
   --color-danger: #d44;
   --color-danger-light: #fff0f0;
 
-  --bg-base: #f0f2f5;
+  --bg-base: #f2f4f6;
   --bg-surface: #ffffff;
-  --bg-elevated: #f8fafd;
-  --bg-muted: #f0f5fb;
+  --bg-elevated: #f8fafb;
+  --bg-muted: #eef3f7;
 
-  --text-primary: #0f4c81;
-  --text-default: #333333;
-  --text-secondary: #555555;
-  --text-muted: #888888;
+  --text-primary: #004266;
+  --text-default: #2a2a2a;
+  --text-secondary: #4a5568;
+  --text-muted: #7a8a9e;
 
-  --border-default: #e6edf5;
-  --border-subtle: #c8d8ea;
+  --border-default: #dfe6ed;
+  --border-subtle: #c5d3e0;
 
   --radius-sm: 6px;
   --radius-md: 8px;
@@ -29,28 +31,58 @@
 }
 
 .dark {
-  --color-primary: #89b4fa;
-  --color-primary-hover: #a0c4fb;
-  --color-primary-light: #1e2038;
+  --color-primary: #6cb8e7;
+  --color-primary-hover: #2e8acb;
+  --color-primary-light: #1a2a3e;
+  --color-accent: #6bc2bb;
+  --color-accent-light: #0d2a2a;
   --color-danger: #f38ba8;
   --color-danger-light: #2a1a2a;
 
-  --bg-base: #1a1b2e;
-  --bg-surface: #24263e;
-  --bg-elevated: #1e2038;
-  --bg-muted: #2d3055;
+  --bg-base: #0d1f30;
+  --bg-surface: #132d42;
+  --bg-elevated: #0a1925;
+  --bg-muted: #1a3350;
 
-  --text-primary: #89b4fa;
-  --text-default: #c0caf5;
-  --text-secondary: #a9b1d6;
-  --text-muted: #7982a9;
+  --text-primary: #6cb8e7;
+  --text-default: #c8d4e0;
+  --text-secondary: #a0b0c4;
+  --text-muted: #6a7a90;
 
-  --border-default: #2d3555;
-  --border-subtle: #373963;
+  --border-default: #1e3a52;
+  --border-subtle: #254560;
 
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 10px;
+}
+
+/* ─── Base Typography ──────────────────────────────── */
+html, body {
+  font-family: 'Roboto', sans-serif;
+}
+
+/* ─── Toolbar (dark header) ────────────────────────── */
+.toolbar-actions button {
+  color: rgba(255, 255, 255, 0.85) !important;
+  border-color: transparent !important;
+}
+.toolbar-actions button:hover {
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+.toolbar-actions select {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+.toolbar-actions select:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+}
+.toolbar-actions input {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 /* Custom scrollbar */
@@ -62,8 +94,8 @@
 .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
 .scrollbar-thin::-webkit-scrollbar-thumb { background: #c0d4e8; border-radius: 3px; }
 
-.dark .scrollbar-thin { scrollbar-color: #2a3558 transparent; }
-.dark .scrollbar-thin::-webkit-scrollbar-thumb { background: #2a3558; }
+.dark .scrollbar-thin { scrollbar-color: #1e3a52 transparent; }
+.dark .scrollbar-thin::-webkit-scrollbar-thumb { background: #1e3a52; }
 
 /* Toggle switch */
 .toggle { position: relative; width: 36px; height: 20px; }
@@ -78,12 +110,12 @@
   width: 14px; height: 14px; left: 3px; top: 3px;
   background: #fff; border-radius: 50%; transition: transform .2s;
 }
-.toggle input:checked + .toggle-slider { background: #1f8ac0; }
+.toggle input:checked + .toggle-slider { background: var(--color-accent); }
 .toggle input:checked + .toggle-slider:before { transform: translateX(16px); }
 
-.dark .toggle-slider { background: #474a6e; }
-.dark .toggle input:checked + .toggle-slider { background: #89b4fa; }
-.dark .toggle-slider:before { background: #1e2038; }
+.dark .toggle-slider { background: #1e3a52; }
+.dark .toggle input:checked + .toggle-slider { background: var(--color-accent); }
+.dark .toggle-slider:before { background: #0a1925; }
 
 /* JSON syntax colors */
 .json-key  { color: #89b4fa; }

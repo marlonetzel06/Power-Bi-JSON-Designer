@@ -118,7 +118,7 @@ export default function VisualCard({ visualKey, label }) {
   return (
     <div
       ref={cardRef}
-      className="bg-[var(--bg-surface)] rounded-[var(--radius-md)] overflow-hidden shadow-sm cursor-pointer border-2 border-transparent transition-all duration-150 hover:border-[var(--color-primary)] hover:shadow-md hover:-translate-y-0.5 flex flex-col relative"
+      className="bg-[var(--bg-surface)] rounded-[var(--radius-md)] overflow-hidden shadow-sm cursor-pointer border-2 border-transparent transition-all duration-150 hover:border-[var(--color-accent)] hover:shadow-md hover:-translate-y-0.5 flex flex-col relative"
       onClick={() => setCurrentVisual(visualKey)}
     >
       <div className="bg-[var(--bg-elevated)] flex items-center justify-center h-[236px] overflow-hidden relative">
@@ -139,14 +139,14 @@ export default function VisualCard({ visualKey, label }) {
         ) : (
           <div className="text-center flex flex-col items-center justify-center gap-1">
             <Icon size={32} className="text-[var(--text-muted)] opacity-40" />
-            <div className="text-[var(--color-primary)] text-[11px] mt-1">Click to configure</div>
+            <div className="text-[var(--color-accent)] text-[11px] mt-1">Click to configure</div>
           </div>
         )}
         {/* Clickable overlay — ensures click always works even over iframe */}
         <div className="absolute inset-0 z-10" />
         {modified && (
           <div
-            className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-[var(--color-primary)] border-[1.5px] border-[var(--bg-surface)] z-20"
+            className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-[var(--color-accent)] border-[1.5px] border-[var(--bg-surface)] z-20"
             title={`${modCount} card(s) customized`}
           />
         )}

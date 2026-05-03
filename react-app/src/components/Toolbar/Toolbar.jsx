@@ -12,9 +12,11 @@ export default function Toolbar() {
   const { theme, setThemeName, toggleJsonPanel, jsonPanelOpen, toggleDarkMode, darkMode } = useThemeStore();
 
   return (
-    <header className="sticky top-0 z-30 bg-[var(--bg-surface)] border-b border-[var(--border-default)] px-5 py-2.5 flex items-center justify-between gap-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+    <header className="sticky top-0 z-30 bg-[#041B2B] px-5 py-2.5 flex items-center justify-between gap-4 shadow-md">
       <div className="flex items-center gap-4">
-        <h1 className="text-sm font-bold text-[var(--text-primary)] whitespace-nowrap">
+        <img src="/mm-logo.png" alt="M&M Software" className="h-7 object-contain" />
+        <div className="w-px h-6 bg-white/20" />
+        <h1 className="text-sm font-bold text-white whitespace-nowrap">
           Power BI Theme Designer
         </h1>
         <input
@@ -22,10 +24,10 @@ export default function Toolbar() {
           type="text"
           value={theme.name}
           onChange={(e) => setThemeName(e.target.value)}
-          className="text-sm font-semibold text-[var(--text-primary)] border-0 border-b-2 border-[var(--border-subtle)] bg-transparent outline-none px-1.5 py-0.5 w-[200px] focus:border-[var(--color-primary)] transition-colors"
+          className="text-sm font-semibold text-white/90 border-0 border-b-2 border-white/30 bg-transparent outline-none px-1.5 py-0.5 w-[200px] focus:border-[var(--color-accent)] transition-colors placeholder:text-white/50"
         />
       </div>
-      <div className="flex gap-2 items-center flex-wrap">
+      <div className="flex gap-2 items-center flex-wrap toolbar-actions">
         <PresetSelector />
         <ImportMenu />
         <ExportMenu />

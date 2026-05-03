@@ -29,9 +29,9 @@ export default function PropertyCard({ visualKey, cardKey, cardDef }) {
   const hasChanges = modifiedCount > 0;
 
   return (
-    <div className={`border rounded-[var(--radius-md)] overflow-hidden transition-colors ${hasChanges ? 'border-[var(--color-primary)]' : 'border-[var(--border-default)]'}`}>
+    <div className={`border rounded-[var(--radius-md)] overflow-hidden transition-colors ${hasChanges ? 'border-[var(--color-accent)]' : 'border-[var(--border-default)]'}`}>
       <div
-        className="flex items-center justify-between px-3 py-2 cursor-pointer select-none bg-[var(--bg-surface)] hover:bg-[var(--color-primary-light)] transition-colors duration-150"
+        className="flex items-center justify-between px-3 py-2 cursor-pointer select-none bg-[var(--bg-surface)] hover:bg-[var(--color-accent-light)] transition-colors duration-150"
         onClick={() => setCollapsed(!collapsed)}
       >
         <div className="flex items-center gap-2">
@@ -44,7 +44,7 @@ export default function PropertyCard({ visualKey, cardKey, cardDef }) {
           </svg>
           <span className="text-xs font-semibold text-[var(--text-default)]">{displayName}</span>
           {hasChanges && (
-            <span className="text-[10px] font-medium text-[var(--color-primary)] bg-[var(--color-primary-light)] rounded-full px-1.5 py-0 leading-[18px]">
+            <span className="text-[10px] font-medium text-[var(--color-accent)] bg-[var(--color-accent-light)] rounded-full px-1.5 py-0 leading-[18px]">
               {modifiedCount}
             </span>
           )}

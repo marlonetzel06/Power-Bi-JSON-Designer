@@ -11,11 +11,11 @@ const sizes = {
 
 const variants = {
   primary:
-    'bg-[var(--color-primary)] text-white border border-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] hover:border-[var(--color-primary-hover)]',
+    'bg-[var(--color-accent)] text-white border border-[var(--color-accent)] hover:bg-[#008e82] hover:border-[#008e82]',
   secondary:
-    'bg-[var(--bg-surface)] text-[var(--text-secondary)] border border-[var(--border-subtle)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]',
+    'bg-[var(--bg-surface)] text-[var(--text-secondary)] border border-[var(--border-subtle)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]',
   ghost:
-    'bg-transparent text-[var(--text-secondary)] border border-transparent hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary)]',
+    'bg-transparent text-[var(--text-secondary)] border border-transparent hover:bg-[var(--color-accent-light)] hover:text-[var(--color-accent)]',
   danger:
     'bg-[var(--bg-surface)] text-[var(--color-danger)] border border-[var(--border-subtle)] hover:bg-[var(--color-danger-light)] hover:border-[var(--color-danger)]',
 };

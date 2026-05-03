@@ -100,25 +100,25 @@ export default function ImportExportMenu() {
       <button
         ref={btnRef}
         onClick={() => setOpen(!open)}
-        className="text-xs px-3 py-1.5 rounded-md border border-[#1f8ac0] bg-white text-[#1f8ac0] font-semibold cursor-pointer hover:bg-[#e8f4fc] dark:bg-[#24263e] dark:hover:bg-[#1e2038]"
+        className="text-xs px-3 py-1.5 rounded-md border border-[var(--color-accent)] bg-white text-[var(--color-accent)] font-semibold cursor-pointer hover:bg-[var(--color-accent-light)] dark:bg-[var(--bg-surface)] dark:hover:bg-[var(--bg-elevated)]"
       >
         Import / Export ▾
       </button>
       {open && (
         <div
           ref={menuRef}
-          className="absolute top-full left-0 mt-1 bg-white border border-[#d0dce8] rounded-md shadow-lg min-w-[160px] z-50 overflow-hidden dark:bg-[#24263e] dark:border-[#373963]"
+          className="absolute top-full left-0 mt-1 bg-white border border-[var(--border-default)] rounded-md shadow-lg min-w-[160px] z-50 overflow-hidden dark:bg-[var(--bg-surface)] dark:border-[var(--border-subtle)]"
         >
-          <button onClick={handleImportJSON} className="block w-full px-3.5 py-2 text-left text-xs font-medium text-[#333] hover:bg-[#e8f4fc] hover:text-[#1f8ac0] dark:text-[#c9d1d9] dark:hover:bg-[#1e2038] dark:hover:text-[#89b4fa]">
+          <button onClick={handleImportJSON} className="block w-full px-3.5 py-2 text-left text-xs font-medium text-[var(--text-default)] hover:bg-[var(--color-accent-light)] hover:text-[var(--color-accent)] dark:text-[var(--text-default)] dark:hover:bg-[var(--bg-elevated)] dark:hover:text-[var(--color-accent)]">
             Import JSON
           </button>
-          <button onClick={handleImportPBIP} className="block w-full px-3.5 py-2 text-left text-xs font-medium text-[#333] hover:bg-[#e8f4fc] hover:text-[#1f8ac0] dark:text-[#c9d1d9] dark:hover:bg-[#1e2038] dark:hover:text-[#89b4fa]">
+          <button onClick={handleImportPBIP} className="block w-full px-3.5 py-2 text-left text-xs font-medium text-[var(--text-default)] hover:bg-[var(--color-accent-light)] hover:text-[var(--color-accent)] dark:text-[var(--text-default)] dark:hover:bg-[var(--bg-elevated)] dark:hover:text-[var(--color-accent)]">
             Import from PBIP
           </button>
-          <button onClick={handleExport} className="block w-full px-3.5 py-2 text-left text-xs font-medium text-[#333] hover:bg-[#e8f4fc] hover:text-[#1f8ac0] dark:text-[#c9d1d9] dark:hover:bg-[#1e2038] dark:hover:text-[#89b4fa]">
+          <button onClick={handleExport} className="block w-full px-3.5 py-2 text-left text-xs font-medium text-[var(--text-default)] hover:bg-[var(--color-accent-light)] hover:text-[var(--color-accent)] dark:text-[var(--text-default)] dark:hover:bg-[var(--bg-elevated)] dark:hover:text-[var(--color-accent)]">
             Export JSON
           </button>
-          <button onClick={handleDeltaExport} className="block w-full px-3.5 py-2 text-left text-xs font-medium text-[#7b5ea7] hover:bg-[#f3eefe] dark:text-[#cba6f7] dark:hover:bg-[#1e2038]">
+          <button onClick={handleDeltaExport} className="block w-full px-3.5 py-2 text-left text-xs font-medium text-[#7b5ea7] hover:bg-[#f3eefe] dark:text-[#cba6f7] dark:hover:bg-[var(--bg-elevated)]">
             Export Delta Δ
           </button>
         </div>

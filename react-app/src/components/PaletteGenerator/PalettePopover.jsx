@@ -167,7 +167,7 @@ function MiniBarPreview({ colors }) {
 export default function PalettePopover() {
   const { theme, setDataColor, setDataColors, addDataColor, removeDataColor } = useThemeStore();
   const [open, setOpen] = useState(false);
-  const [baseColor, setBaseColor] = useState(theme.dataColors?.[0] || '#1F8AC0');
+  const [baseColor, setBaseColor] = useState(theme.dataColors?.[0] || '#29b4aa');
   const [rows, setRows] = useState([]);
   const [locked, setLocked] = useState([]); // indices of locked colors
   const [prevColors, setPrevColors] = useState(null); // for undo
@@ -241,7 +241,7 @@ export default function PalettePopover() {
       <Button
         ref={btnRef}
         onClick={() => {
-          setBaseColor(theme.dataColors?.[0] || '#1F8AC0');
+          setBaseColor(theme.dataColors?.[0] || '#29b4aa');
           setLocked([]);
           if (!open && btnRef.current) {
             const rect = btnRef.current.getBoundingClientRect();
@@ -262,11 +262,11 @@ export default function PalettePopover() {
       {open && createPortal(
         <div
           ref={popRef}
-          className="bg-white border border-[#d0dce8] rounded-[10px] p-3.5 w-[460px] shadow-lg dark:bg-[#24263e] dark:border-[#373963] dark:shadow-[0_6px_24px_rgba(0,0,0,.5)]"
+          className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-[10px] p-3.5 w-[460px] shadow-lg"
           style={{ position: 'fixed', zIndex: 99999, top: pos.top, left: pos.left }}
         >
           {/* Header */}
-          <div className="text-xs font-bold text-[#0f4c81] mb-2.5 pb-2 border-b border-[#e6edf5] flex items-center justify-between dark:text-[#89b4fa] dark:border-b-[#373963]">
+          <div className="text-xs font-bold text-[var(--text-primary)] mb-2.5 pb-2 border-b border-[var(--border-default)] flex items-center justify-between">
             <span className="flex items-center gap-1.5">
               <Palette size={13} />
               Palette Generator
@@ -289,20 +289,20 @@ export default function PalettePopover() {
           </div>
 
           {/* Current palette with lock toggles */}
-          <div className="mb-2.5 pb-2 border-b border-[#e6edf5] dark:border-b-[#373963]">
+          <div className="mb-2.5 pb-2 border-b border-[var(--border-default)]">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[10px] font-semibold text-[#666] dark:text-[#7982a9]">Current ({colorCount} colors)</span>
+              <span className="text-[10px] font-semibold text-[var(--text-muted)]">Current ({colorCount} colors)</span>
               <div className="flex gap-1">
                 <button
                   onClick={() => addDataColor('#888888')}
-                  className="w-5 h-5 flex items-center justify-center rounded border border-[#c8d8e8] bg-[#f0f5fb] text-[#0f4c81] cursor-pointer hover:bg-[#dceefa] dark:bg-[#2d3055] dark:border-[#373963] dark:text-[#89b4fa]"
+                  className="w-5 h-5 flex items-center justify-center rounded border border-[var(--border-subtle)] bg-[var(--bg-muted)] text-[var(--color-accent)] cursor-pointer hover:bg-[var(--color-accent-light)]"
                   title="Add color"
                 >
                   <Plus size={10} />
                 </button>
                 <button
                   onClick={() => { if (colorCount > 1) removeDataColor(colorCount - 1); }}
-                  className="w-5 h-5 flex items-center justify-center rounded border border-[#c8d8e8] bg-[#f0f5fb] text-[#0f4c81] cursor-pointer hover:bg-[#dceefa] dark:bg-[#2d3055] dark:border-[#373963] dark:text-[#89b4fa] disabled:opacity-30"
+                  className="w-5 h-5 flex items-center justify-center rounded border border-[var(--border-subtle)] bg-[var(--bg-muted)] text-[var(--color-accent)] cursor-pointer hover:bg-[var(--color-accent-light)] disabled:opacity-30"
                   title="Remove last color"
                   disabled={colorCount <= 1}
                 >
@@ -320,7 +320,7 @@ export default function PalettePopover() {
                   />
                   <button
                     onClick={() => toggleLock(i)}
-                    className={`w-4 h-4 flex items-center justify-center rounded transition-colors ${locked.includes(i) ? 'text-[#1f8ac0]' : 'text-[#ccc] hover:text-[#888]'}`}
+                    className={`w-4 h-4 flex items-center justify-center rounded transition-colors ${locked.includes(i) ? 'text-[var(--color-accent)]' : 'text-[#ccc] hover:text-[#888]'}`}
                     title={locked.includes(i) ? 'Unlock' : 'Lock (keep during Apply)'}
                   >
                     {locked.includes(i) ? <Lock size={9} /> : <Unlock size={9} />}
@@ -333,12 +333,12 @@ export default function PalettePopover() {
           {/* Harmony rows */}
           {rows.map(row => (
             <div key={row.name} className="flex items-center gap-1.5 mb-1.5">
-              <span className="text-[10px] text-[#666] w-[85px] shrink-0 dark:text-[#7982a9]">{row.name}</span>
+              <span className="text-[10px] text-[var(--text-muted)] w-[85px] shrink-0">{row.name}</span>
               <div className="flex gap-0.5 flex-1 min-w-0">
                 {row.colors.map((c, i) => (
                   <div
                     key={i}
-                    className={`w-[28px] h-[28px] rounded-[4px] border shrink-0 transition-transform hover:scale-110 hover:z-10 ${locked.includes(i) ? 'border-[#1f8ac0] border-[2px]' : 'border-black/[.08]'}`}
+                    className={`w-[28px] h-[28px] rounded-[4px] border shrink-0 transition-transform hover:scale-110 hover:z-10 ${locked.includes(i) ? 'border-[var(--color-accent)] border-[2px]' : 'border-black/[.08]'}`}
                     style={{ background: locked.includes(i) && i < theme.dataColors.length ? theme.dataColors[i] : c }}
                     title={locked.includes(i) ? `🔒 ${theme.dataColors[i]}` : c}
                   />
@@ -347,7 +347,7 @@ export default function PalettePopover() {
               <MiniBarPreview colors={row.colors} />
               <button
                 onClick={() => applyHarmony(row.colors)}
-                className="text-[10px] px-2 py-0.5 rounded border border-[#c8d8e8] bg-[#f0f5fb] text-[#0f4c81] cursor-pointer whitespace-nowrap shrink-0 hover:bg-[#dceefa] hover:border-[#1f8ac0] dark:bg-[#2d3055] dark:border-[#373963] dark:text-[#89b4fa]"
+                className="text-[10px] px-2 py-0.5 rounded border border-[var(--border-subtle)] bg-[var(--bg-muted)] text-[var(--color-accent)] cursor-pointer whitespace-nowrap shrink-0 hover:bg-[var(--color-accent-light)] hover:border-[var(--color-accent)]"
               >
                 Apply
               </button>
