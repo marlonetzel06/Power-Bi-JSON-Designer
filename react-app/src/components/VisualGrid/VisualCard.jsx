@@ -125,13 +125,16 @@ export default function VisualCard({ visualKey, label }) {
         {showEmbed ? (
           <CardPreview visualKey={visualKey} embedConfig={embedConfig} onRendered={onRendered} />
         ) : showLoading ? (
-          <div className="text-center">
-            <div className="flex justify-center gap-1.5 mb-2">
-              <div className="w-2 h-2 rounded-full bg-[var(--color-primary)] animate-pulse" />
-              <div className="w-2 h-2 rounded-full bg-[var(--color-primary)] animate-pulse [animation-delay:150ms]" />
-              <div className="w-2 h-2 rounded-full bg-[var(--color-primary)] animate-pulse [animation-delay:300ms]" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6">
+            {/* Skeleton shimmer */}
+            <div className="w-full flex items-end gap-1.5 h-[60%] px-2">
+              <div className="flex-1 h-[40%] bg-[var(--border-subtle)] rounded-sm animate-pulse" />
+              <div className="flex-1 h-[70%] bg-[var(--border-subtle)] rounded-sm animate-pulse [animation-delay:100ms]" />
+              <div className="flex-1 h-[55%] bg-[var(--border-subtle)] rounded-sm animate-pulse [animation-delay:200ms]" />
+              <div className="flex-1 h-[85%] bg-[var(--border-subtle)] rounded-sm animate-pulse [animation-delay:300ms]" />
+              <div className="flex-1 h-[45%] bg-[var(--border-subtle)] rounded-sm animate-pulse [animation-delay:150ms]" />
             </div>
-            <div className="text-[11px] text-[var(--text-muted)]">Loading preview…</div>
+            <div className="text-[10px] text-[var(--text-muted)] animate-pulse">Loading preview…</div>
           </div>
         ) : (
           <div className="text-center flex flex-col items-center justify-center gap-1">

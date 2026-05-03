@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import useThemeStore from '../../store/themeStore';
 import { SEMANTIC_KEYS, TEXT_CLASSES } from '../../constants/themeDefaults';
 import { FONTS } from '../../constants/enums';
-import PalettePopover from '../PaletteGenerator/PalettePopover';
+const PalettePopover = lazy(() => import('../PaletteGenerator/PalettePopover'));
 import HexColorInput from '../HexColorInput';
 
 const SEMANTIC_LABEL_MAP = {
@@ -83,7 +83,7 @@ export default function GlobalBar() {
           <div className="px-3 py-3 bg-[var(--bg-elevated)] border border-[var(--border-default)] rounded-[var(--radius-sm)]">
             <div className="flex items-center justify-between mb-2">
               <div className="text-[11px] font-bold text-[var(--text-primary)]">Data Colors</div>
-              <PalettePopover />
+              <Suspense fallback={null}><PalettePopover /></Suspense>
             </div>
             <div className="flex gap-3 flex-wrap">
               {theme.dataColors.map((col, i) => (

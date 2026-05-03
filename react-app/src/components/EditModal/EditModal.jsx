@@ -4,7 +4,7 @@ import { VISUAL_SCHEMA, CARD_DEFS } from '../../constants/visualSpecs';
 import { VISUAL_PAGE_MAP } from '../../constants/visualPageMap';
 import PropertyCard from './PropertyCard';
 import CopyVisualDialog from '../CopyVisualDialog/CopyVisualDialog';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import usePbiEmbed from '../../hooks/usePbiEmbed';
 import PbiReportEmbed from '../PbiEmbed/PbiReportEmbed';
 import Button from '../ui/Button';
@@ -16,6 +16,7 @@ const hasMsal = !!import.meta.env.VITE_MSAL_CLIENT_ID;
 export default function EditModal() {
   const { currentVisual, setCurrentVisual, theme, pageSettings, resetVisual } = useThemeStore();
   const [showCopy, setShowCopy] = useState(false);
+  const modalRef = useRef(null);
 
   // Close on ESC key
   useEffect(() => {
@@ -24,6 +25,31 @@ export default function EditModal() {
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
   }, [currentVisual, setCurrentVisual]);
+
+  // Focus trap: keep Tab within modal
+  useEffect(() => {
+    if (!currentVisual || !modalRef.current) return;
+    const modal = modalRef.current;
+    const handleTab = (e) => {
+      if (e.key !== 'Tab') return;
+      const focusable = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', handleTab);
+    // Auto-focus first focusable element
+    const firstFocusable = modal.querySelector('button, [href], input, select, textarea');
+    if (firstFocusable) firstFocusable.focus();
+    return () => document.removeEventListener('keydown', handleTab);
+  }, [currentVisual]);
 
   if (!currentVisual) return null;
   const isPage = currentVisual === '__page__';
@@ -39,7 +65,7 @@ export default function EditModal() {
 
   return (
     <div className="fixed inset-0 bg-black/45 z-50 flex items-stretch justify-center" onClick={(e) => { if (e.target === e.currentTarget) setCurrentVisual(null); }}>
-      <div className="bg-[var(--bg-elevated)] w-full max-w-[1320px] flex flex-col mt-4 mb-4 rounded-[var(--radius-lg)] overflow-hidden shadow-2xl">
+      <div ref={modalRef} className="bg-[var(--bg-elevated)] w-full max-w-[1320px] flex flex-col mt-4 mb-4 rounded-[var(--radius-lg)] overflow-hidden shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 bg-[var(--bg-surface)] border-b border-[var(--border-default)] shrink-0">
           <div>

@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import useThemeStore from '../../store/themeStore';
 import { SEMANTIC_KEYS, TEXT_CLASSES } from '../../constants/themeDefaults';
 import { FONTS } from '../../constants/enums';
-import PalettePopover from '../PaletteGenerator/PalettePopover';
+const PalettePopover = lazy(() => import('../PaletteGenerator/PalettePopover'));
 import HexColorInput from '../HexColorInput';
 import { Settings2, ChevronRight, Plus, Minus } from 'lucide-react';
 
@@ -81,7 +81,7 @@ export default function Sidebar() {
       <hr className="border-[var(--border-default)] my-1" />
 
       {/* Data Colors */}
-      <SidebarSection title="Data Colors" trailing={<PalettePopover />}>
+      <SidebarSection title="Data Colors" trailing={<Suspense fallback={null}><PalettePopover /></Suspense>}>
         <div className="flex gap-[6px] flex-wrap">
           {theme.dataColors.map((col, i) => (
             <div key={i} className="flex flex-col items-center gap-1">
