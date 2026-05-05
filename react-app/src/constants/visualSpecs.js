@@ -603,7 +603,7 @@ export const VISUAL_SCHEMA = {
   kpi:                            ['general','title','indicator','trendline','dataLabels','goals','statusGraphic'],
   slicer:                         ['general','title','slicerHeader','slicerItems','selection','data','searchBox','slider','background','border'],
   tableEx:                        ['general','title','grid','columnHeaders','values','total','sparklines','columnFormatting','accessibility','background','border'],
-  matrix:                         ['general','title','grid','rowHeaders','columnHeaders','values','subTotals','sparklines','columnFormatting','accessibility','background','border'],
+  pivotTable:                     ['general','title','grid','rowHeaders','columnHeaders','values','subTotals','sparklines','columnFormatting','accessibility','background','border'],
   lineClusteredColumnComboChart:  ['general','title','subheader','legend','categoryAxis','valueAxis','y2Axis','labels','dataPoint','lineStyles','markers','plotArea','trend','referenceLine','annotations','zoom'],
   lineStackedColumnComboChart:    ['general','title','subheader','legend','categoryAxis','valueAxis','y2Axis','labels','dataPoint','lineStyles','markers','plotArea','trend','referenceLine','annotations','zoom'],
   decompositionTree:              ['general','title','subheader','legend','labels','dataLabels','header'],

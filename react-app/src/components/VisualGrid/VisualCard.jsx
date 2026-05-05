@@ -30,7 +30,7 @@ function CardPreview({ visualKey, embedConfig, onRendered }) {
   };
 
   // Visuals that are placed small on the PBI page need more zoom to be recognizable
-  const needsExtraZoom = ['tableEx', 'matrix', 'slicer', 'listSlicer', 'advancedSlicerVisual'].includes(visualKey);
+  const needsExtraZoom = ['tableEx', 'pivotTable', 'slicer', 'listSlicer', 'advancedSlicerVisual'].includes(visualKey);
   const scale = needsExtraZoom ? 0.5 : 0.667;
   const size = needsExtraZoom ? '200%' : '150%';
 

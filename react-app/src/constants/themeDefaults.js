@@ -178,7 +178,7 @@ export const THEME_INITIAL = {
       values: [{ fontFamily: 'Segoe UI', fontSize: 11, fontColor: { solid: { color: '#333333' } }, alignment: 'left', backColor: { solid: { color: '#FFFFFF' } }, backColorSecondary: { solid: { color: '#F0F6FB' } } }],
       total: [{ totals: true, fontFamily: 'Segoe UI Semibold', fontSize: 11, fontColor: { solid: { color: '#0F4C81' } }, outline: 'Top', outlineColor: { solid: { color: '#0F4C81' } }, backColor: { solid: { color: '#E8F0F7' } } }],
     }},
-    matrix: { '*': {
+    pivotTable: { '*': {
       grid: [{ outlineColor: { solid: { color: '#E0E0E0' } }, outlineWeight: 1, gridVertical: false, gridHorizontal: true, gridHorizontalColor: { solid: { color: '#E0E0E0' } }, gridHorizontalWeight: 1, rowPadding: 4 }],
       rowHeaders: [{ fontFamily: 'Segoe UI', fontSize: 11, fontColor: { solid: { color: '#333333' } }, outline: 'None', stepped: true, steppedLayoutIndentation: 20, expandCollapse: true, backColor: { solid: { color: '#FFFFFF' } } }],
       columnHeaders: [{ fontFamily: 'Segoe UI Semibold', fontSize: 11, fontColor: { solid: { color: '#FFFFFF' } }, outline: 'None', alignment: 'left', backColor: { solid: { color: '#0F4C81' } } }],

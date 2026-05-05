@@ -34,7 +34,7 @@ export const VISUAL_PAGE_MAP = {
   'slicer':                        'Slicer',
   'actionButton':                  'Button Slicer',
   'tableEx':                       'Table',
-  'matrix':                        'Matrix',
+  'pivotTable':                    'Matrix',
   'listSlicer':                    'List Slicer',
   'textbox':                       'Text slicer',
   'treemap':                       'Heatmap',
