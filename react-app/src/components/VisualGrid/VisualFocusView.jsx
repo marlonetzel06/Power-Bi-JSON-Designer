@@ -80,7 +80,7 @@ export default function VisualFocusView() {
       {/* Focus canvas — zoomable area */}
       <div
         ref={canvasRef}
-        className="flex-1 flex items-center justify-center overflow-auto p-5"
+        className="flex-1 flex items-center justify-center overflow-hidden p-5 relative"
       >
         <div
           className="transition-transform duration-150 ease-out"
@@ -88,6 +88,8 @@ export default function VisualFocusView() {
         >
           <FocusPreview visualKey={currentVisual} Icon={Icon} label={label} />
         </div>
+        {/* Transparent overlay — captures all wheel events above the iframe */}
+        <div className="absolute inset-0 z-10" />
       </div>
 
       <div className="text-[10px] text-[var(--text-muted)] text-center py-1 shrink-0">
