@@ -57,18 +57,18 @@ export default function PresetSelector() {
         ref={selectRef}
         onChange={handlePresetChange}
         defaultValue=""
-        className="text-xs px-2 py-1.5 rounded-[var(--radius-sm)] border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-default)] cursor-pointer outline-none"
+        className="text-xs px-2 py-1.5 rounded-[var(--radius-sm)] border border-white/20 bg-white/10 text-white cursor-pointer outline-none"
       >
-        <option value="">Preset…</option>
-        <optgroup label="Built-in">
+        <option value="" className="bg-white text-gray-900">Preset…</option>
+        <optgroup label="Built-in" className="bg-white text-gray-900">
           {Object.entries(PRESETS).map(([k, v]) => (
-            <option key={k} value={k}>{v.name}</option>
+            <option key={k} value={k} className="bg-white text-gray-900">{v.name}</option>
           ))}
         </optgroup>
         {customPresets.length > 0 && (
-          <optgroup label="My Presets">
+          <optgroup label="My Presets" className="bg-white text-gray-900">
             {customPresets.map(c => (
-              <option key={c._key} value={c._key}>{c.name}</option>
+              <option key={c._key} value={c._key} className="bg-white text-gray-900">{c.name}</option>
             ))}
           </optgroup>
         )}

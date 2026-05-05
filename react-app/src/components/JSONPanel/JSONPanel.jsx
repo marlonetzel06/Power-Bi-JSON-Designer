@@ -1,10 +1,13 @@
+import { useState } from 'react';
 import useThemeStore from '../../store/themeStore';
 import { buildExportTheme, syntaxHL } from '../../utils/themeBuilder';
 import { toast } from '../ui/Toast';
+import ResizeHandle from '../ui/ResizeHandle';
 import { ClipboardCopy, Download } from 'lucide-react';
 
 export default function JSONPanel() {
   const { theme, pageSettings, jsonPanelOpen } = useThemeStore();
+  const [panelWidth, setPanelWidth] = useState(400);
 
   if (!jsonPanelOpen) return null;
 
@@ -29,7 +32,9 @@ export default function JSONPanel() {
   }
 
   return (
-    <aside className="w-[400px] min-w-[300px] bg-[#1e1e2e] text-[#cdd6f4] flex flex-col border-l border-[#2a2a3e]">
+    <>
+      <ResizeHandle side="left" width={panelWidth} onResize={setPanelWidth} min={300} max={700} />
+      <aside style={{ width: panelWidth }} className="flex-shrink-0 bg-[#1e1e2e] text-[#cdd6f4] flex flex-col border-l border-[#2a2a3e]">
       <div className="px-4 py-3 bg-[#181825] text-xs text-[#89b4fa] font-semibold uppercase tracking-wider whitespace-nowrap flex items-center justify-between">
         <span>Live JSON Preview</span>
         <span className="flex gap-1.5">
@@ -50,5 +55,6 @@ export default function JSONPanel() {
       {/* Hidden raw JSON for test access */}
       <script type="application/json" data-testid="json-raw">{jsonStr}</script>
     </aside>
+    </>
   );
 }

@@ -3,13 +3,13 @@ import Toolbar from './components/Toolbar/Toolbar';
 import Sidebar from './components/Sidebar/Sidebar';
 import JSONPanel from './components/JSONPanel/JSONPanel';
 import VisualGrid from './components/VisualGrid/VisualGrid';
+import VisualFocusView from './components/VisualGrid/VisualFocusView';
+import PropertyDrawer from './components/PropertyDrawer/PropertyDrawer';
 import { ToastProvider } from './components/ui/Toast';
-import { useEffect, lazy, Suspense } from 'react';
-
-const EditModal = lazy(() => import('./components/EditModal/EditModal'));
+import { useEffect } from 'react';
 
 export default function App() {
-  const { darkMode, jsonPanelOpen } = useThemeStore();
+  const { darkMode, jsonPanelOpen, currentVisual } = useThemeStore();
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
@@ -25,19 +25,15 @@ export default function App() {
       {/* Sticky Header */}
       <Toolbar />
 
-      {/* Three-column layout: Sidebar | Grid | JSON */}
+      {/* Multi-column layout: Sidebar | Content | PropertyDrawer | JSON */}
       <div className="flex flex-1 min-h-0">
         <Sidebar />
-        <main className="flex-1 overflow-y-auto p-5">
-          <VisualGrid />
+        <main className="flex-1 overflow-y-auto p-5 min-w-0">
+          {currentVisual ? <VisualFocusView /> : <VisualGrid />}
         </main>
+        <PropertyDrawer />
         {jsonPanelOpen && <JSONPanel />}
       </div>
-
-      {/* Edit Modal — includes live preview */}
-      <Suspense fallback={null}>
-        <EditModal />
-      </Suspense>
 
       <ToastProvider />
     </div>

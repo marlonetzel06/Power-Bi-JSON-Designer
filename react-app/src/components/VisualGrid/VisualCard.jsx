@@ -1,39 +1,10 @@
 import { useRef, useState, useEffect } from 'react';
 import useThemeStore from '../../store/themeStore';
-import { VISUAL_CATEGORIES } from '../../constants/visualNames';
 import { VISUAL_PAGE_MAP } from '../../constants/visualPageMap';
 import usePbiEmbed from '../../hooks/usePbiEmbed';
 import useEmbedQueue from '../../hooks/useEmbedQueue';
 import PbiReportEmbed from '../PbiEmbed/PbiReportEmbed';
-import {
-  BarChart3, LineChart, PieChart, Map, Hash, Table2,
-  SlidersHorizontal, Brain, MousePointer, Pencil, Settings, FileText, ScatterChart
-} from 'lucide-react';
-
-const CATEGORY_ICONS = {
-  'Bar Charts': BarChart3,
-  'Column Charts': BarChart3,
-  'Line & Area': LineChart,
-  'Combo Charts': LineChart,
-  'Other Cartesian': ScatterChart,
-  'Pie / Donut / Tree': PieChart,
-  'Maps': Map,
-  'Cards & KPI': Hash,
-  'Tables': Table2,
-  'Slicers': SlidersHorizontal,
-  'AI / Analytics': Brain,
-  'Navigation & Buttons': MousePointer,
-  'Static Elements': Pencil,
-};
-
-function getVisualIcon(visualKey) {
-  if (visualKey === '*') return Settings;
-  if (visualKey === '__page__') return FileText;
-  for (const [category, keys] of Object.entries(VISUAL_CATEGORIES)) {
-    if (keys.includes(visualKey)) return CATEGORY_ICONS[category] || BarChart3;
-  }
-  return BarChart3;
-}
+import { getVisualIcon } from '../../utils/visualIcons';
 
 function CardPreview({ visualKey, embedConfig, onRendered }) {
   const pageName = VISUAL_PAGE_MAP[visualKey];

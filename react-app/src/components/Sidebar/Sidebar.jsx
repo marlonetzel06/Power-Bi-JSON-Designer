@@ -4,6 +4,7 @@ import { SEMANTIC_KEYS, TEXT_CLASSES } from '../../constants/themeDefaults';
 import { FONTS } from '../../constants/enums';
 const PalettePopover = lazy(() => import('../PaletteGenerator/PalettePopover'));
 import HexColorInput from '../HexColorInput';
+import ResizeHandle from '../ui/ResizeHandle';
 import { Settings2, ChevronRight, Plus, Minus } from 'lucide-react';
 
 const SEMANTIC_LABEL_MAP = {
@@ -56,9 +57,11 @@ function SidebarSection({ title, defaultOpen = true, children, trailing }) {
 
 export default function Sidebar() {
   const { theme, setSemanticColor, setDataColor, addDataColor, removeDataColor, setTextClass, setCurrentVisual } = useThemeStore();
+  const [sidebarWidth, setSidebarWidth] = useState(280);
 
   return (
-    <aside className="w-[280px] flex-shrink-0 bg-[var(--bg-surface)] border-r border-[var(--border-default)] overflow-y-auto flex flex-col gap-1 p-4">
+    <>
+      <aside style={{ width: sidebarWidth }} className="flex-shrink-0 bg-[var(--bg-surface)] border-r border-[var(--border-default)] overflow-y-auto flex flex-col gap-1 p-4">
 
       {/* Semantic Colors – each group is a collapsible section */}
       {SEMANTIC_GROUPS.map(group => (
@@ -175,5 +178,7 @@ export default function Sidebar() {
         </div>
       </SidebarSection>
     </aside>
+    <ResizeHandle side="right" width={sidebarWidth} onResize={setSidebarWidth} min={220} max={480} />
+    </>
   );
 }
