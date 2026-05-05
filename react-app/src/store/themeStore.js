@@ -12,6 +12,7 @@ const useThemeStore = create((set, get) => ({
   pageSettings: {},
   currentVisual: null,
   jsonPanelOpen: false,
+  helpPanelOpen: false,
   previewPanelOpen: false,
   darkMode: localStorage.getItem('pbi-editor-dark') === '1',
   userSetThemeName: false,
@@ -84,6 +85,7 @@ const useThemeStore = create((set, get) => ({
 
   setCurrentVisual: (key) => set({ currentVisual: key }),
   toggleJsonPanel: () => set((s) => ({ jsonPanelOpen: !s.jsonPanelOpen })),
+  toggleHelpPanel: () => set((s) => ({ helpPanelOpen: !s.helpPanelOpen })),
   togglePreviewPanel: () => set((s) => ({ previewPanelOpen: !s.previewPanelOpen })),
 
   toggleDarkMode: () => set((s) => {
@@ -122,6 +124,7 @@ const useThemeStore = create((set, get) => ({
   }),
 
   loadThemeFromJSON: (json) => set((s) => {
+    const BLOCKED = new Set(['__proto__', 'constructor', 'prototype']);
     const theme = deepClone(s.theme);
     SEMANTIC_KEYS.forEach(k => { if (json[k] && typeof json[k] === 'string') theme[k] = json[k]; });
     if (Array.isArray(json.dataColors)) theme.dataColors = json.dataColors.slice(0, 8);
@@ -129,12 +132,15 @@ const useThemeStore = create((set, get) => ({
     if (json.textClasses) theme.textClasses = json.textClasses;
     if (json.visualStyles && typeof json.visualStyles === 'object') {
       Object.entries(json.visualStyles).forEach(([vk, vv]) => {
+        if (BLOCKED.has(vk)) return;
         if (!theme.visualStyles[vk]) theme.visualStyles[vk] = { '*': {} };
         if (vv['*']) {
           Object.entries(vv['*']).forEach(([card, arr]) => {
+            if (BLOCKED.has(card)) return;
             if (Array.isArray(arr) && arr[0]) {
               if (!theme.visualStyles[vk]['*'][card]) theme.visualStyles[vk]['*'][card] = [{}];
-              Object.assign(theme.visualStyles[vk]['*'][card][0], arr[0]);
+              const safe = Object.fromEntries(Object.entries(arr[0]).filter(([k]) => !BLOCKED.has(k)));
+              Object.assign(theme.visualStyles[vk]['*'][card][0], safe);
             }
           });
         }
@@ -184,7 +190,7 @@ function resolveVal(v) {
   return v;
 }
 
-// Expose store for Playwright tests
-if (typeof window !== 'undefined') window.__themeStore = useThemeStore;
+// Expose store for Playwright tests (dev only)
+if (import.meta.env.DEV && typeof window !== 'undefined') window.__themeStore = useThemeStore;
 
 export default useThemeStore;

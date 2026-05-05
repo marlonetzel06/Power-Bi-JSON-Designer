@@ -78,7 +78,7 @@ export default function usePbiEmbed() {
         }
         notify();
       } catch (e) {
-        console.error('Token acquisition failed, trying redirect:', e);
+        if (import.meta.env.DEV) console.error('Token acquisition failed, trying redirect:', e);
         try {
           await instance.acquireTokenRedirect(loginRequest);
         } catch (e2) {

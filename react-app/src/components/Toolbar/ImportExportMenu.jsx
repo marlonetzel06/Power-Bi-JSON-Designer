@@ -51,6 +51,7 @@ export default function ImportExportMenu() {
     input.onchange = (e) => {
       const file = e.target.files[0];
       if (!file) return;
+      if (file.size > 5 * 1024 * 1024) { alert('File too large (max 5 MB)'); return; }
       const reader = new FileReader();
       reader.onload = (ev) => {
         try { loadThemeFromJSON(JSON.parse(ev.target.result)); }
