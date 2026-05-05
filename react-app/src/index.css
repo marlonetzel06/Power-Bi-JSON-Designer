@@ -63,11 +63,13 @@ html, body {
 }
 
 /* ─── Toolbar (dark header) ────────────────────────── */
-.toolbar-actions button {
+.toolbar-actions > * > button,
+.toolbar-actions > button {
   color: rgba(255, 255, 255, 0.85) !important;
   border-color: transparent !important;
 }
-.toolbar-actions button:hover {
+.toolbar-actions > * > button:hover,
+.toolbar-actions > button:hover {
   color: #fff !important;
   background: rgba(255, 255, 255, 0.12) !important;
 }

@@ -6,7 +6,7 @@
  */
 export const VISUAL_PAGE_MAP = {
   'barChart':                      'Bar Chart',
-  'columnChart':                   'Coumn Chart',
+  'columnChart':                   'Column Chart',
   'stackedBarChart':               'Stacked Bar chart',
   'stackedColumnChart':            'Stacked Column Chart',
   'clusteredBarChart':             'Grouped Bar chart',
