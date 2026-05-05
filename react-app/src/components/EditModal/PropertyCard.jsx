@@ -25,11 +25,12 @@ export default function PropertyCard({ visualKey, cardKey, cardDef }) {
   // cardDef can be an array (from CARD_DEFS) or an object with { label, props }
   const props = Array.isArray(cardDef) ? cardDef : (cardDef.props || []);
   const cardData = getCardData(visualKey, cardKey) || {};
-  const modifiedCount = Object.keys(cardData).length;
+  const initialData = useThemeStore.getState().themeInitial.visualStyles?.[visualKey]?.['*']?.[cardKey]?.[0] || {};
+  const modifiedCount = Object.keys(cardData).filter(k => JSON.stringify(cardData[k]) !== JSON.stringify(initialData[k])).length;
   const hasChanges = modifiedCount > 0;
 
   return (
-    <div className={`border rounded-[var(--radius-md)] overflow-hidden transition-colors ${hasChanges ? 'border-[var(--color-accent)]' : 'border-[var(--border-default)]'}`}>
+    <div className={`border rounded-[var(--radius-md)] overflow-hidden transition-colors ${hasChanges ? 'border-amber-500' : 'border-[var(--border-default)]'}`}>
       <div
         className="flex items-center justify-between px-3 py-2 cursor-pointer select-none bg-[var(--bg-surface)] hover:bg-[var(--color-accent-light)] transition-colors duration-150"
         onClick={() => setCollapsed(!collapsed)}
@@ -44,7 +45,7 @@ export default function PropertyCard({ visualKey, cardKey, cardDef }) {
           </svg>
           <span className="text-xs font-semibold text-[var(--text-default)]">{displayName}</span>
           {hasChanges && (
-            <span className="text-[10px] font-medium text-[var(--color-accent)] bg-[var(--color-accent-light)] rounded-full px-1.5 py-0 leading-[18px]">
+            <span className="text-[10px] font-medium text-amber-700 bg-amber-100 rounded-full px-1.5 py-0 leading-[18px]">
               {modifiedCount}
             </span>
           )}

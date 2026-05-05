@@ -117,8 +117,8 @@ export default function VisualCard({ visualKey, label }) {
         <div className="absolute inset-0 z-10" />
         {modified && (
           <div
-            className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-[var(--color-accent)] border-[1.5px] border-[var(--bg-surface)] z-20"
-            title={`${modCount} card(s) customized`}
+            className="absolute top-2 right-2 w-3.5 h-3.5 rounded-full bg-amber-500 border-2 border-[var(--bg-surface)] z-20 animate-pulse-once"
+            title={`${modCount} property card(s) edited`}
           />
         )}
       </div>

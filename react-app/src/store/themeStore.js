@@ -61,18 +61,10 @@ const useThemeStore = create((set, get) => ({
       }
       return get().pageSettings[cardName];
     }
-    const theme = s.theme;
-    if (!theme.visualStyles[visualKey]) {
-      theme.visualStyles[visualKey] = { '*': {} };
-    }
-    if (!theme.visualStyles[visualKey]['*']) {
-      theme.visualStyles[visualKey]['*'] = {};
-    }
-    const cards = theme.visualStyles[visualKey]['*'];
-    if (!cards[cardName] || !cards[cardName][0]) {
-      cards[cardName] = [{}];
-    }
-    return cards[cardName][0];
+    const vs = s.theme.visualStyles;
+    const card = vs[visualKey]?.['*']?.[cardName];
+    if (card && card[0]) return card[0];
+    return {};
   },
 
   setCardProp: (visualKey, cardName, key, value) => set((s) => {

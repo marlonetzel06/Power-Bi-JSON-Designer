@@ -10,7 +10,7 @@ export default function ColorControl({ prop, value, visualKey, cardKey }) {
       <span className="flex-1 min-w-0 truncate">{prop.label || prop.key}</span>
       <HexColorInput
         value={color}
-        onChange={(hex) => setCardProp(visualKey, cardKey, prop.key, hex)}
+        onChange={(hex) => setCardProp(visualKey, cardKey, prop.key, { solid: { color: hex } })}
       />
     </label>
   );
