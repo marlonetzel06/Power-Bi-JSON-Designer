@@ -1,0 +1,79 @@
+import { useState } from 'react';
+import useThemeStore from '../../store/themeStore';
+import { CARD_NAME_MAP } from '../../constants/visualNames';
+import ColorControl from './controls/ColorControl';
+import ToggleControl from './controls/ToggleControl';
+import NumberControl from './controls/NumberControl';
+import DropdownControl from './controls/DropdownControl';
+import TextControl from './controls/TextControl';
+
+const CONTROL_MAP = {
+  color: ColorControl,
+  toggle: ToggleControl,
+  boolean: ToggleControl,
+  number: NumberControl,
+  dropdown: DropdownControl,
+  enum: DropdownControl,
+  text: TextControl,
+  string: TextControl,
+};
+
+export default function PropertyCard({ visualKey, cardKey, cardDef }) {
+  const [collapsed, setCollapsed] = useState(true);
+  const { getCardData, rcv, isModified } = useThemeStore();
+  const displayName = CARD_NAME_MAP[cardKey] || cardKey;
+  // cardDef can be an array (from CARD_DEFS) or an object with { label, props }
+  const props = Array.isArray(cardDef) ? cardDef : (cardDef.props || []);
+  const cardData = getCardData(visualKey, cardKey) || {};
+  const initialData = useThemeStore.getState().themeInitial.visualStyles?.[visualKey]?.['*']?.[cardKey]?.[0] || {};
+  const modifiedCount = Object.keys(cardData).filter(k => JSON.stringify(cardData[k]) !== JSON.stringify(initialData[k])).length;
+  const hasChanges = modifiedCount > 0;
+
+  return (
+    <div className={`border rounded-[var(--radius-md)] overflow-hidden transition-colors ${hasChanges ? 'border-amber-500' : 'border-[var(--border-default)]'}`}>
+      <div
+        className="flex items-center justify-between px-3 py-2 cursor-pointer select-none bg-[var(--bg-surface)] hover:bg-[var(--color-accent-light)] transition-colors duration-150"
+        onClick={() => setCollapsed(!collapsed)}
+      >
+        <div className="flex items-center gap-2">
+          <svg
+            className={`w-3 h-3 text-[var(--text-primary)] transition-transform duration-200 ${collapsed ? 'rotate-0' : 'rotate-90'}`}
+            viewBox="0 0 16 16"
+            fill="currentColor"
+          >
+            <path d="M6 4l4 4-4 4z" />
+          </svg>
+          <span className="text-xs font-semibold text-[var(--text-default)]">{displayName}</span>
+          {hasChanges && (
+            <span className="text-[10px] font-medium text-amber-700 bg-amber-100 rounded-full px-1.5 py-0 leading-[18px]">
+              {modifiedCount}
+            </span>
+          )}
+        </div>
+      </div>
+      <div
+        className={`grid transition-[grid-template-rows] duration-200 ease-in-out ${collapsed ? 'grid-rows-[0fr]' : 'grid-rows-[1fr]'}`}
+      >
+        <div className="overflow-hidden">
+          <div className="bg-[var(--bg-elevated)] px-4 py-3 border-t border-[var(--border-default)]">
+            <div className="flex flex-col gap-2">
+              {props.map(prop => {
+                const Control = CONTROL_MAP[prop.type] || TextControl;
+                const value = rcv(visualKey, cardKey, prop.key);
+                return (
+                  <Control
+                    key={prop.key}
+                    prop={prop}
+                    value={value}
+                    visualKey={visualKey}
+                    cardKey={cardKey}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
