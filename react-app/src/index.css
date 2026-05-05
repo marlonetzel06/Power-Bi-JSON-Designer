@@ -136,6 +136,10 @@ input[type="color"]::-webkit-color-swatch { border: none; border-radius: 3px; }
   from { opacity: 0; }
   to { opacity: 1; }
 }
+@keyframes help-in {
+  from { opacity: 0; transform: scale(0.9) translateY(-8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
 @keyframes scale-in {
   from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
@@ -155,6 +159,10 @@ input[type="color"]::-webkit-color-swatch { border: none; border-radius: 3px; }
 }
 .animate-scale-in {
   animation: scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.animate-help-in {
+  animation: help-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: top right;
 }
 .animate-pulse-once {
   animation: pulse-once 0.4s ease-out both;

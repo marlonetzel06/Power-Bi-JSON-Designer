@@ -2,6 +2,7 @@ import useThemeStore from './store/themeStore';
 import Toolbar from './components/Toolbar/Toolbar';
 import Sidebar from './components/Sidebar/Sidebar';
 import JSONPanel from './components/JSONPanel/JSONPanel';
+import HelpPanel from './components/HelpPanel/HelpPanel';
 import VisualGrid from './components/VisualGrid/VisualGrid';
 import VisualFocusView from './components/VisualGrid/VisualFocusView';
 import PropertyDrawer from './components/PropertyDrawer/PropertyDrawer';
@@ -42,6 +43,7 @@ export default function App() {
       </div>
 
       <ToastProvider />
+      <HelpPanel />
     </div>
   );
 }
