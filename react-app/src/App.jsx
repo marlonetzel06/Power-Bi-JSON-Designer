@@ -28,9 +28,15 @@ export default function App() {
       {/* Multi-column layout: Sidebar | Content | PropertyDrawer | JSON */}
       <div className="flex flex-1 min-h-0">
         <Sidebar />
-        <main className="flex-1 overflow-y-auto p-5 min-w-0">
-          {currentVisual ? <VisualFocusView /> : <VisualGrid />}
+        {/* Both always mounted — CSS hides inactive to preserve iframe state */}
+        <main className={`flex-1 overflow-y-auto p-5 min-w-0 ${currentVisual ? 'hidden' : ''}`}>
+          <VisualGrid />
         </main>
+        {currentVisual && (
+          <main className="flex-1 overflow-y-auto p-5 min-w-0">
+            <VisualFocusView />
+          </main>
+        )}
         <PropertyDrawer />
         {jsonPanelOpen && <JSONPanel />}
       </div>
