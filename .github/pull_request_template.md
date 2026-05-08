@@ -12,11 +12,13 @@
 ## How to test
 
 <!-- Steps to verify the change works -->
-1. Open `PowerBI_Theme/theme_editor.html` in a browser
-2. 
+1. Run `cd react-app && npm run dev`
+2. Open `http://localhost:5173`
+3. 
 
 ## Checklist
 
 - [ ] Tested in Chrome/Edge
 - [ ] No existing visuals are broken
 - [ ] JSON export still produces valid Power BI theme output
+- [ ] No secrets or credentials committed

@@ -5,3 +5,7 @@ package-lock.json
 test-results/
 playwright-report/
 push_html.py
+
+# Environment files with secrets
+.env.local
+.env*.local

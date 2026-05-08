@@ -1,5 +1,7 @@
 # Power BI JSON Theme Designer
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 A React-based web application for creating and customizing Power BI report themes with live preview. Design your theme visually, see changes in real time on an embedded Power BI report, and export the finished JSON.
 
 > **Deutsch:** Eine React-Webanwendung zum Erstellen und Anpassen von Power BI Report-Themes mit Live-Vorschau. Theme visuell gestalten, Änderungen in Echtzeit auf einem eingebetteten Power BI Report sehen und fertiges JSON exportieren.
