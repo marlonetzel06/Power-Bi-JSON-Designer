@@ -1,21 +1,32 @@
 import { useState, useMemo } from 'react';
 import useThemeStore from '../../store/themeStore';
 import { VISUAL_LABELS, VISUAL_CATEGORIES } from '../../constants/visualNames';
-import Button from '../ui/Button';
 import { toast } from '../ui/Toast';
+import Button from '../ui/Button';
+import { X } from 'lucide-react';
 
 export default function CopyVisualDialog({ sourceVisual, onClose }) {
   const { copyVisualSettings } = useThemeStore();
   const [selected, setSelected] = useState([]);
 
-  const candidates = useMemo(() => {
+  const targets = useMemo(() => {
+    // Find which category the source belongs to
     let category = null;
     for (const [cat, keys] of Object.entries(VISUAL_CATEGORIES)) {
-      if (keys.includes(sourceVisual)) { category = cat; break; }
+      if (keys.includes(sourceVisual)) {
+        category = cat;
+        break;
+      }
     }
-    const pool = category ? VISUAL_CATEGORIES[category].filter(k => k !== sourceVisual) : [];
-    const all = pool.length > 0 ? pool : Object.keys(VISUAL_LABELS).filter(k => k !== sourceVisual);
-    return all.map(k => ({ key: k, label: VISUAL_LABELS[k] || k }));
+    // Get siblings from the same category, excluding self
+    const siblings = category
+      ? VISUAL_CATEGORIES[category].filter(k => k !== sourceVisual)
+      : [];
+    // Fallback: all visuals except source and '*'
+    const list = siblings.length > 0
+      ? siblings
+      : Object.keys(VISUAL_LABELS).filter(k => k !== sourceVisual && k !== '*');
+    return list.map(key => ({ key, label: VISUAL_LABELS[key] || key }));
   }, [sourceVisual]);
 
   function toggle(key) {
@@ -30,32 +41,33 @@ export default function CopyVisualDialog({ sourceVisual, onClose }) {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30" onClick={onClose}>
-      <div className="bg-[var(--bg-surface)] w-[340px] max-h-[70vh] rounded-[var(--radius-lg)] shadow-xl flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="px-4 py-3 border-b border-[var(--border-default)]">
-          <div className="text-sm font-bold text-[var(--text-primary)]">Copy Settings</div>
-          <div className="text-[10px] text-[var(--text-muted)]">From <strong>{VISUAL_LABELS[sourceVisual] || sourceVisual}</strong> to:</div>
+      <div
+        className="bg-[var(--bg-surface)] rounded-[var(--radius-lg)] shadow-xl w-full max-w-sm p-5"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-bold text-[var(--text-primary)]">Copy Settings</h3>
+          <Button onClick={onClose} variant="ghost" size="icon"><X size={14} /></Button>
         </div>
-        <div className="flex-1 overflow-y-auto px-4 py-3">
-          {candidates.map(c => (
-            <label key={c.key} className="flex items-center gap-2 py-1 text-xs text-[var(--text-secondary)] cursor-pointer">
-              <input type="checkbox" checked={selected.includes(c.key)} onChange={() => toggle(c.key)} />
-              {c.label}
+        <p className="text-xs text-[var(--text-muted)] mb-3">
+          Copy settings from <strong>{VISUAL_LABELS[sourceVisual] || sourceVisual}</strong> to:
+        </p>
+        <div className="max-h-[260px] overflow-y-auto flex flex-col gap-1.5 mb-4">
+          {targets.map(({ key, label }) => (
+            <label key={key} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-[var(--bg-muted)] cursor-pointer text-xs text-[var(--text-default)]">
+              <input
+                type="checkbox"
+                checked={selected.includes(key)}
+                onChange={() => toggle(key)}
+                className="accent-[var(--color-primary)]"
+              />
+              {label}
             </label>
           ))}
         </div>
-        <div className="flex gap-2 px-4 py-3 border-t border-[var(--border-default)]">
-          <Button
-            onClick={handleApply}
-            disabled={!selected.length}
-            variant="primary"
-            className="flex-1"
-          >
-            Apply to {selected.length} visual(s)
-          </Button>
-          <Button onClick={onClose} variant="secondary">
-            Cancel
-          </Button>
-        </div>
+        <Button onClick={handleApply} disabled={selected.length === 0} className="w-full">
+          Apply to {selected.length} visual(s)
+        </Button>
       </div>
     </div>
   );
