@@ -1,37 +1,40 @@
 import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { loginRequest } from '../../config/msalConfig';
 import Button from '../ui/Button';
-import { LogIn, LogOut } from 'lucide-react';
+import { User } from 'lucide-react';
+
+const hasMsal = !!import.meta.env.VITE_MSAL_CLIENT_ID;
 
 export default function LoginButton() {
+  if (!hasMsal) {
+    return null;
+  }
+
   const { instance, accounts } = useMsal();
   const isAuthenticated = useIsAuthenticated();
 
-  function handleLogin() {
-    instance.loginRedirect(loginRequest);
-  }
+  const handleLogin = () => {
+    instance.loginRedirect(loginRequest).catch(console.error);
+  };
 
-  function handleLogout() {
-    instance.logoutRedirect({ postLogoutRedirectUri: window.location.origin });
-  }
+  const handleLogout = () => {
+    instance.logoutRedirect({ postLogoutRedirectUri: window.location.origin }).catch(console.error);
+  };
 
   if (isAuthenticated) {
     const name = accounts[0]?.name || accounts[0]?.username || 'User';
     return (
-      <div className="flex items-center gap-2">
-        <span className="text-[11px] text-[var(--text-secondary)]">{name}</span>
-        <Button onClick={handleLogout} variant="ghost" size="sm">
-          <LogOut size={12} />
-          Sign Out
-        </Button>
-      </div>
+      <Button variant="ghost" size="sm" onClick={handleLogout} title={`Sign out (${name})`}>
+        <User size={14} />
+        <span className="text-[10px] max-w-[80px] truncate">{name}</span>
+      </Button>
     );
   }
 
   return (
-    <Button onClick={handleLogin} variant="ghost">
-      <LogIn size={14} />
-      Sign In
+    <Button variant="ghost" size="sm" onClick={handleLogin} title="Sign in">
+      <User size={14} />
+      <span className="text-[10px]">Sign in</span>
     </Button>
   );
 }
