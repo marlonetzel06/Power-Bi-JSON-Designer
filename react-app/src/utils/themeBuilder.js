@@ -12,12 +12,20 @@ export function buildExportTheme(theme, pageSettings) {
       if (star.slicerHeader !== undefined) { star.header = star.slicerHeader; delete star.slicerHeader; }
       if (star.slicerItems !== undefined) { star.items = star.slicerItems; delete star.slicerItems; }
     }
+    if (star.subheader !== undefined) { star.subTitle = star.subheader; delete star.subheader; }
   }
   if (pageSettings && Object.keys(pageSettings).length > 0) {
     if (!t.visualStyles.__page__) t.visualStyles.__page__ = { '*': {} };
     Object.entries(pageSettings).forEach(([card, data]) => {
       t.visualStyles.__page__['*'][card] = [data];
     });
+  }
+  // Clean textClasses for PBI schema: strip fontBold, rename fontColor→color
+  if (t.textClasses) {
+    for (const cls of Object.keys(t.textClasses)) {
+      const { fontBold, fontColor, ...rest } = t.textClasses[cls];
+      t.textClasses[cls] = fontColor ? { ...rest, color: fontColor } : rest;
+    }
   }
   return t;
 }
@@ -36,19 +44,32 @@ export function buildDeltaTheme(theme, initial) {
     delta.dataColors = theme.dataColors;
   }
   if (JSON.stringify(theme.textClasses) !== JSON.stringify(initial.textClasses)) {
-    delta.textClasses = theme.textClasses;
+    // Clean for PBI schema: strip fontBold, rename fontColor→color
+    const cleaned = {};
+    for (const [cls, props] of Object.entries(theme.textClasses)) {
+      const { fontBold, fontColor, ...rest } = props;
+      cleaned[cls] = fontColor ? { ...rest, color: fontColor } : rest;
+    }
+    delta.textClasses = cleaned;
   }
   // visualStyles delta
   const vs = theme.visualStyles || {};
   const ivs = initial.visualStyles || {};
   const deltaVs = {};
+  const SLICER_VISUALS = ['slicer', 'advancedSlicerVisual', 'listSlicer'];
   for (const [vk, vv] of Object.entries(vs)) {
     const star = vv['*'] || {};
     const iStar = ivs[vk]?.['*'] || {};
     const deltaCards = {};
     for (const [card, arr] of Object.entries(star)) {
       if (JSON.stringify(arr) !== JSON.stringify(iStar[card])) {
-        deltaCards[card] = arr;
+        // Rename internal card names to PBI schema names
+        const exportKey = card === 'subheader' ? 'subTitle'
+          : card === 'shapeOutline' && vk === 'shape' ? 'outline'
+          : card === 'slicerHeader' && SLICER_VISUALS.includes(vk) ? 'header'
+          : card === 'slicerItems' && SLICER_VISUALS.includes(vk) ? 'items'
+          : card;
+        deltaCards[exportKey] = arr;
       }
     }
     if (Object.keys(deltaCards).length > 0) {

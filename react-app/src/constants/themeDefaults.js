@@ -121,12 +121,12 @@ export const THEME_INITIAL = {
     pieChart: { '*': {
       legend: [{ show: true, position: 'Right', showTitle: false, labelColor: { solid: { color: '#444444' } }, fontFamily: 'Segoe UI', fontSize: 10 }],
       detail: [{ show: false }],
-      labels: [{ show: true, fontSize: 10, fontFamily: 'Segoe UI', color: { solid: { color: '#333333' } }, labelDisplayUnits: 0, labelStyle: 'category' }],
+      labels: [{ show: true, fontSize: 10, fontFamily: 'Segoe UI', color: { solid: { color: '#333333' } }, labelDisplayUnits: 0, labelStyle: 'Category' }],
     }},
     donutChart: { '*': {
       legend: [{ show: true, position: 'Right', showTitle: false, labelColor: { solid: { color: '#444444' } }, fontFamily: 'Segoe UI', fontSize: 10 }],
       innerRadius: [{ innerRadiusRatio: 50 }],
-      labels: [{ show: true, fontSize: 10, fontFamily: 'Segoe UI', color: { solid: { color: '#333333' } }, labelStyle: 'category' }],
+      labels: [{ show: true, fontSize: 10, fontFamily: 'Segoe UI', color: { solid: { color: '#333333' } }, labelStyle: 'Category' }],
     }},
     treemap: { '*': {
       legend: [{ show: true, position: 'Top', showTitle: false, labelColor: { solid: { color: '#444444' } }, fontFamily: 'Segoe UI', fontSize: 10 }],
@@ -140,7 +140,7 @@ export const THEME_INITIAL = {
     }},
     funnel: { '*': {
       legend: [{ show: false }],
-      labels: [{ show: true, fontSize: 10, fontFamily: 'Segoe UI', color: { solid: { color: '#333333' } }, labelStyle: 'both' }],
+      labels: [{ show: true, fontSize: 10, fontFamily: 'Segoe UI', color: { solid: { color: '#333333' } }, labelStyle: 'Both' }],
     }},
     gauge: { '*': {
       dataLabels: [{ show: true, fontSize: 24, fontFamily: 'Segoe UI', color: { solid: { color: '#0F4C81' } } }],
@@ -174,16 +174,16 @@ export const THEME_INITIAL = {
     }},
     tableEx: { '*': {
       grid: [{ outlineColor: { solid: { color: '#E0E0E0' } }, outlineWeight: 1, gridVertical: false, gridHorizontal: true, gridHorizontalColor: { solid: { color: '#E0E0E0' } }, gridHorizontalWeight: 1, rowPadding: 4 }],
-      columnHeaders: [{ fontFamily: 'Segoe UI Semibold', fontSize: 11, fontColor: { solid: { color: '#FFFFFF' } }, outline: 'None', alignment: 'left', backColor: { solid: { color: '#0F4C81' } } }],
-      values: [{ fontFamily: 'Segoe UI', fontSize: 11, fontColor: { solid: { color: '#333333' } }, alignment: 'left', backColor: { solid: { color: '#FFFFFF' } }, backColorSecondary: { solid: { color: '#F0F6FB' } } }],
+      columnHeaders: [{ fontFamily: 'Segoe UI Semibold', fontSize: 11, fontColor: { solid: { color: '#FFFFFF' } }, outline: 'None', alignment: 'Left', backColor: { solid: { color: '#0F4C81' } } }],
+      values: [{ fontFamily: 'Segoe UI', fontSize: 11, fontColor: { solid: { color: '#333333' } }, alignment: 'Left', backColor: { solid: { color: '#FFFFFF' } }, backColorSecondary: { solid: { color: '#F0F6FB' } } }],
       total: [{ totals: true, fontFamily: 'Segoe UI Semibold', fontSize: 11, fontColor: { solid: { color: '#0F4C81' } }, outline: 'Top', outlineColor: { solid: { color: '#0F4C81' } }, backColor: { solid: { color: '#E8F0F7' } } }],
     }},
     pivotTable: { '*': {
       title: [{ show: true, fontFamily: 'Segoe UI', fontSize: 14, fontColor: { solid: { color: '#0F4C81' } }, alignment: 'left', bold: true }],
       grid: [{ outlineColor: { solid: { color: '#E0E0E0' } }, outlineWeight: 1, gridVertical: false, gridHorizontal: true, gridHorizontalColor: { solid: { color: '#E0E0E0' } }, gridHorizontalWeight: 1, rowPadding: 4 }],
       rowHeaders: [{ fontFamily: 'Segoe UI', fontSize: 11, fontColor: { solid: { color: '#333333' } }, outline: 'None', stepped: true, steppedLayoutIndentation: 20, expandCollapse: true, backColor: { solid: { color: '#FFFFFF' } } }],
-      columnHeaders: [{ fontFamily: 'Segoe UI Semibold', fontSize: 11, fontColor: { solid: { color: '#FFFFFF' } }, outline: 'None', alignment: 'left', backColor: { solid: { color: '#0F4C81' } } }],
-      values: [{ fontFamily: 'Segoe UI', fontSize: 11, fontColor: { solid: { color: '#333333' } }, alignment: 'right', backColor: { solid: { color: '#FFFFFF' } }, backColorSecondary: { solid: { color: '#F0F6FB' } } }],
+      columnHeaders: [{ fontFamily: 'Segoe UI Semibold', fontSize: 11, fontColor: { solid: { color: '#FFFFFF' } }, outline: 'None', alignment: 'Left', backColor: { solid: { color: '#0F4C81' } } }],
+      values: [{ fontFamily: 'Segoe UI', fontSize: 11, fontColor: { solid: { color: '#333333' } }, alignment: 'Right', backColor: { solid: { color: '#FFFFFF' } }, backColorSecondary: { solid: { color: '#F0F6FB' } } }],
       subTotals: [{ rowSubtotals: true, columnSubtotals: true, fontFamily: 'Segoe UI Semibold', fontSize: 11, fontColor: { solid: { color: '#0F4C81' } }, outline: 'TopBottom', outlineColor: { solid: { color: '#0F4C81' } }, perRowLevel: true, perColumnLevel: true, backColor: { solid: { color: '#E8F0F7' } } }],
     }},
     lineClusteredColumnComboChart: { '*': {
