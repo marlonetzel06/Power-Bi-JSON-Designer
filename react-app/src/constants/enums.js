@@ -24,13 +24,14 @@ export const FONTS = [
 ];
 
 export const ENUMS = {
-  position: ['Top', 'Bottom', 'Left', 'Right', 'TopLeft', 'TopRight', 'BottomLeft', 'BottomRight'],
+  position: ['Top', 'TopCenter', 'Bottom', 'BottomCenter', 'Left', 'LeftCenter', 'Right', 'RightCenter', 'TopLeft', 'TopRight', 'BottomLeft', 'BottomRight'],
   alignment: ['left', 'center', 'right'],
+  tableAlignment: ['Auto', 'Left', 'Center', 'Right'],
   verticalAlignment: ['top', 'middle', 'bottom'],
   fontFamily: FONTS,
   outline: ['None', 'Frame', 'Top', 'Bottom', 'Left', 'Right', 'TopBottom'],
   imageScalingType: ['Fit', 'Fill', 'Normal'],
-  labelStyle: ['category', 'data', 'both', 'percent', 'percentOfTotal'],
+  labelStyle: ['Category', 'Data', 'Percent of total', 'Both', 'Category, percent of total', 'Data value, percent of total', 'Category, data value, percent of total'],
 };
 
 export const VALIDATION = {
