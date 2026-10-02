@@ -1,5 +1,4 @@
 node_modules/
-package-lock.json
 # Allow project-level package.json (only ignore root)
 /package.json
 test-results/

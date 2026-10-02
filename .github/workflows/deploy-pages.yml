@@ -20,21 +20,34 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: react-app
     steps:
       - uses: actions/checkout@v4
-
-      - name: Prepare site content
-        run: |
-          mkdir -p _site
-          cp -r PowerBI_Theme/. _site/
-          cp _site/theme_editor.html _site/index.html
-
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: react-app/package-lock.json
+      - run: npm ci
+      - name: Build
+        # VITE_* values are public client configuration (no secrets); set them as
+        # repository variables to enable the live preview on the deployed site.
+        env:
+          BASE_PATH: /${{ github.event.repository.name }}/
+          VITE_MSAL_CLIENT_ID: ${{ vars.VITE_MSAL_CLIENT_ID }}
+          VITE_MSAL_AUTHORITY: ${{ vars.VITE_MSAL_AUTHORITY }}
+          VITE_MSAL_REDIRECT_URI: ${{ vars.VITE_MSAL_REDIRECT_URI }}
+          VITE_PBI_REPORT_ID: ${{ vars.VITE_PBI_REPORT_ID }}
+          VITE_PBI_WORKSPACE_ID: ${{ vars.VITE_PBI_WORKSPACE_ID }}
+        run: npm run build
+      - name: SPA fallback
+        run: cp dist/index.html dist/404.html
       - uses: actions/configure-pages@v4
-
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: _site
-
+          path: react-app/dist
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
