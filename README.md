@@ -5,7 +5,7 @@
 
 **Deutsch** · [English](#english)
 
-Ein Theme-Designer für Power BI im Stil von Power BI Desktop: Eine Berichtsseite mit allen Visuals in der Mitte, rechts die Bereiche **Visualisierungen** (Formatbereich mit *Visual | Allgemein*), **Design anpassen** und **JSON**. Jede Änderung ist sofort in der Vorschau sichtbar, wird gegen das offizielle Power-BI-Theme-Schema geprüft und als gültiges Theme-JSON exportiert.
+Ein Theme-Designer für Power BI im Stil von Power BI Desktop: Eine Berichtsseite mit allen Visuals nach Kategorie gruppiert in der Mitte, rechts die Bereiche **Visualisierungen** (Formatbereich mit *Visual | Allgemein*), **Design anpassen** und **JSON**. Jede Änderung ist sofort in der Vorschau sichtbar, wird gegen das offizielle Power-BI-Theme-Schema geprüft und als gültiges Theme-JSON exportiert.
 
 ## Funktionen
 
@@ -30,7 +30,7 @@ Ohne weitere Konfiguration läuft die App vollständig mit der Mock-Vorschau. Di
 
 ## Benutzung
 
-1. Visual auf der Berichtsseite oder in der Galerie rechts anklicken. Unten wechseln die Seiten (Balken & Säulen, Linien, Karten, Tabellen …).
+1. Visual auf der Berichtsseite oder in der Galerie rechts anklicken. Die Seite zeigt alle Visuals nach Kategorie gruppiert; das Suchfeld oben filtert sie.
 2. Im Formatbereich die Karten anpassen – Registerkarte **Visual** für visual-spezifische Karten, **Allgemein** für Titel, Effekte, Kopfzeilensymbole, QuickInfos.
 3. Globale Einstellungen unter **Design anpassen** (Symbol in der Kopfzeile).
 4. **Fokusmodus** (Doppelklick oder Symbol am ausgewählten Visual) zeigt ein Visual groß; mit Konfiguration auch **Live**.

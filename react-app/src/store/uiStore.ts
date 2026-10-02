@@ -25,8 +25,6 @@ export interface UiState {
   /** Panes that are collapsed to a vertical strip (still "open"). */
   collapsedPanes: PaneId[];
   themePaneWidth: number;
-  /** Current report page on the canvas. */
-  activePage: string;
   /** Free-text filter for the canvas / gallery. */
   canvasQuery: string;
   /** Zoom in focus mode: 0 = fit. */
@@ -48,7 +46,6 @@ export interface UiState {
   setFormatTab: (tab: 'visual' | 'general') => void;
   setPaneCollapsed: (pane: PaneId, collapsed: boolean) => void;
   setThemePaneWidth: (width: number) => void;
-  setActivePage: (page: string) => void;
   setCanvasQuery: (query: string) => void;
   setFocusZoom: (zoom: number) => void;
   setGalleryOpen: (open: boolean) => void;
@@ -87,7 +84,6 @@ export const useUiStore = create<UiState>()(
       formatTab: 'visual',
       collapsedPanes: [],
       themePaneWidth: 340,
-      activePage: 'bars',
       canvasQuery: '',
       focusZoom: 0,
       galleryOpen: true,
@@ -116,7 +112,6 @@ export const useUiStore = create<UiState>()(
       setPaneCollapsed: (pane, collapsed) =>
         set((s) => ({ collapsedPanes: collapsed ? (s.collapsedPanes.includes(pane) ? s.collapsedPanes : [...s.collapsedPanes, pane]) : s.collapsedPanes.filter((p) => p !== pane) })),
       setThemePaneWidth: (themePaneWidth) => set({ themePaneWidth }),
-      setActivePage: (activePage) => set({ activePage }),
       setCanvasQuery: (canvasQuery) => set({ canvasQuery }),
       setFocusZoom: (focusZoom) => set({ focusZoom }),
       setGalleryOpen: (galleryOpen) => set({ galleryOpen }),
@@ -136,7 +131,6 @@ export const useUiStore = create<UiState>()(
         formatTab: s.formatTab,
         collapsedPanes: s.collapsedPanes,
         themePaneWidth: s.themePaneWidth,
-        activePage: s.activePage,
         galleryOpen: s.galleryOpen,
       }),
     },

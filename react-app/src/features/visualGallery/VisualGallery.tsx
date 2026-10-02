@@ -5,7 +5,6 @@ import { GLOBAL_KEY, PAGE_KEY } from '@/pbi/types';
 import { useModified } from '@/store/selectors';
 import { useUiStore } from '@/store/uiStore';
 import { cn, Tooltip } from '@/ui';
-import { pageOfVisual } from '../canvas/pages';
 import { VisualIcon } from './icons';
 
 /** Power BI "Visualisierungen" gallery: icon grid, click selects the visual on the canvas. */
@@ -14,7 +13,6 @@ export function VisualGallery({ filter }: { filter: string }) {
   const locale = useLocale();
   const selection = useUiStore((s) => s.selection);
   const select = useUiStore((s) => s.select);
-  const setActivePage = useUiStore((s) => s.setActivePage);
   const setFocusVisual = useUiStore((s) => s.setFocusVisual);
   const modified = useModified();
   const q = filter.trim().toLowerCase();
@@ -24,8 +22,6 @@ export function VisualGallery({ filter }: { filter: string }) {
   const onPick = (key: string) => {
     if (key === PAGE_KEY) select({ kind: 'page' });
     else select({ kind: 'visual', key });
-    const page = pageOfVisual(key);
-    if (page) setActivePage(page.id);
     setFocusVisual(null);
   };
 

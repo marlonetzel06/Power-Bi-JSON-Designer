@@ -209,8 +209,6 @@ export const de = {
   'canvasPage.slicers': 'Datenschnitte',
   'canvasPage.ai': 'KI & Analyse',
   'canvasPage.elements': 'Elemente',
-  'canvasPage.search': 'Suchergebnis',
-  'canvas.pages': 'Seiten',
   'canvas.scale': 'Darstellung {percent} %',
   'format.general.properties': 'Eigenschaften',
   'format.general.title': 'Titel',

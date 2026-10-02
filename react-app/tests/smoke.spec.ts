@@ -34,10 +34,11 @@ test('selecting a visual and changing a property updates preview and JSON', asyn
   await expect(page.getByTestId('change-count')).toHaveCount(0);
 });
 
-test('page tabs, focus mode and language toggle', async ({ page }) => {
+test('search filter, focus mode and language toggle', async ({ page }) => {
   await openApp(page);
-  await page.getByTestId('page-tab-cards').click();
+  await page.getByTestId('canvas-search').fill('KPI');
   await expect(page.getByTestId('canvas-kpi')).toBeVisible();
+  await expect(page.getByTestId('canvas-clusteredColumnChart')).toHaveCount(0);
   await page.getByTestId('canvas-kpi').dblclick();
   await expect(page.getByTestId('focus-mode')).toBeVisible();
   await page.getByTestId('focus-back').click();

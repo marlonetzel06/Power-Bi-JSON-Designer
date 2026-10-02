@@ -8,7 +8,6 @@ import { useDeltaJson, useExportJson, useExportTheme, useThemeName } from '@/sto
 import { useUiStore } from '@/store/uiStore';
 import { Badge, FormatCard, IconButton, SegmentedControl, cn, toast } from '@/ui';
 import { copyText, downloadText } from '@/lib/download';
-import { pageOfVisual } from '../canvas/pages';
 import { highlightJson } from './highlight';
 import { useValidation } from './useValidation';
 
@@ -24,7 +23,6 @@ export function JsonPane() {
   const delta = useDeltaJson();
   const { result, pending } = useValidation(exportTheme);
   const select = useUiStore((s) => s.select);
-  const setActivePage = useUiStore((s) => s.setActivePage);
   const setFocusVisual = useUiStore((s) => s.setFocusVisual);
   const json = view === 'full' ? full : delta;
   const highlighted = useMemo(() => highlightJson(json), [json]);
@@ -41,8 +39,6 @@ export function JsonPane() {
     const vk = seg[1];
     if (vk === 'page') select({ kind: 'page' });
     else select({ kind: 'visual', key: vk });
-    const page = pageOfVisual(vk);
-    if (page) setActivePage(page.id);
     setFocusVisual(null);
   };
 

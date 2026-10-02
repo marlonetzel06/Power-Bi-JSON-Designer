@@ -210,8 +210,6 @@ export const en: Dictionary = {
   'canvasPage.slicers': 'Slicers',
   'canvasPage.ai': 'AI & analytics',
   'canvasPage.elements': 'Elements',
-  'canvasPage.search': 'Search result',
-  'canvas.pages': 'Pages',
   'canvas.scale': 'Display {percent} %',
   'format.general.properties': 'Properties',
   'format.general.title': 'Title',

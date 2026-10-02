@@ -65,18 +65,18 @@ const MARKER_SIZE_DEFAULT = 5;
 
 function marker(shape: string, cx: number, cy: number, size: number, fill: string, key: string, stroke?: string, strokeWidth?: number) {
   const s = size;
-  const common = { fill, stroke, strokeWidth, key };
+  const common = { fill, stroke, strokeWidth };
   switch (shape) {
     case 'square':
-      return <rect x={cx - s / 2} y={cy - s / 2} width={s} height={s} {...common} />;
+      return <rect key={key} x={cx - s / 2} y={cy - s / 2} width={s} height={s} {...common} />;
     case 'diamond':
-      return <polygon points={`${cx},${cy - s / 2} ${cx + s / 2},${cy} ${cx},${cy + s / 2} ${cx - s / 2},${cy}`} {...common} />;
+      return <polygon key={key} points={`${cx},${cy - s / 2} ${cx + s / 2},${cy} ${cx},${cy + s / 2} ${cx - s / 2},${cy}`} {...common} />;
     case 'triangle':
-      return <polygon points={`${cx},${cy - s / 2} ${cx + s / 2},${cy + s / 2} ${cx - s / 2},${cy + s / 2}`} {...common} />;
+      return <polygon key={key} points={`${cx},${cy - s / 2} ${cx + s / 2},${cy + s / 2} ${cx - s / 2},${cy + s / 2}`} {...common} />;
     case 'x':
       return <path d={`M${cx - s / 2},${cy - s / 2} L${cx + s / 2},${cy + s / 2} M${cx + s / 2},${cy - s / 2} L${cx - s / 2},${cy + s / 2}`} stroke={fill} strokeWidth={2} fill="none" key={key} />;
     default:
-      return <circle cx={cx} cy={cy} r={s / 2} {...common} />;
+      return <circle key={key} cx={cx} cy={cy} r={s / 2} {...common} />;
   }
 }
 
