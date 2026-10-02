@@ -8,18 +8,16 @@ import VisualFocusView from './components/VisualGrid/VisualFocusView';
 import PropertyDrawer from './components/PropertyDrawer/PropertyDrawer';
 import { ToastProvider } from './components/ui/Toast';
 import { useEffect } from 'react';
+import { useUiStore, applyUiToDocument } from './store/uiStore';
 
 export default function App() {
-  const { darkMode, jsonPanelOpen, currentVisual } = useThemeStore();
+  const { jsonPanelOpen, currentVisual } = useThemeStore();
+  const colorMode = useUiStore((s) => s.theme);
+  const locale = useUiStore((s) => s.locale);
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', darkMode);
-    if (darkMode) {
-      document.documentElement.setAttribute('data-dark', '');
-    } else {
-      document.documentElement.removeAttribute('data-dark');
-    }
-  }, [darkMode]);
+    applyUiToDocument(colorMode, locale);
+  }, [colorMode, locale]);
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-[var(--bg-base)] text-[var(--text-default)]">

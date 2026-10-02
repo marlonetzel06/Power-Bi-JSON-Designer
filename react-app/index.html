@@ -1,13 +1,22 @@
 <!doctype html>
-<html lang="en">
+<html lang="de">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <title>Power BI Theme Designer | M&amp;M Software</title>
+    <script>
+      // Theme flash guard: apply the persisted theme before any CSS loads.
+      try {
+        var raw = localStorage.getItem('pbi-designer.ui');
+        var state = raw ? JSON.parse(raw).state : null;
+        var theme = state && state.theme;
+        if (!theme) theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+        if (state && state.locale) document.documentElement.setAttribute('lang', state.locale);
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

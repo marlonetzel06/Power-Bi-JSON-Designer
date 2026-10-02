@@ -4,7 +4,8 @@ import ImportMenu from './ImportMenu';
 import ExportMenu from './ExportMenu';
 import LoginButton from '../Auth/LoginButton';
 import Button from '../ui/Button';
-import { Sun, Moon, Braces, HelpCircle, Pencil, User } from 'lucide-react';
+import { Sun, Moon, Braces, HelpCircle, Pencil } from 'lucide-react';
+import { useUiStore } from '../../store/uiStore';
 
 const hasMsal = !!import.meta.env.VITE_MSAL_CLIENT_ID;
 
@@ -13,7 +14,9 @@ function ToolbarDivider() {
 }
 
 export default function Toolbar() {
-  const { theme, setThemeName, toggleJsonPanel, jsonPanelOpen, toggleHelpPanel, toggleDarkMode, darkMode } = useThemeStore();
+  const { theme, setThemeName, toggleJsonPanel, jsonPanelOpen, toggleHelpPanel } = useThemeStore();
+  const darkMode = useUiStore((s) => s.theme === 'dark');
+  const toggleDarkMode = useUiStore((s) => s.toggleTheme);
 
   return (
     <header className="sticky top-0 z-30 bg-[#041B2B] px-5 py-2.5 flex items-center justify-between shadow-md">
