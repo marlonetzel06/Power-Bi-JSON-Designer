@@ -10,7 +10,7 @@ import '@fontsource/titillium-web/700.css'
 import '@fontsource/titillium-web/900.css'
 import './index.css'
 import App from './App.jsx'
-import AuthProvider from './components/Auth/AuthProvider'
+import { EmbedProvider } from './embed/EmbedProvider'
 import ErrorBoundary from './components/ErrorBoundary'
 import { DevGallery } from './preview/DevGallery'
 
@@ -22,9 +22,9 @@ createRoot(document.getElementById('root')).render(
       {isGallery ? (
         <DevGallery />
       ) : (
-        <AuthProvider>
+        <EmbedProvider>
           <App />
-        </AuthProvider>
+        </EmbedProvider>
       )}
     </ErrorBoundary>
   </StrictMode>,

@@ -2,12 +2,11 @@ import useThemeStore from '../../store/themeStore';
 import PresetSelector from './PresetSelector';
 import ImportMenu from './ImportMenu';
 import ExportMenu from './ExportMenu';
-import LoginButton from '../Auth/LoginButton';
+import { LoginButton } from '../../embed/LoginButton';
 import Button from '../ui/Button';
 import { Sun, Moon, Braces, HelpCircle, Pencil } from 'lucide-react';
 import { useUiStore } from '../../store/uiStore';
 
-const hasMsal = !!import.meta.env.VITE_MSAL_CLIENT_ID;
 
 function ToolbarDivider() {
   return <div className="w-px h-5 bg-white/20 mx-1" />;
@@ -61,12 +60,8 @@ export default function Toolbar() {
           <HelpCircle size={15} />
         </Button>
 
-        {hasMsal && (
-          <>
-            <ToolbarDivider />
-            <LoginButton />
-          </>
-        )}
+        <ToolbarDivider />
+        <LoginButton className="text-white/85 hover:bg-white/10" />
       </div>
     </header>
   );
