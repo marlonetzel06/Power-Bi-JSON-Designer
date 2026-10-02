@@ -9,6 +9,8 @@ export default defineConfig({
     baseURL: 'http://localhost:5173',
     headless: true,
     trace: 'retain-on-failure',
+    // Local containers may provide Chromium via CHROMIUM_PATH; CI installs it with `playwright install`.
+    launchOptions: process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {},
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {

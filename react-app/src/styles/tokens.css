@@ -191,18 +191,3 @@
   --json-boolean: #C4B5FD;
   --json-null: var(--mm-gray-400);
 }
-
-/* ---- Legacy aliases for the pre-reform components (removed in Phase 4) ---- */
-:root, [data-theme="dark"] {
-  --color-primary: var(--color-brand);
-  --color-primary-hover: var(--color-brand-hover);
-  --color-primary-light: var(--color-brand-soft);
-  --color-accent-light: var(--color-brand-soft);
-  --color-danger-light: var(--color-danger-soft);
-  --bg-base: var(--canvas-bg);
-  --bg-surface: var(--surface-card);
-  --bg-elevated: var(--surface-subtle);
-  --bg-muted: var(--surface-subtle);
-  --text-default: var(--text-body);
-  --text-secondary: var(--text-muted);
-}

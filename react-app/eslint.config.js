@@ -8,8 +8,6 @@ import { defineConfig, globalIgnores } from 'eslint/config';
 export default defineConfig([
   globalIgnores([
     'dist', 'node_modules', 'playwright-report', 'test-results', 'src/pbi/generated/**',
-    // Legacy pre-reform code, replaced phase by phase and deleted in Phase 4.
-    'src/components/**', 'src/hooks/**', 'src/utils/**', 'src/constants/**', 'src/store/themeStore.js', 'src/config/**', 'src/App.jsx', 'src/main.jsx', 'tests/**',
   ]),
   {
     files: ['**/*.{js,jsx,ts,tsx}'],

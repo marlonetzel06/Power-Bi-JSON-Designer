@@ -22,6 +22,17 @@ export interface UiState {
   /** Expanded format cards, keyed by visual key. */
   expandedCards: Record<string, string[]>;
   formatTab: 'visual' | 'general';
+  /** Panes that are collapsed to a vertical strip (still "open"). */
+  collapsedPanes: PaneId[];
+  themePaneWidth: number;
+  /** Current report page on the canvas. */
+  activePage: string;
+  /** Free-text filter for the canvas / gallery. */
+  canvasQuery: string;
+  /** Zoom in focus mode: 0 = fit. */
+  focusZoom: number;
+  galleryOpen: boolean;
+  helpOpen: boolean;
   setTheme: (theme: ColorMode) => void;
   toggleTheme: () => void;
   setLocale: (locale: Locale) => void;
@@ -35,6 +46,13 @@ export interface UiState {
   setCardExpanded: (visualKey: string, card: string, expanded: boolean) => void;
   setAllCardsExpanded: (visualKey: string, cards: string[], expanded: boolean) => void;
   setFormatTab: (tab: 'visual' | 'general') => void;
+  setPaneCollapsed: (pane: PaneId, collapsed: boolean) => void;
+  setThemePaneWidth: (width: number) => void;
+  setActivePage: (page: string) => void;
+  setCanvasQuery: (query: string) => void;
+  setFocusZoom: (zoom: number) => void;
+  setGalleryOpen: (open: boolean) => void;
+  setHelpOpen: (open: boolean) => void;
 }
 
 function detectLocale(): Locale {
@@ -67,6 +85,13 @@ export const useUiStore = create<UiState>()(
       focusVisual: null,
       expandedCards: {},
       formatTab: 'visual',
+      collapsedPanes: [],
+      themePaneWidth: 340,
+      activePage: 'bars',
+      canvasQuery: '',
+      focusZoom: 0,
+      galleryOpen: true,
+      helpOpen: false,
       setTheme: (theme) => set({ theme }),
       toggleTheme: () => set((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
       setLocale: (locale) => set({ locale }),
@@ -88,6 +113,14 @@ export const useUiStore = create<UiState>()(
       setAllCardsExpanded: (visualKey, cards, expanded) =>
         set((s) => ({ expandedCards: { ...s.expandedCards, [visualKey]: expanded ? [...cards] : [] } })),
       setFormatTab: (formatTab) => set({ formatTab }),
+      setPaneCollapsed: (pane, collapsed) =>
+        set((s) => ({ collapsedPanes: collapsed ? (s.collapsedPanes.includes(pane) ? s.collapsedPanes : [...s.collapsedPanes, pane]) : s.collapsedPanes.filter((p) => p !== pane) })),
+      setThemePaneWidth: (themePaneWidth) => set({ themePaneWidth }),
+      setActivePage: (activePage) => set({ activePage }),
+      setCanvasQuery: (canvasQuery) => set({ canvasQuery }),
+      setFocusZoom: (focusZoom) => set({ focusZoom }),
+      setGalleryOpen: (galleryOpen) => set({ galleryOpen }),
+      setHelpOpen: (helpOpen) => set({ helpOpen }),
     }),
     {
       name: 'pbi-designer.ui',
@@ -101,6 +134,10 @@ export const useUiStore = create<UiState>()(
         jsonPaneWidth: s.jsonPaneWidth,
         expandedCards: s.expandedCards,
         formatTab: s.formatTab,
+        collapsedPanes: s.collapsedPanes,
+        themePaneWidth: s.themePaneWidth,
+        activePage: s.activePage,
+        galleryOpen: s.galleryOpen,
       }),
     },
   ),
