@@ -12,13 +12,20 @@ import './index.css'
 import App from './App.jsx'
 import AuthProvider from './components/Auth/AuthProvider'
 import ErrorBoundary from './components/ErrorBoundary'
+import { DevGallery } from './preview/DevGallery'
+
+const isGallery = import.meta.env.DEV && new URLSearchParams(window.location.search).get('dev') === 'gallery'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
+      {isGallery ? (
+        <DevGallery />
+      ) : (
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      )}
     </ErrorBoundary>
   </StrictMode>,
 )

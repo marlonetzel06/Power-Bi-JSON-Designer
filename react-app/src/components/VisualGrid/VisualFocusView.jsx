@@ -6,6 +6,9 @@ import { getVisualIcon } from '../../utils/visualIcons';
 import usePbiEmbed from '../../hooks/usePbiEmbed';
 import PbiReportEmbed from '../PbiEmbed/PbiReportEmbed';
 import { ArrowLeft, Lock, AlertTriangle, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { MockVisual } from '../../preview/MockVisual';
+import { mockVisualSize } from '../../preview/size';
+import { useThemeStore as useNewThemeStore } from '../../store/theme';
 
 export default function VisualFocusView() {
   const { currentVisual, setCurrentVisual } = useThemeStore();
@@ -99,22 +102,20 @@ export default function VisualFocusView() {
   );
 }
 
-function FocusPreview({ visualKey, Icon, label }) {
+function FocusPreview({ visualKey }) {
   const hasMsal = !!import.meta.env.VITE_MSAL_CLIENT_ID;
   const pageName = VISUAL_PAGE_MAP[visualKey];
   const { embedConfig, isAuthenticated, error } = usePbiEmbed();
+  const newTheme = useNewThemeStore((s) => s.theme);
+  const mockKey = visualKey === '__page__' ? 'page' : visualKey;
 
-  // No MSAL or no page mapping — show large icon placeholder
+  // No MSAL or no page mapping — theme-driven mock preview
   if (!hasMsal || !pageName) {
+    const size = mockVisualSize(mockKey);
+    const scale = Math.min(2, 800 / size.width, 500 / size.height);
     return (
-      <div className="flex flex-col items-center justify-center gap-4 text-center animate-scale-in">
-        <div className="w-56 h-56 rounded-[var(--radius-lg)] bg-[var(--bg-elevated)] border border-[var(--border-default)] flex items-center justify-center shadow-lg">
-          <Icon size={80} className="text-[var(--text-muted)] opacity-30" />
-        </div>
-        <div className="text-sm font-semibold text-[var(--text-primary)]">{label}</div>
-        <div className="text-[11px] text-[var(--text-muted)]">
-          Configure properties in the panel on the right.
-        </div>
+      <div style={{ width: size.width * scale, height: size.height * scale }} className="shadow-lg animate-scale-in">
+        <MockVisual theme={newTheme} visualKey={mockKey} />
       </div>
     );
   }

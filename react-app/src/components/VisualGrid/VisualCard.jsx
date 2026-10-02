@@ -5,6 +5,8 @@ import usePbiEmbed from '../../hooks/usePbiEmbed';
 import useEmbedQueue from '../../hooks/useEmbedQueue';
 import PbiReportEmbed from '../PbiEmbed/PbiReportEmbed';
 import { getVisualIcon } from '../../utils/visualIcons';
+import { MockVisual } from '../../preview/MockVisual';
+import { useThemeStore as useNewThemeStore } from '../../store/theme';
 
 function CardPreview({ visualKey, embedConfig, onRendered }) {
   const pageName = VISUAL_PAGE_MAP[visualKey];
@@ -85,6 +87,8 @@ export default function VisualCard({ visualKey, label }) {
   }, [hasPageMap]);
 
   const Icon = getVisualIcon(visualKey);
+  const newTheme = useNewThemeStore((s) => s.theme);
+  const mockKey = visualKey === '__page__' ? 'page' : visualKey;
 
   return (
     <div
@@ -93,7 +97,9 @@ export default function VisualCard({ visualKey, label }) {
       onClick={() => setCurrentVisual(visualKey)}
     >
       <div className="bg-[var(--bg-elevated)] flex items-center justify-center h-[236px] overflow-hidden relative">
-        {showEmbed ? (
+        {!showEmbed && !showLoading ? (
+          <div className="absolute inset-0 p-3"><MockVisual theme={newTheme} visualKey={mockKey} /></div>
+        ) : showEmbed ? (
           <CardPreview visualKey={visualKey} embedConfig={embedConfig} onRendered={onRendered} />
         ) : showLoading ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6">

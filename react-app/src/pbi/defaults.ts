@@ -60,10 +60,10 @@ export const THEME_INITIAL: ReportTheme = {
     },
     barChart: { '*': cartesian({ categoryGrid: false }) },
     clusteredBarChart: { '*': cartesian() },
-    hundredPercentStackedBarChart: { '*': cartesian({ labels: true }) },
+    hundredPercentStackedBarChart: { '*': { ...cartesian(), labels: labels(true, { color: solid('#FFFFFF') }) } },
     columnChart: { '*': cartesian() },
     clusteredColumnChart: { '*': cartesian() },
-    hundredPercentStackedColumnChart: { '*': cartesian({ labels: true }) },
+    hundredPercentStackedColumnChart: { '*': { ...cartesian(), labels: labels(true, { color: solid('#FFFFFF') }) } },
     lineChart: { '*': { ...cartesian(), lineStyles: [{ strokeWidth: 2, showMarker: false, markerSize: 3 }] } },
     areaChart: { '*': cartesian() },
     stackedAreaChart: { '*': cartesian() },
@@ -89,8 +89,8 @@ export const THEME_INITIAL: ReportTheme = {
     },
     pieChart: { '*': { legend: legend('Right'), labels: labels(true, { fontSize: 10, labelStyle: 'Category' }) } },
     donutChart: { '*': { legend: legend('Right'), labels: labels(true, { fontSize: 10, labelStyle: 'Category' }), slices: [{ innerRadiusRatio: 50 }] } },
-    treemap: { '*': { legend: legend(), categoryLabels: [{ show: true, fontSize: 10, fontFamily: FONT, color: solid('#333333') }], labels: labels(true, { fontSize: 10 }) } },
-    funnel: { '*': { labels: labels(true, { fontSize: 10, funnelLabelStyle: 'Data' }) } },
+    treemap: { '*': { legend: legend(), categoryLabels: [{ show: true, fontSize: 10, fontFamily: FONT, color: solid('#FFFFFF') }], labels: labels(true, { fontSize: 10, color: solid('#FFFFFF') }) } },
+    funnel: { '*': { labels: labels(true, { fontSize: 10, funnelLabelStyle: 'Data', color: solid('#FFFFFF') }) } },
     gauge: {
       '*': {
         calloutValue: [{ show: true, fontFamily: FONT, color: solid(PRIMARY) }],
