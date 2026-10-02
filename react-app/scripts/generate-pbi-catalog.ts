@@ -310,6 +310,36 @@ mkdirSync(outDir, { recursive: true });
 const json = JSON.stringify(catalog);
 writeFileSync(join(outDir, 'catalog.json'), json + '\n');
 
+// ---------------------------------------------------------------------------
+// Full key index for validation (every schema visual, every card, every property
+// name). The JSON schema cannot flag unknown cards/properties itself because the
+// visual definitions are composed with allOf, so the validator uses this index.
+// ---------------------------------------------------------------------------
+const propSets: string[][] = [];
+const propSetIds = new Map<string, number>();
+function internProps(keys: string[]): number {
+  const sorted = [...keys].sort();
+  const key = sorted.join('|');
+  let id = propSetIds.get(key);
+  if (id === undefined) {
+    id = propSets.length;
+    propSets.push(sorted);
+    propSetIds.set(key, id);
+  }
+  return id;
+}
+const indexCards = (cards: Record<string, CatalogCard>): Record<string, number> =>
+  Object.fromEntries(Object.entries(cards).map(([k, c]) => [k, internProps(c.props.map((p) => p.key))]));
+const schemaKeys = {
+  common: indexCards(commonCards),
+  page: indexCards(pageCards),
+  visuals: Object.fromEntries(Object.entries(visuals).map(([k, cards]) => [k, indexCards(cards)])),
+  propSets,
+};
+const keysJson = JSON.stringify(schemaKeys);
+writeFileSync(join(outDir, 'schemaKeys.json'), keysJson + '\n');
+console.log(`Generated src/pbi/generated/schemaKeys.json: propSets=${propSets.length} size=${Math.round(keysJson.length / 1024)}KB`);
+
 let propCount = 0;
 for (const v of Object.values(curatedVisuals)) for (const c of Object.values(v)) propCount += c.props.length;
 const summary = `visuals=${Object.keys(curatedVisuals).length} commonCards=${Object.keys(curatedCommon).length} pageCards=${Object.keys(curatedPage).length} props=${propCount} cardDefs=${Object.keys(cardDefs).length} textClasses=${textClasses.length} colors=${topLevelColors.length} size=${Math.round(json.length / 1024)}KB`;

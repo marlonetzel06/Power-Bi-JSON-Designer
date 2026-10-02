@@ -1,196 +1,57 @@
+/**
+ * LEGACY SHIM — adapts the pre-reform components to the new typed store
+ * (src/store/theme.ts). Deleted in Phase 4 together with those components.
+ */
 import { create } from 'zustand';
-import { THEME_INITIAL, SEMANTIC_KEYS } from '../constants/themeDefaults';
-import { isSolidColor, getSolidColor } from '../utils/colorUtils';
+import { useThemeStore as useTheme } from './theme';
+import { resolveProp, getCardEntry } from '../pbi/resolve';
+import { computeModified } from '../pbi/modified';
+import { parseThemeJson } from '../pbi/importer/themeJson';
 
-function deepClone(obj) {
-  return JSON.parse(JSON.stringify(obj));
-}
+const LEGACY_CARD = { subheader: 'subTitle', shapeOutline: 'outline', slicerHeader: 'header', slicerItems: 'items', shadow: 'dropShadow', pageBackground: 'background', pageWallpaper: 'outspace', filterPane: 'outspacePane' };
+const vkOf = (vk) => (vk === '__page__' ? 'page' : vk);
+const cardOf = (c) => LEGACY_CARD[c] ?? c;
 
-const useThemeStore = create((set, get) => ({
-  theme: deepClone(THEME_INITIAL),
-  themeInitial: deepClone(THEME_INITIAL),
+const useLegacyStore = create((set, get) => ({
+  theme: useTheme.getState().theme,
+  themeInitial: useTheme.getState().baseline,
   pageSettings: {},
   currentVisual: null,
   jsonPanelOpen: false,
   helpPanelOpen: false,
-  previewPanelOpen: false,
-  darkMode: localStorage.getItem('pbi-editor-dark') === '1',
   userSetThemeName: false,
 
-  setThemeName: (name) => set((s) => ({
-    theme: { ...s.theme, name },
-    userSetThemeName: true,
-  })),
-
-  setSemanticColor: (key, value) => set((s) => ({
-    theme: { ...s.theme, [key]: value },
-  })),
-
-  setDataColor: (index, value) => set((s) => {
-    const dc = [...s.theme.dataColors];
-    dc[index] = value;
-    return { theme: { ...s.theme, dataColors: dc } };
-  }),
-
-  setDataColors: (colors) => set((s) => ({
-    theme: { ...s.theme, dataColors: [...colors] },
-  })),
-
-  addDataColor: (hex) => set((s) => ({
-    theme: { ...s.theme, dataColors: [...s.theme.dataColors, hex || '#888888'] },
-  })),
-
-  removeDataColor: (index) => set((s) => {
-    const dc = [...s.theme.dataColors];
-    if (dc.length <= 1) return {};
-    dc.splice(index, 1);
-    return { theme: { ...s.theme, dataColors: dc } };
-  }),
-
-  setTextClass: (cls, prop, value) => set((s) => {
-    const tc = deepClone(s.theme.textClasses);
-    if (!tc[cls]) tc[cls] = {};
-    tc[cls][prop] = value;
-    return { theme: { ...s.theme, textClasses: tc } };
-  }),
-
-  getCardData: (visualKey, cardName) => {
-    const s = get();
-    if (visualKey === '__page__') {
-      if (!s.pageSettings[cardName]) {
-        set({ pageSettings: { ...s.pageSettings, [cardName]: {} } });
-      }
-      return get().pageSettings[cardName];
-    }
-    const vs = s.theme.visualStyles;
-    const card = vs[visualKey]?.['*']?.[cardName];
-    if (card && card[0]) return card[0];
-    return {};
+  setThemeName: (name) => useTheme.getState().setName(name),
+  setSemanticColor: (key, value) => useTheme.getState().setColor(key, value),
+  setDataColor: (i, hex) => useTheme.getState().setDataColor(i, hex),
+  setDataColors: (colors) => useTheme.getState().setDataColors(colors),
+  addDataColor: (hex) => useTheme.getState().addDataColor(hex),
+  removeDataColor: (i) => useTheme.getState().removeDataColor(i),
+  setTextClass: (cls, prop, value) => {
+    const map = { fontColor: 'color', fontBold: 'fontWeight', fontFace: 'fontFace', fontSize: 'fontSize' };
+    const p = map[prop] ?? prop;
+    useTheme.getState().setTextClass(cls, p, prop === 'fontBold' ? (value ? 'bold' : undefined) : value);
   },
-
-  setCardProp: (visualKey, cardName, key, value) => set((s) => {
-    if (visualKey === '__page__') {
-      const ps = deepClone(s.pageSettings);
-      if (!ps[cardName]) ps[cardName] = {};
-      ps[cardName][key] = value;
-      return { pageSettings: ps };
-    }
-    const theme = deepClone(s.theme);
-    if (!theme.visualStyles[visualKey]) theme.visualStyles[visualKey] = { '*': {} };
-    if (!theme.visualStyles[visualKey]['*']) theme.visualStyles[visualKey]['*'] = {};
-    if (!theme.visualStyles[visualKey]['*'][cardName]) theme.visualStyles[visualKey]['*'][cardName] = [{}];
-    theme.visualStyles[visualKey]['*'][cardName][0][key] = value;
-    return { theme };
-  }),
-
+  getCardData: (vk, card) => getCardEntry(useTheme.getState().theme, vkOf(vk), cardOf(card)) ?? {},
+  setCardProp: (vk, card, key, value) => useTheme.getState().setCardProp(vkOf(vk), cardOf(card), key, value),
   setCurrentVisual: (key) => set({ currentVisual: key }),
   toggleJsonPanel: () => set((s) => ({ jsonPanelOpen: !s.jsonPanelOpen })),
   toggleHelpPanel: () => set((s) => ({ helpPanelOpen: !s.helpPanelOpen })),
-  togglePreviewPanel: () => set((s) => ({ previewPanelOpen: !s.previewPanelOpen })),
-
-  toggleDarkMode: () => set((s) => {
-    const next = !s.darkMode;
-    localStorage.setItem('pbi-editor-dark', next ? '1' : '0');
-    return { darkMode: next };
-  }),
-
-  applyPreset: (preset) => set((s) => {
-    const theme = deepClone(s.theme);
-    SEMANTIC_KEYS.forEach(k => { if (preset[k]) theme[k] = preset[k]; });
-    if (Array.isArray(preset.dataColors)) theme.dataColors = [...preset.dataColors];
-    if (!s.userSetThemeName && preset.name) theme.name = preset.name;
-    return { theme };
-  }),
-
-  resetVisual: (visualKey) => set((s) => {
-    const theme = deepClone(s.theme);
-    const initial = s.themeInitial;
-    if (initial.visualStyles[visualKey]) {
-      theme.visualStyles[visualKey] = deepClone(initial.visualStyles[visualKey]);
-    } else {
-      delete theme.visualStyles[visualKey];
-    }
-    return { theme };
-  }),
-
-  copyVisualSettings: (sourceKey, targetKeys) => set((s) => {
-    const theme = deepClone(s.theme);
-    const source = theme.visualStyles[sourceKey];
-    if (!source) return {};
-    targetKeys.forEach(tk => {
-      theme.visualStyles[tk] = deepClone(source);
-    });
-    return { theme };
-  }),
-
-  loadThemeFromJSON: (json) => set((s) => {
-    const BLOCKED = new Set(['__proto__', 'constructor', 'prototype']);
-    const theme = deepClone(s.theme);
-    SEMANTIC_KEYS.forEach(k => { if (json[k] && typeof json[k] === 'string') theme[k] = json[k]; });
-    if (Array.isArray(json.dataColors)) theme.dataColors = json.dataColors.slice(0, 8);
-    if (json.name) theme.name = json.name;
-    if (json.textClasses) theme.textClasses = json.textClasses;
-    if (json.visualStyles && typeof json.visualStyles === 'object') {
-      Object.entries(json.visualStyles).forEach(([vk, vv]) => {
-        if (BLOCKED.has(vk)) return;
-        if (!theme.visualStyles[vk]) theme.visualStyles[vk] = { '*': {} };
-        if (vv['*']) {
-          Object.entries(vv['*']).forEach(([card, arr]) => {
-            if (BLOCKED.has(card)) return;
-            if (Array.isArray(arr) && arr[0]) {
-              if (!theme.visualStyles[vk]['*'][card]) theme.visualStyles[vk]['*'][card] = [{}];
-              const safe = Object.fromEntries(Object.entries(arr[0]).filter(([k]) => !BLOCKED.has(k)));
-              Object.assign(theme.visualStyles[vk]['*'][card][0], safe);
-            }
-          });
-        }
-      });
-    }
-    return { theme };
-  }),
-
-  isModified: (visualKey) => {
-    const s = get();
-    const current = s.theme.visualStyles[visualKey];
-    const initial = s.themeInitial.visualStyles[visualKey];
-    return JSON.stringify(current) !== JSON.stringify(initial);
+  applyPreset: (preset) => {
+    const { name, dataColors, _key, ...colors } = preset;
+    useTheme.getState().applyPreset({ name, dataColors: dataColors ?? [], colors });
   },
-
-  getModifiedCount: (visualKey) => {
-    const s = get();
-    const star = s.theme.visualStyles[visualKey]?.['*'];
-    const iStar = s.themeInitial.visualStyles[visualKey]?.['*'];
-    if (!star) return 0;
-    return Object.keys(star).filter(k => JSON.stringify(star[k]) !== JSON.stringify(iStar?.[k])).length;
-  },
-
-  // Resolve a card property value, falling back to global '*' then to a fallback
+  resetVisual: (vk) => useTheme.getState().resetVisual(vkOf(vk)),
+  copyVisualSettings: (src, targets) => useTheme.getState().copyVisualSettings(vkOf(src), targets.map(vkOf)),
+  loadThemeFromJSON: (json) => useTheme.getState().loadTheme(parseThemeJson(json).theme),
+  isModified: (vk) => (computeModified(get().theme, get().themeInitial).cardCounts[vkOf(vk)] ?? 0) > 0,
+  getModifiedCount: (vk) => computeModified(get().theme, get().themeInitial).cardCounts[vkOf(vk)] ?? 0,
   rcv: (vk, card, prop, fb) => {
-    const s = get();
-    // Page settings are stored separately
-    if (vk === '__page__') {
-      const ps = s.pageSettings[card];
-      if (ps && ps[prop] !== undefined && ps[prop] !== null) return ps[prop];
-      return fb;
-    }
-    try {
-      const v = resolveVal(s.theme.visualStyles[vk]['*'][card][0][prop]);
-      if (v !== undefined && v !== null) return v;
-    } catch {}
-    try {
-      const v = resolveVal(s.theme.visualStyles['*']['*'][card][0][prop]);
-      if (v !== undefined && v !== null) return v;
-    } catch {}
-    return fb;
+    const v = resolveProp(get().theme, vkOf(vk), cardOf(card), prop, fb);
+    return v === undefined ? fb : v;
   },
 }));
 
-function resolveVal(v) {
-  if (isSolidColor(v)) return getSolidColor(v);
-  return v;
-}
+useTheme.subscribe((s) => useLegacyStore.setState({ theme: s.theme, themeInitial: s.baseline, userSetThemeName: s.userNamed }));
 
-// Expose store for Playwright tests (dev only)
-if (import.meta.env.DEV && typeof window !== 'undefined') window.__themeStore = useThemeStore;
-
-export default useThemeStore;
+export default useLegacyStore;
