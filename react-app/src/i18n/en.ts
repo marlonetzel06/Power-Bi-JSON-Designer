@@ -72,6 +72,7 @@ export const en: Dictionary = {
   'format.copyDescription': 'All cards of "{name}" are copied to the selected visuals and replace their settings.',
   'format.copyApply': 'Apply to {count} visuals',
   'format.inheritedFromGlobal': 'Inherited from the default for all visuals',
+  'format.inheritedBase': 'Inherited from the Power BI base theme (Classic 2026 / CY26SU02)',
   'format.inheritedDefault': 'Power BI default',
   'format.setOnVisual': 'Set for this visual',
   'format.pageTitle': 'Page',

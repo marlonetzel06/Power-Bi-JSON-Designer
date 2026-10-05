@@ -71,6 +71,7 @@ export const de = {
   'format.copyDescription': 'Alle Karten von „{name}“ werden auf die ausgewählten Visuals übertragen und ersetzen deren Einstellungen.',
   'format.copyApply': 'Auf {count} Visuals anwenden',
   'format.inheritedFromGlobal': 'Vom Standardformat aller Visuals übernommen',
+  'format.inheritedBase': 'Vom Power BI-Basisdesign (Classic 2026 / CY26SU02) übernommen',
   'format.inheritedDefault': 'Power BI-Standard',
   'format.setOnVisual': 'Für dieses Visual gesetzt',
   'format.pageTitle': 'Seite',

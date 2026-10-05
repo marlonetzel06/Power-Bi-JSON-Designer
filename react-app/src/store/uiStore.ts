@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { safeStorage } from './safeStorage';
 
 export type ColorMode = 'light' | 'dark';
 export type Locale = 'de' | 'en';
@@ -120,6 +121,7 @@ export const useUiStore = create<UiState>()(
     {
       name: 'pbi-designer.ui',
       version: 1,
+      storage: createJSONStorage(() => safeStorage),
       partialize: (s) => ({
         theme: s.theme,
         locale: s.locale,

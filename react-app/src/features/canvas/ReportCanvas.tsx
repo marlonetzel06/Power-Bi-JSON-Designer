@@ -1,5 +1,5 @@
 import { FunnelX } from 'lucide-react';
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useLocale, useT } from '@/i18n';
 import { visualLabel } from '@/pbi/curation/labels';
 import { VISUAL_KEYS } from '@/pbi/curation/selection';
@@ -28,6 +28,14 @@ export function ReportCanvas() {
   const setQuery = useUiStore((s) => s.setCanvasQuery);
   const setFocusVisual = useUiStore((s) => s.setFocusVisual);
 
+  const onSelectVisual = useCallback((key: string) => select({ kind: 'visual', key }), [select]);
+  const onFocusVisualKey = useCallback(
+    (key: string) => {
+      select({ kind: 'visual', key });
+      setFocusVisual(key);
+    },
+    [select, setFocusVisual],
+  );
   const q = query.trim().toLowerCase();
   const layout = useMemo(() => {
     if (!q) return layoutCanvas();
@@ -97,11 +105,8 @@ export function ReportCanvas() {
                         theme={theme}
                         selected={selection.kind === 'visual' && selection.key === v.key}
                         modifiedCount={modified.cardCounts[v.key] ?? 0}
-                        onSelect={() => select({ kind: 'visual', key: v.key })}
-                        onFocus={() => {
-                          select({ kind: 'visual', key: v.key });
-                          setFocusVisual(v.key);
-                        }}
+                        onSelect={onSelectVisual}
+                        onFocus={onFocusVisualKey}
                       />
                     ))}
                   </div>

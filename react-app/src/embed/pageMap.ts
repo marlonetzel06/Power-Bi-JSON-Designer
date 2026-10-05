@@ -22,6 +22,7 @@ export const STATIC_PAGE_MAP: Record<string, string> = {
   scatterChart: 'Scatter Chart',
   pieChart: 'Pie chart',
   donutChart: 'Donut Chart',
+  treemap: 'Heatmap',
   azureMap: 'Azure Maps',
   gauge: 'Gauge Chart',
   cardVisual: 'KPI Card',

@@ -31,9 +31,6 @@ export interface ColorFieldProps {
  */
 export function ColorField({ value, onChange, onClear, disabled, showHex = true, size = 'md', className, hideThemeColors, ...aria }: ColorFieldProps) {
   const t = useT();
-  const locale = useLocale();
-  const dataColors = useDataColors();
-  const theme = useTheme();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState(value ?? '');
   const [invalid, setInvalid] = useState(false);
@@ -83,33 +80,7 @@ export function ColorField({ value, onChange, onClear, disabled, showHex = true,
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-[268px] p-0">
-        {!hideThemeColors && dataColors.length > 0 && (
-          <section className="border-b border-border-subtle p-3" aria-labelledby={`${id}-theme`}>
-            <h4 id={`${id}-theme`} className="mb-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-text-muted">{t('color.themeColors')}</h4>
-            <div className="grid grid-cols-8 gap-1">
-              {dataColors.slice(0, 8).map((c, i) => (
-                <Swatch key={`d${i}`} hex={c} selected={current === normalizeHex(c)} label={`${t('theme.colors.data')} ${i + 1}`} onPick={(h) => { onChange(h); setOpen(false); }} />
-              ))}
-              {dataColors.slice(0, 8).map((c, i) => (
-                <div key={`s${i}`} className="flex flex-col gap-1">
-                  {shadesOf(c).map((s, j) => (
-                    <Swatch key={j} hex={s} small selected={current === s} label={`${t('theme.colors.data')} ${i + 1} ${j + 1}`} onPick={(h) => { onChange(h); setOpen(false); }} />
-                  ))}
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-        <section className="border-b border-border-subtle p-3" aria-labelledby={`${id}-struct`}>
-          <h4 id={`${id}-struct`} className="mb-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-text-muted">{t('color.structural')}</h4>
-          <div className="grid grid-cols-8 gap-1">
-            {STRUCTURAL_KEYS.map((k) => {
-              const hex = theme[k];
-              if (!hex) return null;
-              return <Swatch key={k} hex={hex} selected={current === normalizeHex(hex)} label={colorLabel(locale, k)} onPick={(h) => { onChange(h); setOpen(false); }} />;
-            })}
-          </div>
-        </section>
+        <ThemeSwatches current={current} hideThemeColors={hideThemeColors} onPick={(h) => { onChange(h); setOpen(false); }} />
         <section className="p-3" aria-labelledby={`${id}-more`}>
           <h4 id={`${id}-more`} className="mb-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-text-muted">{t('color.more')}</h4>
           <div className="flex items-center gap-2">
@@ -148,6 +119,46 @@ export function ColorField({ value, onChange, onClear, disabled, showHex = true,
         </section>
       </PopoverContent>
     </Popover>
+  );
+}
+
+/** Theme colour grids; a separate component so the field itself does not subscribe to the theme. */
+function ThemeSwatches({ current, hideThemeColors, onPick }: { current: string | null | undefined; hideThemeColors?: boolean; onPick: (hex: string) => void }) {
+  const t = useT();
+  const locale = useLocale();
+  const dataColors = useDataColors();
+  const theme = useTheme();
+  const id = useId();
+  return (
+    <>
+        {!hideThemeColors && dataColors.length > 0 && (
+          <section className="border-b border-border-subtle p-3" aria-labelledby={`${id}-theme`}>
+            <h4 id={`${id}-theme`} className="mb-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-text-muted">{t('color.themeColors')}</h4>
+            <div className="grid grid-cols-8 gap-1">
+              {dataColors.slice(0, 8).map((c, i) => (
+                <Swatch key={`d${i}`} hex={c} selected={current === normalizeHex(c)} label={`${t('theme.colors.data')} ${i + 1}`} onPick={onPick} />
+              ))}
+              {dataColors.slice(0, 8).map((c, i) => (
+                <div key={`s${i}`} className="flex flex-col gap-1">
+                  {shadesOf(c).map((s, j) => (
+                    <Swatch key={j} hex={s} small selected={current === s} label={`${t('theme.colors.data')} ${i + 1} ${j + 1}`} onPick={onPick} />
+                  ))}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+        <section className="border-b border-border-subtle p-3" aria-labelledby={`${id}-struct`}>
+          <h4 id={`${id}-struct`} className="mb-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-text-muted">{t('color.structural')}</h4>
+          <div className="grid grid-cols-8 gap-1">
+            {STRUCTURAL_KEYS.map((k) => {
+              const hex = theme[k];
+              if (!hex) return null;
+              return <Swatch key={k} hex={hex} selected={current === normalizeHex(hex)} label={colorLabel(locale, k)} onPick={onPick} />;
+            })}
+          </div>
+        </section>
+    </>
   );
 }
 

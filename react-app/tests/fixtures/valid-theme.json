@@ -1,0 +1,11 @@
+{
+  "name": "E2E Theme",
+  "dataColors": ["#111111", "#222222", "#333333", "#444444"],
+  "foreground": "#101010",
+  "background": "#FAFAFA",
+  "textClasses": { "title": { "fontFace": "Segoe UI", "fontSize": 14, "color": "#101010" } },
+  "visualStyles": {
+    "*": { "*": { "title": [{ "show": true, "fontSize": 13 }] } },
+    "barChart": { "*": { "legend": [{ "show": true, "position": "Bottom" }] } }
+  }
+}

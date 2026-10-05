@@ -12,8 +12,8 @@ export interface CanvasVisualProps {
   theme: ReportTheme;
   selected: boolean;
   modifiedCount: number;
-  onSelect: () => void;
-  onFocus: () => void;
+  onSelect: (key: string) => void;
+  onFocus: (key: string) => void;
 }
 
 const HANDLES = ['-top-1 -left-1', '-top-1 left-1/2 -translate-x-1/2', '-top-1 -right-1', 'top-1/2 -left-1 -translate-y-1/2', 'top-1/2 -right-1 -translate-y-1/2', '-bottom-1 -left-1', '-bottom-1 left-1/2 -translate-x-1/2', '-bottom-1 -right-1'];
@@ -33,11 +33,11 @@ export const CanvasVisual = memo(function CanvasVisual({ placed, theme, selected
         data-testid={`canvas-${placed.key}`}
         onClick={(e) => {
           e.stopPropagation();
-          onSelect();
+          onSelect(placed.key);
         }}
         onDoubleClick={(e) => {
           e.stopPropagation();
-          onFocus();
+          onFocus(placed.key);
         }}
         className={cn(
           'group/visual absolute inset-0 block cursor-pointer rounded-none text-left outline-none transition-shadow duration-[var(--dur-fast)]',
@@ -60,7 +60,7 @@ export const CanvasVisual = memo(function CanvasVisual({ placed, theme, selected
                 data-testid="focus-mode-button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onFocus();
+                  onFocus(placed.key);
                 }}
                 className="inline-flex size-7 items-center justify-center rounded-sm text-text-body hover:bg-surface-subtle hover:text-text-primary focus-visible:outline-2 focus-visible:outline-focus-ring"
               >

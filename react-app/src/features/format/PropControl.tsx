@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useLocale, useT } from '@/i18n';
 import type { CatalogProp } from '@/pbi/catalog';
 import { enumLabel, propLabel } from '@/pbi/curation/labels';
@@ -20,13 +21,13 @@ const PERCENT_KEYS = /transparency|Transparency|Percent|innerPadding|labelDensit
 const PX_KEYS = /^(width|weight|radius|top|bottom|left|right|borderSize|borderWidth|strokeWidth|markerSize|shadowBlur|shadowDistance|shadowSpread|gridlineThickness|gridLineWidth|steppedLayoutIndentation|rowPadding|imageHeight|rectangleRoundedCurve|roundEdge|barWeight|pageSizeWidth|pageSizeHeight|outlineWeight|iconSize|size|spacing|cardPadding|gridVerticalWeight|gridHorizontalWeight)$/;
 
 /** Renders the right control for a catalog property and writes to the store. */
-export function PropControl({ visualKey, cardKey, prop, value, source }: PropControlProps) {
+export const PropControl = memo(function PropControl({ visualKey, cardKey, prop, value, source }: PropControlProps) {
   const t = useT();
   const locale = useLocale();
   const setCardProp = useThemeStore((s) => s.setCardProp);
   const id = `${visualKey}-${cardKey}-${prop.key}`.replace(/[^a-zA-Z0-9_-]/g, '_');
   const label = propLabel(locale, prop);
-  const sourceLabel = source === 'visual' ? t('format.setOnVisual') : source === 'global' ? t('format.inheritedFromGlobal') : t('format.inheritedDefault');
+  const sourceLabel = source === 'visual' ? t('format.setOnVisual') : source === 'global' ? t('format.inheritedFromGlobal') : source === 'base' ? t('format.inheritedBase') : t('format.inheritedDefault');
 
   switch (prop.type) {
     case 'boolean':
@@ -119,4 +120,4 @@ export function PropControl({ visualKey, cardKey, prop, value, source }: PropCon
         </Field>
       );
   }
-}
+});

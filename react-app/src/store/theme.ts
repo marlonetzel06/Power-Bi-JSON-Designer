@@ -3,7 +3,8 @@
  * reset), undo/redo (zundo) and persistence (localStorage).
  */
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { safeStorage } from './safeStorage';
 import { immer } from 'zustand/middleware/immer';
 import { temporal } from 'zundo';
 import { deepClone } from '@/pbi/builder';
@@ -192,6 +193,7 @@ export const useThemeStore = create<ThemeState>()(
       {
         name: PERSIST_KEY,
         version: 1,
+        storage: createJSONStorage(() => safeStorage),
         partialize: (s) => ({ theme: s.theme, baseline: s.baseline, userNamed: s.userNamed, customPresets: s.customPresets }),
         merge: (persisted, current) => {
           const p = (persisted ?? {}) as Partial<ThemeState>;

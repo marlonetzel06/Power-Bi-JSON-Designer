@@ -1,7 +1,8 @@
 /**
  * Renderer-side convenience over resolveProp: bound to one theme + visual key.
  */
-import { resolveBool, resolveColor, resolveNumber, resolveProp, resolveString } from '@/pbi/resolve';
+import { BASE_THEME } from '@/pbi/baseTheme';
+import { namedColor, resolveBool, resolveColor, resolveNumber, resolveProp, resolveString } from '@/pbi/resolve';
 import type { ReportTheme } from '@/pbi/types';
 import { fontSpec, ptToPx } from './fonts';
 
@@ -43,22 +44,23 @@ export interface Resolver {
   };
 }
 
-const DEFAULT_DATA_COLORS = ['#118DFF', '#12239E', '#E66C37', '#6B007B', '#E044A7', '#744EC2', '#D9B300', '#D64550'];
-
 export function createResolver(theme: ReportTheme, visualKey: string): Resolver {
-  const dataColors = theme.dataColors && theme.dataColors.length > 0 ? theme.dataColors : DEFAULT_DATA_COLORS;
+  const dataColors = theme.dataColors && theme.dataColors.length > 0 ? theme.dataColors : (BASE_THEME.dataColors ?? []);
+  // Structural colours: custom theme → base theme (CY26SU02). `firstLevelElements` is the
+  // modern alias of `foreground`; the base theme only defines the legacy names.
+  const c = (keys: string[], fallback: string) => keys.map((k) => namedColor(theme, k)).find((v): v is string => typeof v === 'string') ?? fallback;
   const structural = {
-    foreground: theme.foreground ?? theme.firstLevelElements ?? '#252423',
-    background: theme.background ?? '#FFFFFF',
-    first: theme.firstLevelElements ?? theme.foreground ?? '#252423',
-    second: theme.secondLevelElements ?? '#605E5C',
-    third: theme.thirdLevelElements ?? '#F3F2F1',
-    fourth: theme.fourthLevelElements ?? '#B3B0AD',
-    secondaryBackground: theme.secondaryBackground ?? '#C8C6C4',
-    tableAccent: theme.tableAccent ?? dataColors[0] ?? '#118DFF',
-    good: theme.good ?? '#1AAB40',
-    neutral: theme.neutral ?? '#D9B300',
-    bad: theme.bad ?? '#D64554',
+    foreground: c(['foreground', 'firstLevelElements'], '#252423'),
+    background: c(['background'], '#FFFFFF'),
+    first: c(['firstLevelElements', 'foreground'], '#252423'),
+    second: c(['secondLevelElements', 'foregroundNeutralSecondary'], '#605E5C'),
+    third: c(['thirdLevelElements', 'backgroundLight'], '#F3F2F1'),
+    fourth: c(['fourthLevelElements', 'foregroundNeutralTertiary'], '#B3B0AD'),
+    secondaryBackground: c(['secondaryBackground', 'backgroundNeutral'], '#C8C6C4'),
+    tableAccent: c(['tableAccent'], dataColors[0] ?? '#118DFF'),
+    good: c(['good'], '#1AAB40'),
+    neutral: c(['neutral'], '#D9B300'),
+    bad: c(['bad'], '#D64554'),
   };
   const r: Resolver = {
     theme,

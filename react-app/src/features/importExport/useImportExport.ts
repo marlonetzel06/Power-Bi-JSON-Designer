@@ -9,6 +9,7 @@ import { useThemeStore } from '@/store/theme';
 import { toast } from '@/ui';
 
 const MAX_MB = 10;
+const MAX_PBIP_FILES = 5000;
 
 export function useImportExport() {
   const t = useT();
@@ -40,8 +41,12 @@ export function useImportExport() {
   const importPbip = useCallback(async () => {
     const files = await pickFiles({ directory: true });
     if (files.length === 0) return;
+    if (files.length > MAX_PBIP_FILES) {
+      toast.error(t('import.failed', { error: `> ${MAX_PBIP_FILES} files` }));
+      return;
+    }
     const pbipFiles: PbipFile[] = files
-      .filter((f) => f.name.endsWith('.json'))
+      .filter((f) => f.name.endsWith('.json') && f.size <= MAX_MB * 1024 * 1024)
       .map((f) => ({ path: (f as File & { webkitRelativePath?: string }).webkitRelativePath || f.name, name: f.name, text: () => f.text() }));
     try {
       const result = await importPbipFolder(pbipFiles);

@@ -6,6 +6,7 @@ import { mockVisualSize } from './size';
 import { createResolver } from './resolver';
 import { VisualFrame } from './VisualFrame';
 import { GLOBAL_KEY, PAGE_KEY, type ReportTheme } from '@/pbi/types';
+import { visualThemeEqual } from './themeSlice';
 
 export interface MockVisualProps {
   theme: ReportTheme;
@@ -73,4 +74,11 @@ export const MockVisual = memo(function MockVisual({ theme, visualKey, width, he
       {content}
     </svg>
   );
-});
+}, (prev, next) =>
+  prev.visualKey === next.visualKey &&
+  prev.width === next.width &&
+  prev.height === next.height &&
+  prev.className === next.className &&
+  prev.decorative === next.decorative &&
+  prev.title === next.title &&
+  visualThemeEqual(prev.theme, next.theme, next.visualKey));
