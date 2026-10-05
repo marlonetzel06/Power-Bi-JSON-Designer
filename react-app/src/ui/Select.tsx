@@ -39,7 +39,7 @@ export function Select({ value, onValueChange, options, placeholder, disabled, c
           position="popper"
           sideOffset={4}
           collisionPadding={8}
-          className="z-50 max-h-[var(--radix-select-content-available-height)] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-md border border-border-default bg-surface-overlay shadow-lg"
+          className="z-50 max-h-[var(--radix-select-content-available-height)] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-md border border-border-default bg-surface-card shadow-lg"
         >
           <RSel.Viewport className="p-1">
             {options.map((o) => (

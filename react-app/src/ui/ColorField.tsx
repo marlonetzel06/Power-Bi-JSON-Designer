@@ -161,7 +161,7 @@ function Swatch({ hex, label, selected, small, onPick }: { hex: string; label: s
       className={cn(
         'rounded-[2px] border border-border-subtle transition-transform duration-[var(--dur-fast)] hover:scale-110 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus-ring',
         small ? 'h-3.5 w-full' : 'aspect-square w-full',
-        selected && 'ring-2 ring-focus-ring ring-offset-1 ring-offset-surface-overlay',
+        selected && 'ring-2 ring-focus-ring ring-offset-1 ring-offset-surface-card',
       )}
       style={{ background: hex }}
     />

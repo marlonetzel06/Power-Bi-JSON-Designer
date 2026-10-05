@@ -23,10 +23,10 @@ export function DialogContent({ title, description, footer, size = 'md', classNa
   const t = useT();
   return (
     <RD.Portal>
-      <RD.Overlay className="fixed inset-0 z-50 bg-stage/60 backdrop-blur-[2px] data-[state=open]:animate-in data-[state=closed]:animate-out" />
+      <RD.Overlay className="fixed inset-0 z-50 bg-surface-overlay backdrop-blur-[2px] data-[state=open]:animate-in data-[state=closed]:animate-out" />
       <RD.Content
         className={cn(
-          'fixed left-1/2 top-1/2 z-50 flex w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 flex-col rounded-lg border border-border-default bg-surface-overlay shadow-xl outline-none',
+          'fixed left-1/2 top-1/2 z-50 flex w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 max-h-[calc(100vh-32px)] flex-col rounded-lg border border-border-default bg-surface-card shadow-xl outline-none',
           SIZE[size],
           className,
         )}

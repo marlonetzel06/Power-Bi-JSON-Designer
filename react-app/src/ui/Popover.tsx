@@ -13,7 +13,7 @@ export function PopoverContent({ className, children, ...rest }: RP.PopoverConte
       <RP.Content
         sideOffset={6}
         collisionPadding={8}
-        className={cn('z-50 rounded-md border border-border-default bg-surface-overlay p-3 shadow-lg outline-none', className)}
+        className={cn('z-50 rounded-md border border-border-default bg-surface-card p-3 shadow-lg outline-none', className)}
         {...rest}
       >
         {children}

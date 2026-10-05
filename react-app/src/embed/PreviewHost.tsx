@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { useAuthStore } from './authStore';
 import { LiveReport } from './LiveReport';
 import { useLiveAvailability } from './useLiveAvailability';
@@ -9,6 +10,10 @@ export interface PreviewHostProps {
   visualKey: string;
   mode: PreviewMode;
   className?: string;
+  /** Design size of the mock in px (keeps fonts at real point sizes instead of scaling the natural size up). */
+  width?: number;
+  height?: number;
+  style?: CSSProperties;
 }
 
 /**
@@ -16,14 +21,14 @@ export interface PreviewHostProps {
  * (hidden) while the mock is shown so switching is instant; it is only created once
  * the live mode was requested with a ready embed config.
  */
-export function PreviewHost({ visualKey, mode, className }: PreviewHostProps) {
+export function PreviewHost({ visualKey, mode, className, width, height, style }: PreviewHostProps) {
   const theme = useTheme();
   const availability = useLiveAvailability(visualKey);
   const hasConfig = useAuthStore((s) => s.embedConfig !== null);
   const showLive = mode === 'live' && availability.available;
   return (
-    <div className={className} style={{ position: 'relative' }}>
-      {!showLive && <MockVisual theme={theme} visualKey={visualKey} />}
+    <div className={className} style={{ position: 'relative', ...style }}>
+      {!showLive && <MockVisual theme={theme} visualKey={visualKey} width={width} height={height} />}
       {hasConfig && (
         <div style={{ position: 'absolute', inset: 0, visibility: showLive ? 'visible' : 'hidden', pointerEvents: showLive ? 'auto' : 'none' }} aria-hidden={!showLive}>
           <LiveReport visualKey={visualKey} className="h-full w-full" />

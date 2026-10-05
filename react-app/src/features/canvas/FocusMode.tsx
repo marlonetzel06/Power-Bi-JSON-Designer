@@ -5,7 +5,10 @@ import { PreviewHost } from '@/embed/PreviewHost';
 import { useLiveAvailability } from '@/embed/useLiveAvailability';
 import { useLocale, useT } from '@/i18n';
 import { visualLabel } from '@/pbi/curation/labels';
-import { useModifiedCount } from '@/store/selectors';
+import { useModifiedCount, useTheme } from '@/store/selectors';
+import { resolveColor, resolveNumber } from '@/pbi/resolve';
+import { PAGE_KEY } from '@/pbi/types';
+import { withAlpha } from '@/preview/resolver';
 import { useUiStore, type PreviewMode } from '@/store/uiStore';
 import { Badge, Button, SegmentedControl, Tooltip } from '@/ui';
 import { VisualIcon } from '../visualGallery/icons';
@@ -25,6 +28,10 @@ export function FocusMode({ visualKey }: { visualKey: string }) {
   const authError = useAuthStore((s) => s.error);
   const count = useModifiedCount(visualKey);
   const label = visualLabel(locale, visualKey);
+  const theme = useTheme();
+  // Focus mode shows the visual on the report page: page background and wallpaper come from the theme.
+  const wallpaper = withAlpha(resolveColor(theme, PAGE_KEY, 'outspace', 'color', '#E6E6E6'), resolveNumber(theme, PAGE_KEY, 'outspace', 'transparency', 0));
+  const pageBg = withAlpha(resolveColor(theme, PAGE_KEY, 'background', 'color', theme.background ?? '#FFFFFF'), resolveNumber(theme, PAGE_KEY, 'background', 'transparency', 0));
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -72,11 +79,11 @@ export function FocusMode({ visualKey }: { visualKey: string }) {
           </Tooltip>
         </div>
       </div>
-      <div className="min-h-0 flex-1 overflow-auto p-5">
+      <div className="min-h-0 flex-1 overflow-auto p-5" style={{ background: wallpaper }}>
         <div className="mx-auto" style={zoom ? { width: 1280 * zoom, height: 720 * zoom } : { width: '100%', maxWidth: 'calc((100vh - 180px) * 16 / 9)', aspectRatio: '16 / 9' }}>
-          <PreviewHost visualKey={visualKey} mode={effectiveMode} className="h-full w-full bg-surface-card shadow-md" />
+          <PreviewHost visualKey={visualKey} mode={effectiveMode} width={1280} height={720} className="h-full w-full shadow-md" style={{ background: pageBg }} />
         </div>
-        {effectiveMode === 'mock' && <p className="mx-auto mt-3 max-w-[720px] text-center text-[12px] text-text-muted">{t('preview.mockHint')}</p>}
+        {effectiveMode === 'mock' && <p className="mx-auto mt-3 max-w-[720px] rounded-sm bg-surface-card/80 px-2 py-1 text-center text-[12px] text-text-muted">{t('preview.mockHint')}</p>}
       </div>
     </section>
   );

@@ -49,8 +49,8 @@ export function ThemePane() {
           {s.id === 'text' && <TextSection />}
           {s.id === 'visuals' && <FormatCards visualKey={GLOBAL_KEY} cards={COMMON_CARDS} memoryKey="theme-visuals" />}
           {s.id === 'page' && <FormatCards visualKey={PAGE_KEY} cards={['pageSize', 'background', 'outspace', 'displayArea']} memoryKey="theme-page" />}
-          {s.id === 'filterPane' && <FormatCards visualKey={PAGE_KEY} cards={['outspacePane']} memoryKey="theme-filterPane" defaultOpen />}
-          {s.id === 'filterCards' && <FormatCards visualKey={PAGE_KEY} cards={['filterCard']} memoryKey="theme-filterCards" defaultOpen />}
+          {s.id === 'filterPane' && <FormatCards visualKey={PAGE_KEY} cards={['outspacePane']} memoryKey="theme-filterPane" defaultOpen flat />}
+          {s.id === 'filterCards' && <FormatCards visualKey={PAGE_KEY} cards={['filterCard']} memoryKey="theme-filterCards" defaultOpen flat />}
         </FormatCard>
       ))}
     </div>

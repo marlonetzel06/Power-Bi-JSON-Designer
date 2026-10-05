@@ -9,7 +9,7 @@ export const DropdownMenuGroup = RDM.Group;
 export const DropdownMenuSub = RDM.Sub;
 export const DropdownMenuRadioGroup = RDM.RadioGroup;
 
-const contentClass = 'z-50 min-w-[220px] overflow-hidden rounded-md border border-border-default bg-surface-overlay p-1 shadow-lg';
+const contentClass = 'z-50 min-w-[220px] overflow-hidden rounded-md border border-border-default bg-surface-card p-1 shadow-lg';
 const itemClass =
   'relative flex cursor-default select-none items-center gap-2.5 rounded-sm px-2.5 py-1.5 text-[13px] text-text-body outline-none data-[highlighted]:bg-brand-soft data-[highlighted]:text-text-primary data-[disabled]:pointer-events-none data-[disabled]:opacity-45 [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-text-muted';
 
