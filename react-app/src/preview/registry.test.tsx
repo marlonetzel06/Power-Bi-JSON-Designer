@@ -120,8 +120,17 @@ describe('text classes', () => {
 describe('renderer property usage against the schema', () => {
   type Keys = { common: Record<string, number>; page: Record<string, number>; visuals: Record<string, Record<string, number>>; propSets: string[][] };
   const keys = schemaKeys as unknown as Keys;
+  // `*` accepts every card of every visual (Power BI applies it to all visuals): union of all property sets per card
+  const starCards: Record<string, Set<string>> = {};
+  for (const cards of Object.values(keys.visuals)) for (const [card, id] of Object.entries(cards)) for (const p of keys.propSets[id] ?? []) (starCards[card] ??= new Set()).add(p);
   const allowed = (visualKey: string, card: string): Set<string> | undefined => {
-    const own = visualKey === 'page' ? keys.page : visualKey === '*' ? {} : keys.visuals[visualKey];
+    if (visualKey === '*') {
+      const common = keys.common[card];
+      const set = new Set<string>(common !== undefined ? keys.propSets[common] : []);
+      for (const p of starCards[card] ?? []) set.add(p);
+      return set.size ? set : undefined;
+    }
+    const own = visualKey === 'page' ? keys.page : keys.visuals[visualKey];
     const id = own?.[card] ?? (visualKey === 'page' ? undefined : keys.common[card]);
     return id === undefined ? undefined : new Set(keys.propSets[id]);
   };

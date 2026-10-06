@@ -20,6 +20,8 @@ export interface PropControlProps {
   stateId?: string;
 }
 
+/** Numbers whose Power BI default is "Auto" (shown empty unless the theme sets them). */
+const AUTO_KEYS = /^(sec)?(start|end)$|Precision$|^(labelPrecision|dataLabelDecimalPoints)$/;
 const FONT_SIZE_KEYS = new Set(['fontSize', 'textSize', 'titleFontSize', 'secFontSize', 'secTitleFontSize', 'valueFontSize', 'detailFontSize', 'levelTitleFontSize', 'levelSubtitleFontSize', 'categoryLabelFontSize', 'dataLabelFontSize', 'titleSize', 'headerSize', 'searchTextSize', 'labelFontSize', 'calloutSize']);
 const PERCENT_KEYS = /transparency|Transparency|Percent|innerPadding|labelDensity|maxMarginFactor|seriesMaximumWidth|innerRadiusRatio|clusteredGapSize|stackedGapSize|ribbonGapSize|labelSpace|valueArea|imageAreaSize|interpolationSmoothParam/;
 const PX_KEYS = /^(width|weight|radius|top|bottom|left|right|borderSize|borderWidth|strokeWidth|markerSize|markerShapeSize|markerBorderWidth|shadowBlur|shadowDistance|shadowSpread|glowDistance|glowSpread|gridlineThickness|gridLineWidth|gridlineWidth|lineWidth|steppedLayoutIndentation|rowPadding|columnPadding|cellPadding|imageHeight|imageWidth|rectangleRoundedCurve\w*|roundEdge|barWeight|barWidth|barBorderSize|pageSizeWidth|pageSizeHeight|outlineWeight|iconSize|size|spacing|cardPadding|gridVerticalWeight|gridHorizontalWeight|\w+OuterMargin|\w+Margin|padding\w*|outerPadding|paddingBeforeDivider|paddingAfterDivider|leaderLineWidth|dividerWidth|indentation|containerIndentation|bubbleRadius|minBubbleRadius|maxRadius|bubbleStrokeWidth|borderThickness|filterRadius|dismissSize|dismissSpacing)$/;
@@ -63,17 +65,19 @@ export const PropControl = memo(function PropControl({ visualKey, cardKey, prop,
       const suffix = FONT_SIZE_KEYS.has(prop.key) ? 'pt' : isTransparency || PERCENT_KEYS.test(prop.key) ? '%' : PX_KEYS.test(prop.key) ? 'px' : prop.key.toLowerCase().includes('angle') || prop.key.toLowerCase().includes('rotation') ? '°' : undefined;
       const min = prop.min ?? (isTransparency ? 0 : undefined);
       const max = prop.max ?? (isTransparency ? 100 : undefined);
+      const auto = AUTO_KEYS.test(prop.key);
+      const shown = auto && source === 'default' ? undefined : value;
       return (
         <Field id={id} label={label} inline source={source} sourceLabel={sourceLabel}>
           <NumberInput
             id={id}
             className="h-7 w-[96px]"
-            value={typeof value === 'number' ? value : typeof value === 'string' && value !== '' && Number.isFinite(Number(value)) ? Number(value) : undefined}
+            value={typeof shown === 'number' ? shown : typeof shown === 'string' && shown !== '' && Number.isFinite(Number(shown)) ? Number(shown) : undefined}
             min={min}
             max={max}
             integer={prop.type === 'integer'}
             suffix={suffix}
-            placeholder={prop.type === 'mixed' ? t('format.auto') : undefined}
+            placeholder={prop.type === 'mixed' || auto ? t('format.auto') : undefined}
             onValueChange={(n) => setCardProp(visualKey, cardKey, prop.key, n)}
           />
         </Field>

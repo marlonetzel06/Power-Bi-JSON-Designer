@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { layoutLegend } from '../cartesian/Legend';
 import { withAlpha } from '../resolver';
+import { formatWithUnit, resolveUnit } from '../sampleData';
 import { MAP_BUBBLES, CATEGORIES } from '../sampleData';
 import type { BodyProps, Rect } from '../types';
 
@@ -18,7 +19,8 @@ function landmass(rect: Rect, fill: string, stroke: string, strokeWidth: number)
 
 export type MapKind = 'map' | 'filledMap' | 'shapeMap' | 'azureMap';
 
-export function MapVisual({ r, rect, kind }: BodyProps & { kind: MapKind }) {
+export function MapVisual({ r, rect, uid, kind }: BodyProps & { kind: MapKind }) {
+  const uidHeat = `${uid}-heat`;
   const items = CATEGORIES.slice(0, 3).map((c, i) => ({ label: c, color: r.dataColor(i), marker: 'circle' as const }));
   const { plot, element } = layoutLegend(r, rect, items);
   // map/filledMap: mapStyles.mapTheme; azureMap: mapControls.defaultStyle; shapeMap: no style card
@@ -38,6 +40,13 @@ export function MapVisual({ r, rect, kind }: BodyProps & { kind: MapKind }) {
     // shade regions with the palette (choropleth)
     const { x, y, width: w, height: h } = plot;
     nodes.push(<path key="r1" d={`M${x + 0.52 * w},${y + 0.22 * h} C${x + 0.6 * w},${y + 0.1 * h} ${x + 0.82 * w},${y + 0.12 * h} ${x + 0.92 * w},${y + 0.3 * h} C${x + 0.98 * w},${y + 0.45 * h} ${x + 0.88 * w},${y + 0.62 * h} ${x + 0.76 * w},${y + 0.66 * h} C${x + 0.66 * w},${y + 0.7 * h} ${x + 0.6 * w},${y + 0.56 * h} ${x + 0.55 * w},${y + 0.45 * h} C${x + 0.5 * w},${y + 0.36 * h} ${x + 0.48 * w},${y + 0.3 * h} ${x + 0.52 * w},${y + 0.22 * h} Z`} fill={withAlpha(kind === 'shapeMap' ? r.dataColor(1) : r.dataColor(1), t)} stroke={strokeShow ? strokeColor : 'none'} strokeWidth={strokeW} />);
+    if (kind === 'filledMap' && r.hasCard('labels') && r.bool('labels', 'show', false)) {
+      const lfColor = r.color('labels', 'color', r.structural.first);
+      const lf = { family: r.textClass('label').fontFace ?? 'Segoe UI', sizePx: 12, color: lfColor };
+      const units = r.num('labels', 'labelDisplayUnits', 0);
+      const prec = r.num('labels', 'labelPrecision', 0);
+      [[0.25, 0.45, 1248300], [0.72, 0.42, 986750], [0.73, 0.82, 655100]].forEach(([fx, fy, v], i) => nodes.push(<text key={`fl${i}`} data-part="map-label" x={x + fx! * w} y={y + fy! * h} textAnchor="middle" fontFamily={lf.family} fontSize={lf.sizePx} fill={lf.color}>{formatWithUnit(v!, resolveUnit(units, [v!]), prec)}</text>));
+    }
     nodes.push(<path key="r2" d={`M${x + 0.62 * w},${y + 0.72 * h} C${x + 0.7 * w},${y + 0.68 * h} ${x + 0.84 * w},${y + 0.72 * h} ${x + 0.86 * w},${y + 0.84 * h} C${x + 0.86 * w},${y + 0.92 * h} ${x + 0.7 * w},${y + 0.95 * h} ${x + 0.62 * w},${y + 0.9 * h} C${x + 0.56 * w},${y + 0.86 * h} ${x + 0.56 * w},${y + 0.76 * h} ${x + 0.62 * w},${y + 0.72 * h} Z`} fill={withAlpha(r.dataColor(2), t)} stroke={strokeShow ? strokeColor : 'none'} strokeWidth={strokeW} />);
   } else {
     nodes.push(<g key="land">{landmass(plot, land, dark ? '#55657A' : '#C9C6BD', 1)}</g>);
@@ -51,6 +60,21 @@ export function MapVisual({ r, rect, kind }: BodyProps & { kind: MapKind }) {
       nodes.push(<circle key={`b${i}`} cx={plot.x + b.x * plot.width} cy={plot.y + b.y * plot.height} r={Math.max(3, base * b.r)} fill={withAlpha(r.dataColor(i % 3), t)} stroke={strokeColor} strokeWidth={strokeW} />);
     });
     void bubbleCard;
+    if (kind === 'map' && r.hasCard('heatMap') && r.bool('heatMap', 'show', false)) {
+      const radius = Math.max(6, r.num('heatMap', 'filterRadius', 20)) * (plot.width / 480);
+      const t = r.num('heatMap', 'transparency', 0);
+      const c0 = r.color('heatMap', 'color0', '#DEEFFF');
+      const c50 = r.color('heatMap', 'color50', '#118DFF');
+      const c100 = r.color('heatMap', 'color100', '#12239E');
+      nodes.push(
+        <g key="heat" data-part="heat-map" opacity={1 - t / 100}>
+          <defs>
+            <radialGradient id={`${uidHeat}-g`}><stop offset="0%" stopColor={c100} /><stop offset="50%" stopColor={c50} /><stop offset="100%" stopColor={c0} stopOpacity={0} /></radialGradient>
+          </defs>
+          {MAP_BUBBLES.map((b, i) => <circle key={i} cx={plot.x + b.x * plot.width} cy={plot.y + b.y * plot.height} r={radius * (0.7 + b.r * 0.8)} fill={`url(#${uidHeat}-g)`} />)}
+        </g>,
+      );
+    }
     if (r.bool('categoryLabels', 'show', false)) {
       const f = r.font('categoryLabels', 'color', r.structural.first, 9, { textClass: 'label' });
       MAP_BUBBLES.slice(0, 3).forEach((b, i) => nodes.push(<text key={`l${i}`} x={plot.x + b.x * plot.width} y={plot.y + b.y * plot.height - base * b.r - 3} textAnchor="middle" fontFamily={f.family} fontSize={f.sizePx} fill={f.color}>{CATEGORIES[i]}</text>));

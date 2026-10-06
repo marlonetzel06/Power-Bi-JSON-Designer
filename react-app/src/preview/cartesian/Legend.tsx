@@ -1,12 +1,22 @@
 import { estimateTextWidth, truncate } from '../fonts';
 import { textProps, type Resolver } from '../resolver';
+import { marker as markerShape } from '../shared/markers';
 import type { Rect } from '../types';
 
 export interface LegendItem {
   label: string;
   color: string;
-  /** Power BI draws round legend markers for every visual type; 'square' is kept for explicit use. */
-  marker?: 'square' | 'line' | 'circle';
+  /**
+   * Power BI draws round legend markers for every visual type (`circle`). Line charts can show the
+   * series marker (`marker`), a line (`line`) or both (`lineMarker`) via legend.legendMarkerRendering.
+   */
+  marker?: 'square' | 'line' | 'circle' | 'marker' | 'lineMarker';
+  /** Series marker shape for `marker` / `lineMarker`. */
+  shape?: string;
+  /** Dash array of the series line for `line` / `lineMarker`. */
+  dash?: string;
+  /** Line colour when it differs from the marker colour (legend.matchLineColor = false). */
+  lineColor?: string;
 }
 
 export interface LegendLayout {
@@ -30,7 +40,9 @@ export function layoutLegend(r: Resolver, rect: Rect, items: LegendItem[], card 
   const pos = position.toLowerCase();
   const vertical = pos.startsWith('left') || pos.startsWith('right');
 
-  const itemWidths = items.map((i) => sw + gap + estimateTextWidth(i.label, font.sizePx, font.weight >= 600));
+  const wide = items.some((i) => i.marker === 'line' || i.marker === 'lineMarker');
+  const markerW = wide ? sw * 2.2 : sw;
+  const itemWidths = items.map((i) => markerW + gap + estimateTextWidth(i.label, font.sizePx, font.weight >= 600));
   const titleW = showTitle ? estimateTextWidth(titleText, font.sizePx, true) + itemGap : 0;
 
   let plot: Rect;
@@ -67,7 +79,7 @@ export function layoutLegend(r: Resolver, rect: Rect, items: LegendItem[], card 
     }
     items.forEach((item, i) => {
       if (y + lineH > ly + legendH) return;
-      nodes.push(renderItem(item, lx, y, sw, font, legendW - sw - gap, `${i}`));
+      nodes.push(renderItem(item, lx, y, sw, markerW, font, legendW - markerW - gap, `${i}`));
       y += lineH;
     });
   } else {
@@ -82,26 +94,28 @@ export function layoutLegend(r: Resolver, rect: Rect, items: LegendItem[], card 
     items.forEach((item, i) => {
       const w = itemWidths[i] ?? 0;
       if (x + w > lx + legendW + 1) return;
-      nodes.push(renderItem(item, x, ly, sw, font, w - sw - gap, `${i}`));
+      nodes.push(renderItem(item, x, ly, sw, markerW, font, w - markerW - gap, `${i}`));
       x += w + itemGap;
     });
   }
   return { plot: clampRect(plot), element: <g data-part="legend">{nodes}</g> };
 }
 
-function renderItem(item: LegendItem, x: number, y: number, sw: number, font: ReturnType<Resolver['font']>, maxTextW: number, key: string) {
+function renderItem(item: LegendItem, x: number, y: number, sw: number, markerW: number, font: ReturnType<Resolver['font']>, maxTextW: number, key: string) {
   const cy = y + Math.max(sw, font.sizePx) / 2 + 3;
-  const marker =
-    item.marker === 'square' ? (
-      <rect x={x} y={cy - sw / 2} width={sw} height={sw} fill={item.color} />
-    ) : (
-      // Power BI: round marker for bars, columns, lines, areas and pies alike.
-      <circle cx={x + sw / 2} cy={cy} r={sw / 2} fill={item.color} />
-    );
+  const kind = item.marker ?? 'circle';
+  const line = kind === 'line' || kind === 'lineMarker' ? <line x1={x} x2={x + markerW} y1={cy} y2={cy} stroke={item.lineColor ?? item.color} strokeWidth={2} strokeDasharray={item.dash} strokeLinecap="round" /> : null;
+  const mark =
+    kind === 'square' ? <rect x={x} y={cy - sw / 2} width={sw} height={sw} fill={item.color} />
+      : kind === 'marker' || kind === 'lineMarker' ? markerShape(item.shape ?? 'circle', x + markerW / 2, cy, sw * 0.9, { fill: item.color }, 'm')
+        : kind === 'line' ? null
+          // Power BI: round marker for bars, columns, lines, areas and pies alike.
+          : <circle cx={x + sw / 2} cy={cy} r={sw / 2} fill={item.color} />;
   return (
-    <g key={key}>
-      {marker}
-      <text x={x + sw + 6} y={cy + font.sizePx * 0.35} {...textProps(font)}>{truncate(item.label, maxTextW, font.sizePx)}</text>
+    <g key={key} data-legend-marker={kind}>
+      {line}
+      {mark}
+      <text x={x + markerW + 6} y={cy + font.sizePx * 0.35} {...textProps(font)}>{truncate(item.label, maxTextW, font.sizePx)}</text>
     </g>
   );
 }

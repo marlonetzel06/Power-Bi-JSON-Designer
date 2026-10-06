@@ -15,6 +15,8 @@ export function PieDonut({ r, rect, donut }: BodyProps & { donut: boolean }) {
   const units = r.num('labels', 'labelDisplayUnits', 0);
   const precision = r.num('labels', 'labelPrecision', 0);
   const pctPrecision = r.num('labels', 'percentageLabelPrecision', 0);
+  const labelBackground = String(r.raw('labels', 'background') ?? 'auto');
+  const overflow = r.bool('labels', 'overflow', false);
   const innerRatio = donut ? Math.min(0.9, Math.max(0, r.num('slices', 'innerRadiusRatio', 60) / 100)) : 0;
   const startAngle = (r.num('slices', 'startAngle', 0) * Math.PI) / 180;
   const outside = labelsShow && position.toLowerCase().includes('outside');
@@ -67,7 +69,14 @@ export function PieDonut({ r, rect, donut }: BodyProps & { donut: boolean }) {
         nodes.push(<text key={`lt${i}`} x={tx} y={ty + labelFont.sizePx * 0.35} textAnchor={right ? 'start' : 'end'} {...textProps(labelFont)}>{text}</text>);
       } else {
         const [tx, ty] = p(mid, inner > 0 ? (radius + inner) / 2 : radius * 0.62);
-        nodes.push(<text key={`lt${i}`} x={tx} y={ty + labelFont.sizePx * 0.35} textAnchor="middle" {...textProps(labelFont)} fill={labelFont.color}>{text}</text>);
+        if (!overflow && sweep < 0.35 && i > 0) return; // small slices get no inside label unless overflow is allowed
+        const w = text.length * labelFont.sizePx * 0.55 + 6;
+        nodes.push(
+          <g key={`lt${i}`} data-part="data-label">
+            {labelBackground !== 'off' && labelBackground !== 'false' && <rect x={tx - w / 2} y={ty - labelFont.sizePx * 0.65} width={w} height={labelFont.sizePx + 4} rx={2} fill={withAlpha(r.structural.background, labelBackground === 'on' || labelBackground === 'true' ? 10 : 35)} />}
+            <text x={tx} y={ty + labelFont.sizePx * 0.35} textAnchor="middle" {...textProps(labelFont)} fill={labelFont.color}>{text}</text>
+          </g>,
+        );
       }
     }
   });

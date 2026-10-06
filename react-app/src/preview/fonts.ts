@@ -74,3 +74,26 @@ export function truncate(text: string, maxWidth: number, fontSizePx: number, bol
   while (t.length > 1 && estimateTextWidth(t + '…', fontSizePx, bold) > maxWidth) t = t.slice(0, -1);
   return t + '…';
 }
+
+/** Wrap text into at most `maxLines` lines that fit `maxWidth` (Power BI title wrap). */
+export function wrapText(text: string, maxWidth: number, font: { sizePx: number; weight: number }, maxLines: number): string[] {
+  const bold = font.weight >= 600;
+  if (estimateTextWidth(text, font.sizePx, bold) <= maxWidth) return [text];
+  const words = text.split(/\s+/);
+  const lines: string[] = [];
+  let current = '';
+  for (const word of words) {
+    const candidate = current ? `${current} ${word}` : word;
+    if (estimateTextWidth(candidate, font.sizePx, bold) <= maxWidth || !current) current = candidate;
+    else {
+      lines.push(current);
+      current = word;
+      if (lines.length === maxLines - 1) break;
+    }
+  }
+  if (lines.length < maxLines) lines.push(current);
+  const rest = words.slice(lines.join(' ').split(/\s+/).length).join(' ');
+  if (rest && lines.length === maxLines) lines[maxLines - 1] = truncate(`${lines[maxLines - 1]} ${rest}`, maxWidth, font.sizePx, bold);
+  return lines.map((l) => truncate(l, maxWidth, font.sizePx, bold));
+}
+

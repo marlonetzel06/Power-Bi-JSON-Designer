@@ -9,7 +9,7 @@ import { BASE_THEME, baseColor } from './baseTheme';
 import { TOP_LEVEL_COLOR_KEYS } from './catalog';
 import { getProp, getVisualCard } from './catalog';
 import { getDefault } from './curation/defaults';
-import { DEFAULT_PRESET, GLOBAL_KEY, HEX_COLOR_RE, PAGE_KEY, fillToHex, findStateEntry, isDefaultState, isSolidFill, type CardEntry, type PropValue, type ReportTheme } from './types';
+import { DEFAULT_PRESET, DEFAULT_STATE, GLOBAL_KEY, HEX_COLOR_RE, PAGE_KEY, fillToHex, findStateEntry, isDefaultState, isSolidFill, type CardEntry, type PropValue, type ReportTheme } from './types';
 
 export type Resolved = string | number | boolean | undefined;
 
@@ -47,12 +47,25 @@ export function getCardEntry(theme: ReportTheme, visualKey: string, cardKey: str
 /** Where a resolved value comes from (used by the UI to show inheritance). */
 export type ValueSource = 'visual' | 'global' | 'base' | 'default';
 
+/**
+ * Default-state value of a card: the entry without `$id` first, then the `$id: "default"` entry.
+ * The base theme splits its defaults across both (e.g. cardVisual.layout), so both count.
+ */
+function defaultValue(entries: readonly CardEntry[] | undefined, propKey: string): PropValue | undefined {
+  if (!entries) return undefined;
+  for (const e of entries) if (e.$id === undefined && e[propKey] !== undefined) return e[propKey];
+  for (const e of entries) if (e.$id === DEFAULT_STATE && e[propKey] !== undefined) return e[propKey];
+  return undefined;
+}
+
 function fromLevel(theme: ReportTheme, visualKey: string, cardKey: string, propKey: string, stateId: string | undefined): PropValue | undefined {
+  const entries = theme.visualStyles?.[visualKey]?.[DEFAULT_PRESET]?.[cardKey];
+  if (!entries) return undefined;
   if (!isDefaultState(stateId)) {
-    const state = getCardEntry(theme, visualKey, cardKey, DEFAULT_PRESET, stateId)?.[propKey];
+    const state = entries.find((e) => e.$id === stateId)?.[propKey];
     if (state !== undefined) return state;
   }
-  return getCardEntry(theme, visualKey, cardKey)?.[propKey];
+  return defaultValue(entries, propKey);
 }
 
 function findStored(theme: ReportTheme, visualKey: string, cardKey: string, propKey: string, stateId?: string): { value: PropValue; source: ValueSource } | undefined {

@@ -97,3 +97,39 @@ export function formatNumber(v: number, units = 0, precision = 0): string {
   const p = Math.max(0, Math.min(10, Number(precision) || 0));
   return value.toLocaleString('de-DE', { minimumFractionDigits: p, maximumFractionDigits: suffix && p === 0 ? 1 : p }) + suffix;
 }
+
+/** Display unit (divisor) Power BI would pick automatically for a set of values. */
+export function autoUnit(values: number[]): number {
+  const max = Math.max(0, ...values.map((v) => Math.abs(v)));
+  if (max >= 1_000_000_000) return 1_000_000_000;
+  if (max >= 1_000_000) return 1_000_000;
+  if (max >= 1000) return 1000;
+  return 1;
+}
+
+const UNIT_SUFFIX: Record<number, string> = { 1: '', 1000: ' Tsd.', 1_000_000: ' Mio.', 1_000_000_000: ' Mrd.', 1_000_000_000_000: ' Bio.' };
+
+/**
+ * Format with one fixed unit, as axes do: every tick shares the unit of the largest value
+ * ("0 Tsd. … 80 Tsd."). `units` 0 = auto, else the divisor (1000, 1000000, …).
+ */
+export function formatWithUnit(v: number, unit: number, precision?: number): string {
+  const u = unit > 1 ? unit : 1;
+  if (precision === undefined || precision === null || Number.isNaN(precision)) {
+    // "Auto" precision like Power BI: up to two decimals once a display unit applies, none for plain values
+    return (v / u).toLocaleString('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: u > 1 ? 2 : 0 }) + (UNIT_SUFFIX[u] ?? '');
+  }
+  const p = Math.max(0, Math.min(10, Number(precision) || 0));
+  return (v / u).toLocaleString('de-DE', { minimumFractionDigits: p, maximumFractionDigits: p }) + (UNIT_SUFFIX[u] ?? '');
+}
+
+/** Precision as set in the theme (custom or base); undefined = Power BI "Auto". */
+export function precisionOf(r: { has: (card: string, prop: string) => boolean; num: (card: string, prop: string, fb: number) => number; hasProp: (card: string, prop: string) => boolean }, card: string, prop: string): number | undefined {
+  return r.hasProp(card, prop) && r.has(card, prop) ? r.num(card, prop, 0) : undefined;
+}
+
+/** Resolve a `labelDisplayUnits` value (0 = auto) to a divisor for the given values. */
+export function resolveUnit(units: number, values: number[]): number {
+  const u = Number(units) || 0;
+  return u === 0 ? autoUnit(values) : u;
+}

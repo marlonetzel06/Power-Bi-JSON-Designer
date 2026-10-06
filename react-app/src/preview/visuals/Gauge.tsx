@@ -1,5 +1,5 @@
 import { textProps } from '../resolver';
-import { formatNumber } from '../sampleData';
+import { formatNumber, formatWithUnit, precisionOf, resolveUnit } from '../sampleData';
 import type { BodyProps } from '../types';
 
 export function Gauge({ r, rect }: BodyProps) {
@@ -28,7 +28,7 @@ export function Gauge({ r, rect }: BodyProps) {
     return `M${x0},${y0} A${rad},${rad} 0 ${a1 - a0 > Math.PI ? 1 : 0} 1 ${x1},${y1}`;
   };
   const ta = angle(target);
-  const calloutText = callShow ? formatNumber(value * 1000, r.num('calloutValue', 'labelDisplayUnits', 0), r.num('calloutValue', 'labelPrecision', 0)) : '';
+  const calloutText = callShow ? formatWithUnit(value * 1000, resolveUnit(r.num('calloutValue', 'labelDisplayUnits', 0), [value * 1000]), precisionOf(r, 'calloutValue', 'labelPrecision')) : '';
   const callSize = Math.min(callFont.sizePx, radius * 0.5);
   return (
     <g>
@@ -42,7 +42,7 @@ export function Gauge({ r, rect }: BodyProps) {
           </text>
         </g>
       )}
-      {callShow && <text x={cx} y={cy - 6} textAnchor="middle" {...textProps(callFont)} fontSize={callSize}>{calloutText}</text>}
+      {callShow && <text data-part="callout-value" x={cx} y={cy - 6} textAnchor="middle" {...textProps(callFont)} fontSize={callSize}>{calloutText}</text>}
       {labShow && (
         <g>
           <text x={cx - radius} y={cy + labFont.sizePx + 4} textAnchor="middle" {...textProps(labFont)}>{formatNumber(min * 1000)}</text>
