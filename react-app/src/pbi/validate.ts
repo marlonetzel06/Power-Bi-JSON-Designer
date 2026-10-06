@@ -147,6 +147,8 @@ export function semanticIssues(theme: ReportTheme): ValidationIssue[] {
 interface SchemaKeys {
   common: Record<string, number>;
   page: Record<string, number>;
+  /** report / filter / group: card index of the non-visual scopes. */
+  scopes: Record<string, Record<string, number>>;
   visuals: Record<string, Record<string, number>>;
   propSets: string[][];
 }
@@ -159,9 +161,10 @@ function getSchemaKeys(): Promise<SchemaKeys> {
 export function keyIssues(theme: ReportTheme, keys: SchemaKeys): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
   for (const [vk, presets] of Object.entries(theme.visualStyles ?? {})) {
-    const own = vk === 'page' ? keys.page : vk === '*' ? {} : keys.visuals[vk];
+    const scope = keys.scopes[vk];
+    const own = vk === 'page' ? keys.page : scope ?? (vk === '*' ? {} : keys.visuals[vk]);
     if (!own) continue; // unknown visual: reported elsewhere; custom visuals are allowed by Power BI
-    const common = vk === 'page' ? {} : keys.common;
+    const common = vk === 'page' || scope ? {} : keys.common;
     for (const [preset, cards] of Object.entries(presets ?? {})) {
       for (const [card, entries] of Object.entries(cards ?? {})) {
         if (card === '*') continue;

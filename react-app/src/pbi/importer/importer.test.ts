@@ -6,6 +6,19 @@ import { THEME_INITIAL } from '../defaults';
 import { validateTheme } from '../validate';
 
 describe('parseThemeJson', () => {
+  it('keeps icons and $id state entries', () => {
+    const input = {
+      name: 'Icons',
+      icons: { Flag: { url: 'https://example.com/flag.svg', description: 'Flag' }, Bad: 'nope' },
+      visualStyles: { page: { '*': { filterCard: [{ $id: 'Applied', border: true }, { $id: 'Available', border: false }] } } },
+    };
+    const { theme, issues } = parseThemeJson(input);
+    expect(theme.icons).toEqual({ Flag: { url: 'https://example.com/flag.svg', description: 'Flag' } });
+    expect(issues.some((i) => i.path === 'icons.Bad')).toBe(true);
+    expect(theme.visualStyles!.page!['*']!.filterCard).toEqual([{ $id: 'Applied', border: true }, { $id: 'Available', border: false }]);
+    expect(buildExportTheme(theme).icons).toEqual(theme.icons);
+  });
+
   it('round-trips an exported theme without issues', () => {
     const exported = buildExportTheme(THEME_INITIAL);
     const { theme, issues } = parseThemeJson(JSON.parse(JSON.stringify(exported)));

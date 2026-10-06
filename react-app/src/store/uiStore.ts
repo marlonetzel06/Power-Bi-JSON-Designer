@@ -32,6 +32,10 @@ export interface UiState {
   focusZoom: number;
   galleryOpen: boolean;
   helpOpen: boolean;
+  /** `$id` state being edited/previewed per visual (buttons: hover/selected/…); unset = default. */
+  previewState: Record<string, string>;
+  /** `$id` state chosen inside a single card that has its own states (matrix subtotals Row/Column), keyed `visual:card`. */
+  cardState: Record<string, string>;
   setTheme: (theme: ColorMode) => void;
   toggleTheme: () => void;
   setLocale: (locale: Locale) => void;
@@ -51,6 +55,8 @@ export interface UiState {
   setFocusZoom: (zoom: number) => void;
   setGalleryOpen: (open: boolean) => void;
   setHelpOpen: (open: boolean) => void;
+  setPreviewState: (visualKey: string, stateId: string | undefined) => void;
+  setCardState: (visualKey: string, cardKey: string, stateId: string | undefined) => void;
 }
 
 function detectLocale(): Locale {
@@ -89,6 +95,8 @@ export const useUiStore = create<UiState>()(
       focusZoom: 0,
       galleryOpen: true,
       helpOpen: false,
+      previewState: {},
+      cardState: {},
       setTheme: (theme) => set({ theme }),
       toggleTheme: () => set((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
       setLocale: (locale) => set({ locale }),
@@ -117,6 +125,21 @@ export const useUiStore = create<UiState>()(
       setFocusZoom: (focusZoom) => set({ focusZoom }),
       setGalleryOpen: (galleryOpen) => set({ galleryOpen }),
       setHelpOpen: (helpOpen) => set({ helpOpen }),
+      setPreviewState: (visualKey, stateId) =>
+        set((s) => {
+          const next = { ...s.previewState };
+          if (stateId === undefined || stateId === 'default') delete next[visualKey];
+          else next[visualKey] = stateId;
+          return { previewState: next };
+        }),
+      setCardState: (visualKey, cardKey, stateId) =>
+        set((s) => {
+          const next = { ...s.cardState };
+          const key = `${visualKey}:${cardKey}`;
+          if (stateId === undefined) delete next[key];
+          else next[key] = stateId;
+          return { cardState: next };
+        }),
     }),
     {
       name: 'pbi-designer.ui',

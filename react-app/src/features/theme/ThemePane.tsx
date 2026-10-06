@@ -31,9 +31,9 @@ export function ThemePane() {
   const modified = useModified();
   const changed: Record<SectionId, boolean> = {
     settings: false,
-    colors: modified.dataColorsChanged,
+    colors: modified.dataColorsChanged || modified.globalsChanged,
     text: modified.textClassesChanged,
-    visuals: modified.globalsChanged,
+    visuals: (modified.cards[GLOBAL_KEY]?.size ?? 0) > 0,
     page: Boolean(modified.cards[PAGE_KEY]?.has('pageSize') || modified.cards[PAGE_KEY]?.has('background') || modified.cards[PAGE_KEY]?.has('outspace') || modified.cards[PAGE_KEY]?.has('displayArea')),
     filterPane: Boolean(modified.cards[PAGE_KEY]?.has('outspacePane')),
     filterCards: Boolean(modified.cards[PAGE_KEY]?.has('filterCard')),
@@ -50,8 +50,23 @@ export function ThemePane() {
           {s.id === 'visuals' && <FormatCards visualKey={GLOBAL_KEY} cards={COMMON_CARDS} memoryKey="theme-visuals" />}
           {s.id === 'page' && <FormatCards visualKey={PAGE_KEY} cards={['pageSize', 'background', 'outspace', 'displayArea']} memoryKey="theme-page" />}
           {s.id === 'filterPane' && <FormatCards visualKey={PAGE_KEY} cards={['outspacePane']} memoryKey="theme-filterPane" defaultOpen flat />}
-          {s.id === 'filterCards' && <FormatCards visualKey={PAGE_KEY} cards={['filterCard']} memoryKey="theme-filterCards" defaultOpen flat />}
+          {s.id === 'filterCards' && <FilterCardsSection />}
         </FormatCard>
+      ))}
+    </div>
+  );
+}
+
+/** Power BI "Filterkarten": one block per state — applied filters and available filters. */
+function FilterCardsSection() {
+  const t = useT();
+  return (
+    <div className="flex flex-col gap-3">
+      {(['Applied', 'Available'] as const).map((state) => (
+        <section key={state} aria-label={t(state === 'Applied' ? 'theme.filterCardsApplied' : 'theme.filterCardsAvailable')} data-testid={`filter-cards-${state}`}>
+          <h4 className="mb-1 text-[12px] font-semibold text-text-primary">{t(state === 'Applied' ? 'theme.filterCardsApplied' : 'theme.filterCardsAvailable')}</h4>
+          <FormatCards visualKey={PAGE_KEY} cards={['filterCard']} memoryKey={`theme-filterCards-${state}`} defaultOpen flat stateId={state} />
+        </section>
       ))}
     </div>
   );

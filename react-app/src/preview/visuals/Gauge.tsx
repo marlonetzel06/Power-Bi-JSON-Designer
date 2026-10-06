@@ -10,11 +10,11 @@ export function Gauge({ r, rect }: BodyProps) {
   const fill = r.color('dataPoint', 'fill', '') || r.dataColor(0);
   const targetColor = r.color('dataPoint', 'target', r.structural.second);
   const callShow = r.bool('calloutValue', 'show', true);
-  const callFont = r.font('calloutValue', 'color', r.structural.first, 24);
+  const callFont = r.font('calloutValue', 'color', r.structural.first, 24, { props: { size: false }, textClass: 'callout' });
   const tgtShow = r.bool('target', 'show', true);
-  const tgtFont = r.font('target', 'color', r.structural.second, 9);
+  const tgtFont = r.font('target', 'color', r.structural.second, 9, { textClass: 'label' });
   const labShow = r.bool('labels', 'show', true);
-  const labFont = r.font('labels', 'color', r.structural.second, 9);
+  const labFont = r.font('labels', 'color', r.structural.second, 9, { textClass: 'label' });
   const cx = rect.x + rect.width / 2;
   const cy = rect.y + rect.height * 0.78;
   const radius = Math.max(10, Math.min(rect.width / 2 - 24, rect.height * 0.7));

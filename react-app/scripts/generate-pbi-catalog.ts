@@ -32,6 +32,8 @@ export interface CatalogProp {
   max?: number;
   /** Named $ref definition the property points to (e.g. "fill", "fontSize"). */
   ref?: string;
+  /** For `mixed`: the JSON types the schema allows (e.g. ["number", "string"]). */
+  kinds?: string[];
 }
 
 export interface CatalogCard {
@@ -39,6 +41,8 @@ export interface CatalogCard {
   title?: string;
   description?: string;
   props: CatalogProp[];
+  /** `$id` values the card accepts (from the `$id` enum of the item schema). */
+  states?: string[];
 }
 
 export interface Catalog {
@@ -93,7 +97,18 @@ function enumOptions(node: Json): CatalogEnumOption[] | undefined {
   return oneOf.map((o) => ({ value: o.const as string | number, label: (o.title as string | undefined) ?? String(o.const) }));
 }
 
-function propType(node: Json): Pick<CatalogProp, 'type' | 'options' | 'min' | 'max' | 'ref'> {
+function kindsOf(node: Json): string[] | undefined {
+  const t = node.type as string | string[] | undefined;
+  if (Array.isArray(t)) return t;
+  const alts = (node.anyOf ?? node.oneOf) as Json[] | undefined;
+  if (alts) {
+    const kinds = alts.map((a) => (typeof a.type === 'string' ? a.type : refName(a) === 'fill' || refName(a) === 'color' ? 'color' : undefined));
+    if (kinds.every((k): k is string => typeof k === 'string')) return [...new Set(kinds)];
+  }
+  return undefined;
+}
+
+function propType(node: Json): Pick<CatalogProp, 'type' | 'options' | 'min' | 'max' | 'ref' | 'kinds'> {
   const ref = refName(node);
   if (ref === 'fill') return { type: 'color', ref };
   if (ref === 'color') return { type: 'color', ref };
@@ -106,14 +121,25 @@ function propType(node: Json): Pick<CatalogProp, 'type' | 'options' | 'min' | 'm
   const t = node.type as string | string[] | undefined;
   const options = enumOptions(node);
   if (options) return { type: 'enum', options, min: node.minimum as number | undefined, max: node.maximum as number | undefined };
-  if (Array.isArray(t)) return { type: 'mixed' };
+  if (Array.isArray(t)) return { type: 'mixed', kinds: t, min: node.minimum as number | undefined, max: node.maximum as number | undefined };
   if (t === 'boolean') return { type: 'boolean' };
   if (t === 'integer') return { type: 'integer', min: node.minimum as number | undefined, max: node.maximum as number | undefined };
   if (t === 'number') return { type: 'number', min: node.minimum as number | undefined, max: node.maximum as number | undefined };
   if (t === 'string') return { type: 'string' };
   if (t === 'object' || node.properties) return { type: 'object' };
-  if (node.anyOf || node.oneOf) return { type: 'mixed' };
+  if (node.anyOf || node.oneOf) return { type: 'mixed', kinds: kindsOf(node) };
   return { type: 'mixed' };
+}
+
+/** `$id` enum of a card item schema: `{ anyOf: [{ enum: [...] }, { pattern }] }`. */
+function cardStates(idNode: Json | undefined): string[] | undefined {
+  if (!idNode) return undefined;
+  const node = deref(idNode);
+  const direct = node.enum as string[] | undefined;
+  if (direct) return [...new Set(direct)];
+  const alts = (node.anyOf ?? node.oneOf) as Json[] | undefined;
+  const withEnum = alts?.find((a) => Array.isArray(a.enum));
+  return withEnum ? [...new Set(withEnum.enum as string[])] : undefined;
 }
 
 function buildCard(key: string, node: Json): CatalogCard | undefined {
@@ -135,6 +161,8 @@ function buildCard(key: string, node: Json): CatalogCard | undefined {
         return prop;
       }),
   };
+  const states = cardStates(props.$id);
+  if (states && states.length > 1) card.states = states;
   return card;
 }
 
@@ -173,12 +201,14 @@ const vsProps = visualStyles.properties as Record<string, Json>;
 const visuals: Record<string, Record<string, CatalogCard>> = {};
 let commonCards: Record<string, CatalogCard> = {};
 let pageCards: Record<string, CatalogCard> = {};
+/** Non-visual scopes besides `page`: report, filter, group (validated, not curated). */
+const scopeCards: Record<string, Record<string, CatalogCard>> = {};
 
 for (const [key, node] of Object.entries(vsProps)) {
   const star = (node.properties as Record<string, Json> | undefined)?.['*'];
   if (!star) continue;
-  if (key === 'page' || key === 'report') {
-    // page/report: { "*": { allOf: [ { properties: {...} } ] } } without a named definition
+  if (key === 'page' || key === 'report' || key === 'filter' || key === 'group') {
+    // page/report/filter/group: { "*": { allOf: [ { properties: {...} } ] } } without a named definition
     const resolved = deref(star);
     const parts = (resolved.allOf as Json[] | undefined) ?? [resolved];
     let cards: Record<string, CatalogCard> = {};
@@ -187,6 +217,7 @@ for (const [key, node] of Object.entries(vsProps)) {
       cards = { ...cards, ...buildCards(target.properties as Record<string, Json> | undefined) };
     }
     if (key === 'page') pageCards = cards;
+    else scopeCards[key] = cards;
     continue;
   }
   const defName = refName(star);
@@ -233,8 +264,13 @@ function pickCard(scope: string, source: Record<string, CatalogCard>, cardKey: s
     const { description: _d, ...rest } = prop;
     selected.push(rest);
   }
-  return { key: card.key, title: card.title, props: selected };
+  const out: CatalogCard = { key: card.key, title: card.title, props: selected };
+  if (card.states) out.states = card.states;
+  return out;
 }
+
+/** Property keys of a card as a sorted signature. */
+const signature = (card: CatalogCard | undefined): string => (card ? card.props.map((p) => p.key).sort().join('|') : '');
 
 const curatedCommon: Record<string, CatalogCard> = {};
 for (const cardKey of COMMON_CARDS) {
@@ -260,7 +296,36 @@ for (const visualKey of VISUAL_KEYS) {
     const card = pickCard(visualKey, own, cardKey, override ?? CARD_PROPS[cardKey], override !== undefined);
     if (card) out[cardKey] = card;
   }
+  // Visual-own variants of the common container cards (e.g. cardVisual.border has `style`
+  // instead of `radius`): the editor must show the variant, not the common card. A variant
+  // with a different property set needs an explicit selection in VISUAL_CARD_PROPS.
+  for (const cardKey of COMMON_CARDS) {
+    const variant = own[cardKey];
+    if (!variant || out[cardKey]) continue;
+    const override = VISUAL_CARD_PROPS[visualKey]?.[cardKey];
+    if (signature(variant) !== signature(commonCards[cardKey]) && !override) {
+      problems.push(`${visualKey}: own variant of common card "${cardKey}" differs from the shared card (${variant.props.map((p) => p.key).join(', ')}) — add VISUAL_CARD_PROPS.${visualKey}.${cardKey}`);
+      continue;
+    }
+    const card = pickCard(visualKey, own, cardKey, override ?? CARD_PROPS[cardKey], override !== undefined);
+    if (card) out[cardKey] = card;
+  }
   curatedVisuals[visualKey] = out;
+}
+
+// Shared CARD_PROPS lists are supersets; warn when a listed property is missing for most visuals
+// that have the card (a typo would otherwise be dropped silently).
+for (const [cardKey, props] of Object.entries(CARD_PROPS)) {
+  if (props === '*') continue;
+  const havers = Object.values(visuals).map((v) => v[cardKey]).filter((c): c is CatalogCard => c !== undefined);
+  if (commonCards[cardKey]) havers.push(commonCards[cardKey]!);
+  if (pageCards[cardKey]) havers.push(pageCards[cardKey]!);
+  if (havers.length === 0) continue;
+  for (const key of props) {
+    const missing = havers.filter((c) => !c.props.some((p) => p.key === key)).length;
+    if (missing === havers.length) problems.push(`CARD_PROPS.${cardKey}: property "${key}" exists on no visual`);
+    else if (missing * 2 > havers.length) console.warn(`warning: CARD_PROPS.${cardKey}.${key} is missing on ${missing}/${havers.length} visuals with that card`);
+  }
 }
 
 const curatedPage: Record<string, CatalogCard> = {};
@@ -333,6 +398,7 @@ const indexCards = (cards: Record<string, CatalogCard>): Record<string, number> 
 const schemaKeys = {
   common: indexCards(commonCards),
   page: indexCards(pageCards),
+  scopes: Object.fromEntries(Object.entries(scopeCards).map(([k, cards]) => [k, indexCards(cards)])),
   visuals: Object.fromEntries(Object.entries(visuals).map(([k, cards]) => [k, indexCards(cards)])),
   propSets,
 };

@@ -40,7 +40,7 @@ function TextClassRow({ cls }: { cls: string }) {
       <div className="grid grid-cols-[1fr_72px] gap-x-2 gap-y-1.5">
         <label htmlFor={`${id}-face`} className="col-span-2 -mb-1 text-[11px] text-text-muted">{t('theme.text.fontFace')}</label>
         <Select aria-label={`${textClassLabel(locale, cls)}: ${t('theme.text.fontFace')}`} size="sm" value={tc.fontFace} options={fontOptions(tc.fontFace)} placeholder={t('format.fontPlaceholder')} onValueChange={(v) => setTextClass(cls, 'fontFace', v)} />
-        <NumberInput aria-label={`${textClassLabel(locale, cls)}: ${t('theme.text.fontSize')}`} className="h-7" value={tc.fontSize} min={6} max={60} suffix="pt" onValueChange={(n) => setTextClass(cls, 'fontSize', n)} />
+        <NumberInput aria-label={`${textClassLabel(locale, cls)}: ${t('theme.text.fontSize')}`} className="h-7" value={tc.fontSize} min={6} max={45} suffix="pt" onValueChange={(n) => setTextClass(cls, 'fontSize', n)} />
         <div className="flex items-center justify-between gap-2">
           <span className="text-[11px] text-text-muted">{t('theme.text.fontWeight')}</span>
           <Select aria-label={`${textClassLabel(locale, cls)}: ${t('theme.text.fontWeight')}`} size="sm" className="w-[110px]" value={tc.fontWeight} options={WEIGHTS.map((w) => ({ value: w, label: w }))} placeholder="—" onValueChange={(v) => setTextClass(cls, 'fontWeight', v)} />

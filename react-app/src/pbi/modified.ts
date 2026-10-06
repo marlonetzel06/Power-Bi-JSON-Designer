@@ -42,7 +42,7 @@ export function computeModified(theme: ReportTheme, baseline: ReportTheme): Modi
       cardCounts[vk] = set.size;
     }
   }
-  const colorKeys = new Set([...Object.keys(theme), ...Object.keys(baseline)].filter((k) => !['name', 'dataColors', 'textClasses', 'visualStyles', '$schema'].includes(k)));
+  const colorKeys = new Set([...Object.keys(theme), ...Object.keys(baseline)].filter((k) => !['name', 'dataColors', 'textClasses', 'visualStyles', '$schema', 'icons'].includes(k)));
   let globalsChanged = false;
   for (const k of colorKeys) {
     if (!same((theme as Record<string, unknown>)[k], (baseline as Record<string, unknown>)[k])) {

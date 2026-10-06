@@ -3,7 +3,7 @@
  * (type checks, prototype pollution, legacy alias migration); schema validation
  * is a separate step (validate.ts).
  */
-import { GLOBAL_KEY, HEX_COLOR_RE, isSolidFill, type CardEntry, type CardSet, type ReportTheme, type TextClasses, type VisualStyles } from '../types';
+import { GLOBAL_KEY, HEX_COLOR_RE, isSolidFill, type CardEntry, type CardSet, type ReportTheme, type TextClasses, type ThemeIcon, type VisualStyles } from '../types';
 
 export interface ImportIssue {
   path: string;
@@ -152,6 +152,35 @@ function migrateTextClasses(raw: unknown, issues: ImportIssue[]): TextClasses | 
   return out as TextClasses;
 }
 
+function migrateIcon(raw: unknown, path: string, issues: ImportIssue[]): ThemeIcon | undefined {
+  if (!isPlainObject(raw) || typeof raw.url !== 'string') {
+    issues.push({ path, message: 'expected an icon object with a "url"', severity: 'warning' });
+    return undefined;
+  }
+  const icon: ThemeIcon = { url: raw.url };
+  if (typeof raw.description === 'string') icon.description = raw.description;
+  return icon;
+}
+
+/** `icons`: custom icons (object keyed by name, or array). Kept as-is so a round trip does not lose them. */
+function migrateIcons(raw: unknown, issues: ImportIssue[]): ReportTheme['icons'] | undefined {
+  if (Array.isArray(raw)) {
+    const list = raw.map((r, i) => migrateIcon(r, `icons.${i}`, issues)).filter((i): i is ThemeIcon => i !== undefined);
+    return list.length > 0 ? list : undefined;
+  }
+  if (!isPlainObject(raw)) {
+    issues.push({ path: 'icons', message: 'expected an object or array of icons, ignored', severity: 'warning' });
+    return undefined;
+  }
+  const out: Record<string, ThemeIcon> = {};
+  for (const [name, def] of Object.entries(raw)) {
+    if (BLOCKED.has(name)) continue;
+    const icon = migrateIcon(def, `icons.${name}`, issues);
+    if (icon) out[name] = icon;
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
+}
+
 /**
  * Parse an unknown JSON value into a ReportTheme. Never throws; problems are reported as issues.
  */
@@ -183,6 +212,10 @@ export function parseThemeJson(input: unknown): ImportResult {
   }
   if (input.textClasses !== undefined) theme.textClasses = migrateTextClasses(input.textClasses, issues);
   if (input.visualStyles !== undefined) theme.visualStyles = migrateVisualStyles(input.visualStyles, issues);
+  if (input.icons !== undefined) {
+    const icons = migrateIcons(input.icons, issues);
+    if (icons) theme.icons = icons;
+  }
   if (theme.visualStyles && !theme.visualStyles[GLOBAL_KEY]) {
     // keep a predictable structure for the editor
     theme.visualStyles[GLOBAL_KEY] = { '*': {} };

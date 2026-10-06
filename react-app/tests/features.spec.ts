@@ -139,3 +139,55 @@ test('theme pane, JSON pane and dialogs have no serious accessibility violations
   await expect(page.getByRole('dialog')).toBeVisible();
   await noSeriousViolations(page);
 });
+
+test('filter cards are edited per state (applied / available) and exports carry $schema', async ({ page }) => {
+  await openApp(page);
+  await page.getByTestId('toggle-theme-pane').click();
+  await page.locator('[data-card="theme-filterCards"]').getByRole('button', { name: 'Filterkarten' }).click();
+  const applied = page.getByTestId('filter-cards-Applied');
+  await expect(applied).toBeVisible();
+  await applied.getByRole('switch').first().click(); // "Rahmen" of the applied cards
+  await page.getByTestId('toggle-json-pane').click();
+  const json = page.getByTestId('json-output');
+  await expect(json).toContainText('"$id": "Applied"');
+  await expect(json).not.toContainText('"$id": "Available"');
+  await expect(json).toContainText('"$schema": "https://raw.githubusercontent.com/microsoft/powerbi-desktop-samples/main/Report-Theme-JSON-Schema/reportThemeSchema-2.144.json"');
+});
+
+test('visual-own variants of common cards and the combo secondary axis are offered', async ({ page }) => {
+  await openApp(page);
+  await page.getByTestId('canvas-cardVisual').click();
+  await page.getByTestId('tab-general').click();
+  await page.locator('[data-card="group-cardVisual-effects"]').getByRole('button', { name: 'Effekte' }).click();
+  const border = page.locator('[data-card="card-cardVisual-border"]');
+  await border.getByRole('button', { name: 'Visueller Rahmen' }).click();
+  await expect(border).toContainText('Stil');
+  await expect(border).toContainText('Transparenz');
+  await expect(border).not.toContainText('Abgerundete Ecken');
+  await page.getByTestId('canvas-lineClusteredColumnComboChart').click();
+  await page.getByTestId('tab-visual').click();
+  await page.getByTestId('format-search').fill('Sekundäre');
+  await expect(page.locator('[data-card="card-lineClusteredColumnComboChart-valueAxis"]')).toContainText('Sekundäre Achse anzeigen');
+  await expect(page.locator('[data-card="card-lineClusteredColumnComboChart-y2Axis"]')).toHaveCount(0);
+});
+
+test('button states: a hover fill colour shows only in the hover state and lands in a $id entry', async ({ page }) => {
+  await openApp(page);
+  await page.getByTestId('canvas-actionButton').click();
+  const state = page.getByTestId('format-state');
+  await expect(state).toBeVisible();
+  await state.getByRole('radio', { name: 'Beim Daraufzeigen' }).click();
+  const fill = page.locator('[data-card="card-actionButton-fill-hover"]');
+  await fill.getByRole('button', { name: 'Füllung' }).click();
+  await fill.getByRole('button', { name: /^Füllfarbe/ }).click();
+  await page.getByRole('textbox', { name: 'Hex' }).fill('#AB12CD');
+  await page.keyboard.press('Enter');
+  const svg = page.locator('[data-canvas-visual="actionButton"] svg[data-visual]');
+  await expect(svg).toHaveAttribute('data-state', 'hover');
+  await expect(svg.locator('[fill="#AB12CD"]')).toHaveCount(1);
+  await state.getByRole('radio', { name: 'Standard' }).click();
+  await expect(svg).not.toHaveAttribute('data-state', 'hover');
+  await expect(svg.locator('[fill="#AB12CD"]')).toHaveCount(0);
+  await page.getByTestId('toggle-json-pane').click();
+  await expect(page.getByTestId('json-output')).toContainText('"$id": "hover"');
+});

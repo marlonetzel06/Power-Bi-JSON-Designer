@@ -34,6 +34,26 @@ describe('base theme layering (CY26SU02)', () => {
     expect(resolveProp(t, 'cardVisual', 'outline', 'lineColor')).toBe('#ABCDEF');
     expect(resolveProp(empty, 'cardVisual', 'outline', 'lineColor')).toBe('#F3F2F1');
   });
+  it('resolves $id states: filter cards come from the base "*" entries per state', () => {
+    expect(resolveProp(empty, 'page', 'filterCard', 'foregroundColor', undefined, 'Applied')).toBe('#252423');
+    expect(getValueSource(empty, 'page', 'filterCard', 'foregroundColor', 'Applied')).toBe('base');
+    expect(resolveProp(empty, 'page', 'filterCard', 'border', undefined, 'Available')).toBe(true);
+    const t: ReportTheme = { name: 'x', visualStyles: { page: { '*': { filterCard: [{ $id: 'Applied', foregroundColor: solid('#AA0000') }, { $id: 'Available', foregroundColor: solid('#BB0000') }] } } } };
+    expect(resolveProp(t, 'page', 'filterCard', 'foregroundColor', undefined, 'Applied')).toBe('#AA0000');
+    expect(resolveProp(t, 'page', 'filterCard', 'foregroundColor', undefined, 'Available')).toBe('#BB0000');
+    // no state asked: only a default entry (no $id) counts, never the first state entry
+    expect(getValueSource(t, 'page', 'filterCard', 'foregroundColor')).not.toBe('visual');
+  });
+  it('treats $id "default" like an entry without $id and lets a state inherit from it', () => {
+    const t: ReportTheme = { name: 'x', visualStyles: { actionButton: { '*': { fill: [{ $id: 'default', fillColor: solid('#111111') }, { $id: 'hover', fillColor: solid('#222222') }] } } } };
+    expect(resolveProp(t, 'actionButton', 'fill', 'fillColor')).toBe('#111111');
+    expect(resolveProp(t, 'actionButton', 'fill', 'fillColor', undefined, 'default')).toBe('#111111');
+    expect(resolveProp(t, 'actionButton', 'fill', 'fillColor', undefined, 'hover')).toBe('#222222');
+    expect(resolveProp(t, 'actionButton', 'fill', 'fillColor', undefined, 'selected')).toBe('#111111'); // inherits from default
+    // the base theme stores card-visual entries with `$id: "default"`: they count as the default state
+    expect(resolveProp(empty, 'cardVisual', 'label', 'position')).toBe('belowValue');
+    expect(getValueSource(empty, 'cardVisual', 'label', 'position')).toBe('base');
+  });
   it('is never exported: an empty custom theme exports without base values and validates', async () => {
     const { buildExportTheme } = await import('./builder');
     const out = buildExportTheme(empty);

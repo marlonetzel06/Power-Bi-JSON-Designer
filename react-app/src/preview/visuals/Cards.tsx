@@ -6,9 +6,9 @@ import type { BodyProps } from '../types';
 
 /** Classic card: labels (value) + categoryLabels. */
 export function ClassicCard({ r, rect }: BodyProps) {
-  const valueFont = r.font('labels', 'color', r.structural.first, 32);
+  const valueFont = r.font('labels', 'color', r.structural.first, 32, { textClass: 'callout' });
   const catShow = r.bool('categoryLabels', 'show', true);
-  const catFont = r.font('categoryLabels', 'color', r.structural.second, 12);
+  const catFont = r.font('categoryLabels', 'color', r.structural.second, 12, { textClass: 'label' });
   const value = formatNumber(4736450, r.num('labels', 'labelDisplayUnits', 0), r.num('labels', 'labelPrecision', 0));
   const size = Math.min(valueFont.sizePx, rect.width / (value.length * 0.6), rect.height * 0.55);
   const cx = rect.x + rect.width / 2;
@@ -35,10 +35,10 @@ export function NewCard({ r, rect }: BodyProps) {
   const outlineColor = r.color('outline', 'lineColor', r.structural.third);
   const outlineW = r.num('outline', 'weight', 1);
   const valueShow = r.bool('value', 'show', true);
-  const valueFont = r.font('value', 'fontColor', r.structural.first, 32);
+  const valueFont = r.font('value', 'fontColor', r.structural.first, 32, { textClass: 'callout' });
   const valueAlign = r.str('value', 'horizontalAlignment', 'left');
   const labelShow = r.bool('label', 'show', true);
-  const labelFont = r.font('label', 'fontColor', r.structural.second, 12);
+  const labelFont = r.font('label', 'fontColor', r.structural.second, 12, { textClass: 'label' });
   const labelPos = r.str('label', 'position', 'belowValue');
   const accentShow = r.bool('accentBar', 'show', false);
   const accentColor = withAlpha(r.color('accentBar', 'color', r.dataColor(0)), r.num('accentBar', 'transparency', 0));
@@ -103,10 +103,10 @@ export function MultiRowCard({ r, rect }: BodyProps) {
   const outlineColor = r.color('card', 'outlineColor', r.structural.third);
   const outlineW = r.num('card', 'outlineWeight', 1);
   const outlineStyle = r.num('card', 'outlineStyle', 0);
-  const titleFont = r.font('cardTitle', 'color', r.structural.second, 12);
+  const titleFont = r.font('cardTitle', 'color', r.structural.second, 12, { textClass: 'label' });
   const catShow = r.bool('categoryLabels', 'show', true);
-  const catFont = r.font('categoryLabels', 'color', r.structural.fourth, 10);
-  const dataFont = r.font('dataLabels', 'color', r.structural.first, 14);
+  const catFont = r.font('categoryLabels', 'color', r.structural.fourth, 10, { textClass: 'label' });
+  const dataFont = r.font('dataLabels', 'color', r.structural.first, 14, { textClass: 'callout' });
   const rows = TABLE_ROWS.slice(0, 3);
   const rowH = Math.min(rect.height / rows.length, titleFont.sizePx + dataFont.sizePx + catFont.sizePx + padding * 2 + 10);
   const nodes: ReactNode[] = [];
@@ -135,15 +135,16 @@ export function MultiRowCard({ r, rect }: BodyProps) {
 }
 
 export function Kpi({ r, rect }: BodyProps) {
-  const indFont = r.font('indicator', 'fontColor', r.structural.first, 32);
+  const indFont = r.font('indicator', 'fontColor', r.structural.first, 32, { textClass: 'callout' });
   const hAlign = r.str('indicator', 'horizontalAlignment', 'left');
   const showIcon = r.bool('indicator', 'showIcon', true);
   const trendShow = r.bool('trendline', 'show', true);
   const trendTransparency = r.num('trendline', 'transparency', 20);
   const goalShow = r.bool('goals', 'showGoal', true);
   const distShow = r.bool('goals', 'showDistance', true);
-  const goalFont = r.font('goals', 'goalFontColor', r.structural.second, 9, 'goal');
-  const distFont = r.font('goals', 'distanceFontColor', r.structural.second, 9, 'distance');
+  // kpi.goals: one fontSize/bold/italic/underline for both labels, separate colour + family per label
+  const goalFont = r.font('goals', 'goalFontColor', r.structural.second, 9, { props: { family: 'goalFontFamily' }, textClass: 'label' });
+  const distFont = r.font('goals', 'distanceFontColor', r.structural.second, 9, { props: { family: 'distanceFontFamily' }, textClass: 'label' });
   const goalText = r.str('goals', 'goalText', 'Ziel');
   const good = r.color('status', 'goodColor', r.structural.good);
   const value = '4,74 Mio.';

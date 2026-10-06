@@ -12,7 +12,7 @@ import { THEME_INITIAL } from '@/pbi/defaults';
 import { parseThemeJson } from '@/pbi/importer/themeJson';
 import { applyPresetTo, presetFromTheme, type ThemePreset } from '@/pbi/presets';
 import { TOP_LEVEL_COLOR_KEYS } from '@/pbi/catalog';
-import { DEFAULT_PRESET, GLOBAL_KEY, PAGE_KEY, type CardEntry, type PropValue, type ReportTheme } from '@/pbi/types';
+import { DEFAULT_PRESET, GLOBAL_KEY, PAGE_KEY, findStateEntry, isDefaultState, type CardEntry, type PropValue, type ReportTheme } from '@/pbi/types';
 
 export interface ThemeState {
   theme: ReportTheme;
@@ -30,7 +30,8 @@ export interface ThemeState {
   removeDataColor: (index: number) => void;
   moveDataColor: (from: number, to: number) => void;
   setTextClass: (cls: string, prop: 'fontFace' | 'fontSize' | 'fontWeight' | 'color', value: string | number | undefined) => void;
-  setCardProp: (visualKey: string, cardKey: string, propKey: string, value: PropValue | undefined) => void;
+  /** Write a property; `stateId` targets a `$id` entry (filter card "Applied", button "hover", …). */
+  setCardProp: (visualKey: string, cardKey: string, propKey: string, value: PropValue | undefined, stateId?: string) => void;
   resetCard: (visualKey: string, cardKey: string) => void;
   resetVisual: (visualKey: string) => void;
   resetTheme: () => void;
@@ -42,15 +43,20 @@ export interface ThemeState {
   deleteCustomPreset: (id: string) => void;
 }
 
-function ensureCardEntry(theme: ReportTheme, visualKey: string, cardKey: string): CardEntry {
+function ensureCardEntry(theme: ReportTheme, visualKey: string, cardKey: string, stateId?: string): CardEntry {
   const vs = (theme.visualStyles ??= {});
   const presets = (vs[visualKey] ??= {});
   const cards = (presets[DEFAULT_PRESET] ??= {});
   const entries = (cards[cardKey] ??= []);
-  let entry = entries.find((e) => e.$id === undefined);
+  let entry = findStateEntry(entries, stateId);
   if (!entry) {
-    entry = {};
-    entries.unshift(entry);
+    if (isDefaultState(stateId)) {
+      entry = {};
+      entries.unshift(entry);
+    } else {
+      entry = { $id: stateId as string };
+      entries.push(entry);
+    }
   }
   return entry;
 }
@@ -124,15 +130,15 @@ export const useThemeStore = create<ThemeState>()(
             if (value === undefined || value === '') delete tc[prop];
             else tc[prop] = value;
           }),
-        setCardProp: (visualKey, cardKey, propKey, value) =>
+        setCardProp: (visualKey, cardKey, propKey, value, stateId) =>
           set((s) => {
             if (value === undefined) {
-              const entry = s.theme.visualStyles?.[visualKey]?.[DEFAULT_PRESET]?.[cardKey]?.find((e) => e.$id === undefined);
+              const entry = findStateEntry(s.theme.visualStyles?.[visualKey]?.[DEFAULT_PRESET]?.[cardKey], stateId);
               if (entry) delete entry[propKey];
               pruneEmpty(s.theme, visualKey, cardKey);
               return;
             }
-            ensureCardEntry(s.theme, visualKey, cardKey)[propKey] = value;
+            ensureCardEntry(s.theme, visualKey, cardKey, stateId)[propKey] = value;
           }),
         resetCard: (visualKey, cardKey) =>
           set((s) => {

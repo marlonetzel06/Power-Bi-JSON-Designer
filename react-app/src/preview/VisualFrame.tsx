@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { dashArray } from './cartesian/axis';
 import { truncate } from './fonts';
 import { textProps, withAlpha, type Resolver } from './resolver';
 import type { Rect } from './types';
@@ -28,10 +29,13 @@ export function VisualFrame({ r, width, height, uid, defaultTitle, suppressTitle
   const bgShow = r.bool('background', 'show', true);
   const bgColor = r.color('background', 'color', r.structural.background);
   const bgTransparency = r.num('background', 'transparency', 0);
+  // cardVisual has its own `border` variant (style/transparency instead of radius); the radius then comes from the layout card.
+  const borderVariant = r.visualKey === 'cardVisual';
   const borderShow = r.bool('border', 'show', false);
-  const borderColor = r.color('border', 'color', '#E6E6E6');
+  const borderColor = borderVariant ? withAlpha(r.color('border', 'color', '#E6E6E6'), r.num('border', 'transparency', 0)) : r.color('border', 'color', '#E6E6E6');
   const borderWidth = r.num('border', 'width', 1);
-  const radius = r.num('border', 'radius', 0);
+  const borderDash = borderVariant ? dashArray(r.str('border', 'style', 'solid'), borderWidth) : undefined;
+  const radius = borderVariant ? 0 : r.num('border', 'radius', 0);
   const shadowShow = r.bool('dropShadow', 'show', false);
   const shadowColor = r.color('dropShadow', 'color', '#000000');
   const shadowBlur = r.num('dropShadow', 'shadowBlur', 4);
@@ -39,23 +43,30 @@ export function VisualFrame({ r, width, height, uid, defaultTitle, suppressTitle
   const shadowTransparency = r.num('dropShadow', 'transparency', 60);
   const shadowPreset = r.str('dropShadow', 'preset', 'BottomRight');
   const shadowAngle = r.num('dropShadow', 'angle', 45);
-  const padTop = r.num('padding', 'top', 5);
-  const padBottom = r.num('padding', 'bottom', 5);
-  const padLeft = r.num('padding', 'left', 5);
-  const padRight = r.num('padding', 'right', 5);
+  // cardVisual and the button/list slicers use a padding variant (paddingSelection + *Margin).
+  const marginVariant = r.visualKey === 'cardVisual' || r.visualKey === 'advancedSlicerVisual' || r.visualKey === 'listSlicer';
+  const padPreset = marginVariant ? r.str('padding', 'paddingSelection', 'Normal') : 'Custom';
+  const presetPad = padPreset === 'Wide' ? 10 : padPreset === 'Narrow' ? 2 : 5;
+  const pad = (side: 'top' | 'bottom' | 'left' | 'right') => (marginVariant ? (padPreset === 'Custom' ? r.num('padding', `${side}Margin`, 5) : presetPad) : r.num('padding', side, 5));
+  const padTop = pad('top');
+  const padBottom = pad('bottom');
+  const padLeft = pad('left');
+  const padRight = pad('right');
 
   const titleShow = !suppressTitle && r.bool('title', 'show', true);
   const titleText = r.str('title', 'text', '') || defaultTitle;
-  const titleFont = r.font('title', 'fontColor', r.structural.first, 12);
+  const titleFont = r.font('title', 'fontColor', r.structural.first, 12, { textClass: 'title' });
   const titleAlign = r.str('title', 'alignment', 'left');
   const titleBg = r.raw('title', 'background');
   const subShow = !suppressTitle && r.bool('subTitle', 'show', false);
   const subText = r.str('subTitle', 'text', '') || 'Untertitel';
-  const subFont = r.font('subTitle', 'fontColor', r.structural.second, 10);
+  const subFont = r.font('subTitle', 'fontColor', r.structural.second, 10, { textClass: 'title' });
   const subAlign = r.str('subTitle', 'alignment', titleAlign);
   const dividerShow = r.bool('divider', 'show', false);
-  const dividerColor = r.color('divider', 'color', '#E6E6E6');
-  const dividerWidth = r.num('divider', 'width', 1);
+  const dividerColor = borderVariant ? withAlpha(r.color('divider', 'dividerColor', '#E6E6E6'), r.num('divider', 'dividerTransparency', 0)) : r.color('divider', 'color', '#E6E6E6');
+  const dividerWidth = borderVariant ? r.num('divider', 'dividerWidth', 1) : r.num('divider', 'width', 1);
+  const dividerDash = dashArray(borderVariant ? r.str('divider', 'dividerLineStyle', 'solid') : r.str('divider', 'style', 'solid'), dividerWidth);
+  const dividerIgnorePadding = borderVariant ? r.bool('divider', 'dividerIgnorePadding', false) : r.bool('divider', 'ignorePadding', false);
 
   let offX = 0;
   let offY = 0;
@@ -96,7 +107,7 @@ export function VisualFrame({ r, width, height, uid, defaultTitle, suppressTitle
     </text>
   ) : null;
   if (subShow) y += subLineH;
-  const dividerEl = dividerShow && (titleShow || subShow) ? <line key="div" x1={innerX} x2={innerX + innerW} y1={y + 2} y2={y + 2} stroke={dividerColor} strokeWidth={dividerWidth} /> : null;
+  const dividerEl = dividerShow && (titleShow || subShow) ? <line key="div" data-part="divider" x1={dividerIgnorePadding ? inset : innerX} x2={dividerIgnorePadding ? width - inset : innerX + innerW} y1={y + 2} y2={y + 2} stroke={dividerColor} strokeWidth={dividerWidth} strokeDasharray={dividerDash} /> : null;
   if (dividerShow && (titleShow || subShow)) y += 6;
   if (titleShow || subShow) y += 4;
 
@@ -126,6 +137,7 @@ export function VisualFrame({ r, width, height, uid, defaultTitle, suppressTitle
         fill={bgShow ? withAlpha(bgColor, bgTransparency) : 'transparent'}
         stroke={borderShow ? borderColor : 'none'}
         strokeWidth={borderShow ? borderWidth : 0}
+        strokeDasharray={borderShow ? borderDash : undefined}
         filter={shadowShow ? `url(#${shadowId})` : undefined}
       />
       <g clipPath={`url(#${clipId})`}>

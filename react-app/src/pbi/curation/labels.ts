@@ -2,7 +2,7 @@ import type { Locale } from '@/store/uiStore';
 import { getVisualCard, type CatalogEnumOption, type CatalogProp } from '../catalog';
 import {
   CARD_LABELS_DE, CARD_LABELS_EN_OVERRIDE, COLOR_LABELS_DE, COLOR_LABELS_EN, ENUM_LABELS_DE, PROP_LABELS_DE,
-  TEXT_CLASS_LABELS_DE, TEXT_CLASS_LABELS_EN, VISUAL_LABELS_DE, VISUAL_LABELS_EN,
+  STATE_LABELS_DE, STATE_LABELS_EN, TEXT_CLASS_LABELS_DE, TEXT_CLASS_LABELS_EN, VISUAL_LABELS_DE, VISUAL_LABELS_EN,
 } from './labels.de';
 
 export function humanize(key: string): string {
@@ -39,4 +39,9 @@ export function colorLabel(locale: Locale, key: string): string {
 
 export function textClassLabel(locale: Locale, cls: string): string {
   return (locale === 'de' ? TEXT_CLASS_LABELS_DE[cls] : TEXT_CLASS_LABELS_EN[cls]) ?? TEXT_CLASS_LABELS_EN[cls] ?? humanize(cls);
+}
+
+/** Label of a `$id` state (default, hover, Applied, Row, …). */
+export function stateLabel(locale: Locale, stateId: string): string {
+  return (locale === 'de' ? STATE_LABELS_DE[stateId] : STATE_LABELS_EN[stateId]) ?? STATE_LABELS_EN[stateId] ?? humanize(stateId);
 }

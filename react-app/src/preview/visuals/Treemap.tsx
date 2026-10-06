@@ -35,9 +35,9 @@ export function Treemap({ r, rect }: BodyProps) {
   const items = TREEMAP.map((t, i) => ({ ...t, color: r.dataColor(i) }));
   const { plot, element } = layoutLegend(r, rect, items.map((i) => ({ label: i.label, color: i.color })));
   const catShow = r.bool('categoryLabels', 'show', true);
-  const catFont = r.font('categoryLabels', 'color', '#FFFFFF', 9);
+  const catFont = r.font('categoryLabels', 'color', '#FFFFFF', 9, { textClass: 'label' });
   const labShow = r.bool('labels', 'show', false);
-  const labFont = r.font('labels', 'color', '#FFFFFF', 9);
+  const labFont = r.font('labels', 'color', '#FFFFFF', 9, { textClass: 'label' });
   const pad = r.num('layout', 'innerPadding', 0) / 4;
   const rects = layout(items, plot);
   const nodes: ReactNode[] = [];

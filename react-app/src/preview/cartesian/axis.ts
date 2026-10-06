@@ -23,26 +23,35 @@ export function dashArray(style: string, width: number): string | undefined {
   return undefined;
 }
 
-export function readAxis(r: Resolver, card: 'categoryAxis' | 'valueAxis' | 'y2Axis', defaultGrid: boolean, defaultTitle: string): AxisStyle {
-  const pre = card === 'y2Axis' ? 'sec' : '';
+/**
+ * Read an axis card. `secondary` reads the sec* properties: combo charts keep the secondary
+ * Y axis inside `valueAxis` (no y2Axis card), line/area charts have a `y2Axis` card.
+ */
+export function readAxis(r: Resolver, card: 'categoryAxis' | 'valueAxis' | 'y2Axis', defaultGrid: boolean, defaultTitle: string, secondary = card === 'y2Axis'): AxisStyle {
+  const pre = secondary ? 'sec' : '';
   const p = (name: string) => (pre ? pre + name.charAt(0).toUpperCase() + name.slice(1) : name);
-  const font = r.font(card, p('labelColor'), r.structural.second, 9, pre);
-  const titleFont = r.font(card, p('titleColor'), r.structural.second, 9, pre ? 'secTitle' : 'title');
-  const gridWidth = r.num(card, 'gridlineThickness', 1);
+  const font = r.font(card, p('labelColor'), r.structural.second, 9, { prefix: pre, textClass: 'label' });
+  const titleFont = r.font(card, p('titleColor'), r.structural.second, 9, { prefix: pre ? 'secTitle' : 'title', textClass: 'label' });
+  // Not every axis card has every property (the waterfall category axis has no gridlines, the
+  // secondary axis none of its own): read only what the visual's card offers.
+  const grid = !secondary && r.hasProp(card, 'gridlineShow');
+  const gridWidth = grid ? r.num(card, 'gridlineThickness', 1) : 1;
+  // combo: `secShow` toggles the secondary axis; y2Axis card: `show`
+  const show = secondary && card === 'valueAxis' ? r.bool(card, 'secShow', true) : r.bool(card, 'show', true);
   return {
-    show: r.bool(card, 'show', true),
+    show,
     font,
     showTitle: r.bool(card, p('showAxisTitle'), false),
     titleText: r.str(card, p('titleText'), '') || defaultTitle,
     titleFont,
-    gridShow: r.bool(card, 'gridlineShow', defaultGrid),
-    gridColor: r.color(card, 'gridlineColor', '#E6E6E6'),
-    gridDash: dashArray(r.str(card, 'gridlineStyle', 'solid'), gridWidth),
+    gridShow: grid ? r.bool(card, 'gridlineShow', defaultGrid) : false,
+    gridColor: grid ? r.color(card, 'gridlineColor', '#E6E6E6') : '#E6E6E6',
+    gridDash: grid ? dashArray(r.str(card, 'gridlineStyle', 'solid'), gridWidth) : undefined,
     gridWidth,
-    gridOpacity: 1 - r.num(card, 'gridlineTransparency', 0) / 100,
-    displayUnits: r.num(card, p('labelDisplayUnits'), 0),
-    precision: r.num(card, p('labelPrecision'), 0),
-    invert: r.bool(card, 'invertAxis', false),
+    gridOpacity: grid ? 1 - r.num(card, 'gridlineTransparency', 0) / 100 : 1,
+    displayUnits: r.hasProp(card, p('labelDisplayUnits')) ? r.num(card, p('labelDisplayUnits'), 0) : 0,
+    precision: r.hasProp(card, p('labelPrecision')) ? r.num(card, p('labelPrecision'), 0) : 0,
+    invert: !secondary && r.hasProp(card, 'invertAxis') ? r.bool(card, 'invertAxis', false) : false,
   };
 }
 

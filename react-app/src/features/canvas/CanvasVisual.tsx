@@ -14,12 +14,14 @@ export interface CanvasVisualProps {
   modifiedCount: number;
   onSelect: (key: string) => void;
   onFocus: (key: string) => void;
+  /** `$id` state to preview (from the format pane's state switch). */
+  stateId?: string;
 }
 
 const HANDLES = ['-top-1 -left-1', '-top-1 left-1/2 -translate-x-1/2', '-top-1 -right-1', 'top-1/2 -left-1 -translate-y-1/2', 'top-1/2 -right-1 -translate-y-1/2', '-bottom-1 -left-1', '-bottom-1 left-1/2 -translate-x-1/2', '-bottom-1 -right-1'];
 
 /** One visual on the report page: Power BI selection frame with handles + focus-mode button. */
-export const CanvasVisual = memo(function CanvasVisual({ placed, theme, selected, modifiedCount, onSelect, onFocus }: CanvasVisualProps) {
+export const CanvasVisual = memo(function CanvasVisual({ placed, theme, selected, modifiedCount, onSelect, onFocus, stateId }: CanvasVisualProps) {
   const t = useT();
   const locale = useLocale();
   const label = visualLabel(locale, placed.key);
@@ -45,7 +47,7 @@ export const CanvasVisual = memo(function CanvasVisual({ placed, theme, selected
           selected && 'shadow-[0_0_0_1px_var(--color-brand)] hover:shadow-[0_0_0_1px_var(--color-brand)]',
         )}
       >
-        <MockVisual theme={theme} visualKey={placed.key} width={placed.w} height={placed.h} />
+        <MockVisual theme={theme} visualKey={placed.key} width={placed.w} height={placed.h} stateId={stateId} />
       </button>
       {selected && (
         <>

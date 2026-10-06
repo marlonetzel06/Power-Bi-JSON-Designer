@@ -107,7 +107,14 @@ export function CartesianChart({ r, rect, uid, options }: BodyProps & { options:
 
   const catAxis = readAxis(r, 'categoryAxis', false, isLine ? 'Monat' : 'Region');
   const valAxis = readAxis(r, 'valueAxis', true, 'Umsatz');
-  const y2Axis = options.comboLine ? readAxis(r, 'y2Axis', false, 'Plan') : undefined;
+  // Secondary Y axis: combo charts read valueAxis.sec*, line/area charts their y2Axis card (only
+  // when the theme turns it on — Power BI shows it when a measure sits on the secondary axis).
+  const y2Axis = options.comboLine
+    ? readAxis(r, 'valueAxis', false, 'Marge', true)
+    : (variant === 'line' || variant === 'area') && stack === 'none' && r.bool('y2Axis', 'show', false)
+      ? readAxis(r, 'y2Axis', false, 'Plan')
+      : undefined;
+  const secondaryIdx = y2Axis && !options.comboLine ? rawSeries.length - 1 : -1;
 
   // values & domain
   let maxValue: number;
@@ -132,6 +139,11 @@ export function CartesianChart({ r, rect, uid, options }: BodyProps & { options:
   const domainMax = ticks[ticks.length - 1] ?? maxValue;
   const fmtTick = (v: number) => (stack === 'percent' ? `${v} %` : formatNumber(v * (isScatter ? 1 : 1000), valAxis.displayUnits, valAxis.precision));
   const tickLabels = ticks.map(fmtTick);
+  // secondary axis: own domain for the series drawn on it (combo line = last series)
+  const secSeries = y2Axis ? (options.comboLine ? rawSeries[seriesCount - 1] : rawSeries[secondaryIdx]) ?? [] : [];
+  const secTicks = y2Axis ? niceTicks(Math.max(1, ...secSeries) * 1.15, 5) : [];
+  const secDomainMax = secTicks[secTicks.length - 1] ?? 1;
+  const secTickLabels = secTicks.map((v) => formatNumber(v * 1000, y2Axis?.displayUnits ?? 0, y2Axis?.precision ?? 0));
 
   // axis space
   const catLabelFont = catAxis.font;
@@ -151,9 +163,9 @@ export function CartesianChart({ r, rect, uid, options }: BodyProps & { options:
     if (valAxis.showTitle) left += valAxis.titleFont.sizePx + titleGap;
     if (catAxis.show) bottom -= catLabelFont.sizePx * 1.4 + 4;
     if (catAxis.showTitle) bottom -= catAxis.titleFont.sizePx + titleGap;
-    if (y2Axis?.show) right -= maxLabelWidth(tickLabels, y2Axis.font) + 8 + (y2Axis.showTitle ? y2Axis.titleFont.sizePx + titleGap : 0);
+    if (y2Axis?.show) right -= maxLabelWidth(secTickLabels, y2Axis.font) + 8 + (y2Axis.showTitle ? y2Axis.titleFont.sizePx + titleGap : 0);
   }
-  const zoomShow = r.bool('zoom', 'show', false);
+  const zoomShow = r.hasCard('zoom') && r.bool('zoom', 'show', false);
   if (zoomShow) {
     if (horizontal) left += 10;
     else bottom -= 10;
@@ -165,7 +177,7 @@ export function CartesianChart({ r, rect, uid, options }: BodyProps & { options:
     : linear([0, domainMax], valAxis.invert ? [plot.y, plot.y + plot.height] : [plot.y + plot.height, plot.y]);
   const catCount = categories.length;
   const bandSize = (horizontal ? plot.height : plot.width) / catCount;
-  const innerPadding = Math.min(0.6, Math.max(0, r.num('categoryAxis', 'innerPadding', variant === 'ribbon' ? 45 : 20) / 100));
+  const innerPadding = Math.min(0.6, Math.max(0, (r.hasProp('categoryAxis', 'innerPadding') ? r.num('categoryAxis', 'innerPadding', variant === 'ribbon' ? 45 : 20) : 20) / 100));
   const groupSize = bandSize * (1 - innerPadding);
   const catPos = (ci: number) => (horizontal ? plot.y : plot.x) + bandSize * (catAxis.invert ? catCount - 1 - ci : ci) + bandSize / 2;
 
@@ -197,14 +209,15 @@ export function CartesianChart({ r, rect, uid, options }: BodyProps & { options:
     }
   }
 
-  // data labels config
-  const labelsShow = r.bool('labels', 'show', false);
-  const labelFont = r.font('labels', 'color', r.structural.second, 9);
-  const labelUnits = r.num('labels', 'labelDisplayUnits', 0);
-  const labelPrecision = r.num('labels', 'labelPrecision', 0);
-  const labelBg = r.bool('labels', 'enableBackground', false);
-  const labelBgColor = withAlpha(r.color('labels', 'backgroundColor', '#FFFFFF'), r.num('labels', 'backgroundTransparency', 90));
-  const labelPosition = r.str('labels', 'labelPosition', 'Auto');
+  // data labels config (the scatter chart has category labels only)
+  const hasLabels = r.hasCard('labels');
+  const labelsShow = hasLabels && r.bool('labels', 'show', false);
+  const labelFont = hasLabels ? r.font('labels', 'color', r.structural.second, 9, { textClass: 'label' }) : r.font('categoryLabels', 'color', r.structural.second, 9, { textClass: 'label' });
+  const labelUnits = labelsShow ? r.num('labels', 'labelDisplayUnits', 0) : 0;
+  const labelPrecision = labelsShow ? r.num('labels', 'labelPrecision', 0) : 0;
+  const labelBg = labelsShow && r.bool('labels', 'enableBackground', false);
+  const labelBgColor = labelBg ? withAlpha(r.color('labels', 'backgroundColor', '#FFFFFF'), r.num('labels', 'backgroundTransparency', 90)) : 'none';
+  const labelPosition = labelsShow ? r.str('labels', 'labelPosition', 'Auto') : 'Auto';
   const fmtLabel = (v: number) => (stack === 'percent' ? `${Math.round(v)} %` : formatNumber(v * 1000, labelUnits, labelPrecision));
   const dataLabel = (x: number, y: number, text: string, key: string, anchor: 'start' | 'middle' | 'end' = 'middle') => {
     const w = text.length * labelFont.sizePx * 0.55 + 6;
@@ -216,11 +229,15 @@ export function CartesianChart({ r, rect, uid, options }: BodyProps & { options:
     );
   };
 
-  // dataPoint styling
-  const fillTransparency = r.num('dataPoint', 'fillTransparency', 0);
-  const borderShow = r.bool('dataPoint', 'borderShow', false);
-  const borderColor = r.color('dataPoint', 'borderColor', '#FFFFFF');
-  const borderSize = r.num('dataPoint', 'borderSize', 1);
+  // dataPoint styling: bars/columns have fill transparency + border; lines/areas/maps only `transparency`;
+  // the scatter chart styles its markers via `markers`.
+  const hasBarStyle = r.hasProp('dataPoint', 'fillTransparency');
+  const fillTransparency = hasBarStyle ? r.num('dataPoint', 'fillTransparency', 0) : r.hasProp('dataPoint', 'transparency') ? r.num('dataPoint', 'transparency', 0) : 0;
+  const borderCard = isScatter ? 'markers' : 'dataPoint';
+  const hasBorder = isScatter ? r.hasCard('markers') : hasBarStyle;
+  const borderShow = hasBorder && r.bool(borderCard, 'borderShow', false);
+  const borderColor = hasBorder ? r.color(borderCard, 'borderColor', '#FFFFFF') : '#FFFFFF';
+  const borderSize = hasBorder ? r.num(borderCard, isScatter ? 'borderWidth' : 'borderSize', 1) : 1;
 
   // ---- bars / columns ----
   const drawBars = variant === 'bar' || variant === 'column' || variant === 'ribbon' || variant === 'combo';
@@ -283,7 +300,7 @@ export function CartesianChart({ r, rect, uid, options }: BodyProps & { options:
     }
     // stacked totals
     if (barStack === 'stacked' && r.bool('totals', 'show', false)) {
-      const tf = r.font('totals', 'color', r.structural.first, 9);
+      const tf = r.font('totals', 'color', r.structural.first, 9, { textClass: 'label' });
       categories.forEach((_, ci) => {
         const total = stackedTotals[ci] ?? 0;
         const p = valueScale(total);
@@ -333,12 +350,13 @@ export function CartesianChart({ r, rect, uid, options }: BodyProps & { options:
     const areaMatch = r.bool('lineStyles', 'areaMatchStrokeColor', true);
     const areaColor = r.color('lineStyles', 'areaColor', '');
     const strokeTransparency = r.num('lineStyles', 'strokeTransparency', 0);
-    const comboScale = y2Axis && options.comboLine ? linear([0, domainMax], [plot.y + plot.height, plot.y]) : valueScale;
+    const secScale = y2Axis?.show ? linear([0, secDomainMax], [plot.y + plot.height, plot.y]) : undefined;
     const stackedAcc = categories.map(() => 0);
     lineSeriesIdx.forEach((si, order) => {
       const ser = rawSeries[si] ?? [];
       const color = seriesColor(r, si, isLine ? rawSeries.length : seriesCount);
-      const scale = variant === 'combo' ? comboScale : valueScale;
+      const onSecondary = secScale && ((variant === 'combo' && options.comboLine) || si === secondaryIdx);
+      const scale = onSecondary ? secScale : valueScale;
       const pts: [number, number][] = [];
       const base: [number, number][] = [];
       categories.forEach((_, ci) => {
@@ -371,7 +389,7 @@ export function CartesianChart({ r, rect, uid, options }: BodyProps & { options:
     const shape = r.str('bubbles', 'markerShape', 'circle');
     const xScale = linear([0, 100], [plot.x, plot.x + plot.width]);
     const catLabels = r.bool('categoryLabels', 'show', false);
-    const catLabelFontS = r.font('categoryLabels', 'color', r.structural.second, 9);
+    const catLabelFontS = r.font('categoryLabels', 'color', r.structural.second, 9, { textClass: 'label' });
     SCATTER.forEach(([x, y, s], i) => {
       const cx = xScale(x!);
       const cy = valueScale(y!);
@@ -388,7 +406,7 @@ export function CartesianChart({ r, rect, uid, options }: BodyProps & { options:
   }
 
   // ---- trend line ----
-  if (!isWaterfall && r.bool('trend', 'show', false)) {
+  if (!isWaterfall && r.hasCard('trend') && r.bool('trend', 'show', false)) {
     const lc = r.color('trend', 'lineColor', r.structural.first);
     const w = r.num('trend', 'width', 2);
     const d = dashArray(r.str('trend', 'style', 'dashed'), w);
@@ -399,7 +417,7 @@ export function CartesianChart({ r, rect, uid, options }: BodyProps & { options:
 
   // ---- reference line ----
   for (const card of ['y1AxisReferenceLine', 'referenceLine'] as const) {
-    if (!r.bool(card, 'show', false)) continue;
+    if (!r.hasCard(card) || !r.bool(card, 'show', false)) continue;
     const value = Math.min(domainMax, Math.max(0, r.num(card, 'value', domainMax * 0.6) || domainMax * 0.6));
     const p = valueScale(value);
     const lc = r.color(card, 'lineColor', r.structural.first);
@@ -436,8 +454,9 @@ export function CartesianChart({ r, rect, uid, options }: BodyProps & { options:
       ticks.forEach((t, i) => nodes.push(<text key={`vl${i}`} x={plot.x - 6} y={valueScale(t) + valLabelFont.sizePx * 0.35} textAnchor="end" {...textProps(valLabelFont)}>{tickLabels[i]}</text>));
     }
     if (y2Axis?.show) {
-      ticks.forEach((t, i) => nodes.push(<text key={`y2l${i}`} x={plot.x + plot.width + 6} y={valueScale(t) + y2Axis.font.sizePx * 0.35} textAnchor="start" {...textProps(y2Axis.font)}>{tickLabels[i]}</text>));
-      if (y2Axis.showTitle) nodes.push(<text key="y2t" transform={`translate(${right + y2Axis.titleFont.sizePx * 0.4 + maxLabelWidth(tickLabels, y2Axis.font) + 10},${plot.y + plot.height / 2}) rotate(90)`} textAnchor="middle" {...textProps(y2Axis.titleFont)}>{y2Axis.titleText}</text>);
+      const secScaleAxis = linear([0, secDomainMax], [plot.y + plot.height, plot.y]);
+      secTicks.forEach((t, i) => nodes.push(<text key={`y2l${i}`} data-part="secondary-axis" x={plot.x + plot.width + 6} y={secScaleAxis(t) + y2Axis.font.sizePx * 0.35} textAnchor="start" {...textProps(y2Axis.font)}>{secTickLabels[i]}</text>));
+      if (y2Axis.showTitle) nodes.push(<text key="y2t" transform={`translate(${right + y2Axis.titleFont.sizePx * 0.4 + maxLabelWidth(secTickLabels, y2Axis.font) + 10},${plot.y + plot.height / 2}) rotate(90)`} textAnchor="middle" {...textProps(y2Axis.titleFont)}>{y2Axis.titleText}</text>);
     }
     if (valAxis.showTitle) nodes.push(<text key="vt" transform={`translate(${afterLegend.x + valAxis.titleFont.sizePx},${plot.y + plot.height / 2}) rotate(-90)`} textAnchor="middle" {...textProps(valAxis.titleFont)}>{valAxis.titleText}</text>);
     if (catAxis.showTitle) nodes.push(<text key="ct" x={plot.x + plot.width / 2} y={afterLegend.y + afterLegend.height - 2 - (zoomShow ? 10 : 0)} textAnchor="middle" {...textProps(catAxis.titleFont)}>{catAxis.titleText}</text>);

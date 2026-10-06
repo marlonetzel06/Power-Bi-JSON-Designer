@@ -1,14 +1,14 @@
 import { ChevronsDownUp, ChevronsUpDown, Copy, RotateCcw } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useLocale, useT } from '@/i18n';
-import { getVisualCard } from '@/pbi/catalog';
-import { cardLabel, visualLabel } from '@/pbi/curation/labels';
+import { getVisualCard, getVisualStates } from '@/pbi/catalog';
+import { cardLabel, stateLabel, visualLabel } from '@/pbi/curation/labels';
 import { COMMON_CARDS, PAGE_CARDS, VISUAL_CARDS } from '@/pbi/curation/selection';
 import { GLOBAL_KEY, PAGE_KEY } from '@/pbi/types';
 import { useModified } from '@/store/selectors';
 import { useThemeStore } from '@/store/theme';
 import { useUiStore } from '@/store/uiStore';
-import { Badge, ConfirmDialog, EmptyState, FormatCard, IconButton, SearchField, Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui';
+import { Badge, ConfirmDialog, EmptyState, FormatCard, IconButton, SearchField, SegmentedControl, Select, Tabs, TabsContent, TabsList, TabsTrigger, Tooltip } from '@/ui';
 import { VisualIcon } from '../visualGallery/icons';
 import { CopyVisualDialog } from './CopyVisualDialog';
 import { FormatCards } from './FormatCards';
@@ -32,6 +32,8 @@ export function FormatPane() {
   const setTab = useUiStore((s) => s.setFormatTab);
   const setAll = useUiStore((s) => s.setAllCardsExpanded);
   const resetVisual = useThemeStore((s) => s.resetVisual);
+  const previewState = useUiStore((s) => (selection.kind === 'visual' ? s.previewState[selection.key] : undefined));
+  const setPreviewState = useUiStore((s) => s.setPreviewState);
   const modified = useModified();
   const [query, setQuery] = useState('');
   const [confirmReset, setConfirmReset] = useState(false);
@@ -44,6 +46,8 @@ export function FormatPane() {
   const visualCards = useMemo(() => (visualKey && !isPage && !isGlobal ? (VISUAL_CARDS[visualKey] ?? []).filter((c) => !COMMON_CARDS.includes(c)) : []), [visualKey, isPage, isGlobal]);
   const generalCards = useMemo(() => (visualKey && !isPage ? COMMON_CARDS.filter((c) => getVisualCard(visualKey, c)) : []), [visualKey, isPage]);
   const count = visualKey ? (modified.cardCounts[visualKey] ?? 0) : 0;
+  const states = useMemo(() => (visualKey && !isPage && !isGlobal ? getVisualStates(visualKey) : undefined), [visualKey, isPage, isGlobal]);
+  const stateId = states ? (previewState && states.includes(previewState) ? previewState : 'default') : undefined;
 
   if (!visualKey) {
     return <EmptyState compact title={t('format.noSelection')} className="py-10" />;
@@ -67,11 +71,37 @@ export function FormatPane() {
   );
 
   const tools = (
-    <div className="flex items-center gap-1 px-3 py-2">
-      <SearchField value={query} onValueChange={setQuery} placeholder={t('format.searchPlaceholder')} aria-label={t('format.searchPlaceholder')} clearLabel={t('action.clearFilter')} className="min-w-0 flex-1" data-testid="format-search" />
-      <IconButton label={t('action.expandAll')} size="sm" onClick={() => setAll(visualKey, [...allCards], true)}><ChevronsUpDown size={15} /></IconButton>
-      <IconButton label={t('action.collapseAll')} size="sm" onClick={() => setAll(visualKey, [...allCards], false)}><ChevronsDownUp size={15} /></IconButton>
-    </div>
+    <>
+      <div className="flex items-center gap-1 px-3 py-2">
+        <SearchField value={query} onValueChange={setQuery} placeholder={t('format.searchPlaceholder')} aria-label={t('format.searchPlaceholder')} clearLabel={t('action.clearFilter')} className="min-w-0 flex-1" data-testid="format-search" />
+        <IconButton label={t('action.expandAll')} size="sm" onClick={() => setAll(visualKey, [...allCards], true)}><ChevronsUpDown size={15} /></IconButton>
+        <IconButton label={t('action.collapseAll')} size="sm" onClick={() => setAll(visualKey, [...allCards], false)}><ChevronsDownUp size={15} /></IconButton>
+      </div>
+      {states && stateId && (
+        <div className="flex items-center gap-2 px-3 pb-2" data-testid="format-state">
+          <Tooltip content={t('format.stateHint')}><span className="shrink-0 text-[12px] text-text-muted">{t('format.state')}</span></Tooltip>
+          {states.length <= 4 ? (
+            <SegmentedControl
+              size="sm"
+              aria-label={t('format.state')}
+              value={stateId}
+              onValueChange={(v) => setPreviewState(visualKey, v)}
+              options={states.map((st) => ({ value: st, label: stateLabel(locale, st), 'aria-label': stateLabel(locale, st) }))}
+              className="min-w-0 flex-1 overflow-x-auto"
+            />
+          ) : (
+            <Select
+              size="sm"
+              aria-label={t('format.state')}
+              value={stateId}
+              onValueChange={(v) => setPreviewState(visualKey, v)}
+              options={states.map((st) => ({ value: st, label: stateLabel(locale, st) }))}
+              className="min-w-0 flex-1"
+            />
+          )}
+        </div>
+      )}
+    </>
   );
 
   return (
@@ -92,10 +122,10 @@ export function FormatPane() {
           </TabsList>
           {tools}
           <TabsContent value="visual" className="min-h-0 flex-1 overflow-y-auto px-3 pb-4 outline-none">
-            {visualCards.length === 0 ? <EmptyState compact title={t('format.noCards')} /> : matchedVisual.length === 0 ? <EmptyState compact title={t('format.noMatch', { query })} /> : <FormatCards visualKey={visualKey} cards={matchedVisual} query={q} />}
+            {visualCards.length === 0 ? <EmptyState compact title={t('format.noCards')} /> : matchedVisual.length === 0 ? <EmptyState compact title={t('format.noMatch', { query })} /> : <FormatCards visualKey={visualKey} cards={matchedVisual} query={q} stateId={stateId} />}
           </TabsContent>
           <TabsContent value="general" className="min-h-0 flex-1 overflow-y-auto px-3 pb-4 outline-none">
-            {matchedGeneral.length === 0 ? <EmptyState compact title={t('format.noMatch', { query })} /> : <GeneralGroups visualKey={visualKey} groups={matchedGeneral} query={q} />}
+            {matchedGeneral.length === 0 ? <EmptyState compact title={t('format.noMatch', { query })} /> : <GeneralGroups visualKey={visualKey} groups={matchedGeneral} query={q} stateId={stateId} />}
           </TabsContent>
         </Tabs>
       )}
@@ -113,7 +143,7 @@ export function FormatPane() {
   );
 }
 
-function GeneralGroups({ visualKey, groups, query }: { visualKey: string; groups: typeof GENERAL_GROUPS; query: string }) {
+function GeneralGroups({ visualKey, groups, query, stateId }: { visualKey: string; groups: typeof GENERAL_GROUPS; query: string; stateId?: string }) {
   const t = useT();
   const locale = useLocale();
   const expanded = useUiStore((s) => s.expandedCards[`${visualKey}:general`]);
@@ -124,10 +154,10 @@ function GeneralGroups({ visualKey, groups, query }: { visualKey: string; groups
       {groups.map((g) => {
         const changed = g.cards.some((c) => modified.cards[visualKey]?.has(c));
         const single = g.cards.length === 1 && cardLabel(locale, visualKey, g.cards[0]!) === t(g.labelKey);
-        if (single) return <FormatCards key={g.id} visualKey={visualKey} cards={g.cards} query={query} />;
+        if (single) return <FormatCards key={g.id} visualKey={visualKey} cards={g.cards} query={query} stateId={stateId} />;
         return (
           <FormatCard key={g.id} id={`group-${visualKey}-${g.id}`.replace(/[^a-zA-Z0-9_-]/g, '_')} level="section" title={t(g.labelKey)} modified={changed} open={query ? true : (expanded ? expanded.includes(g.id) : g.id === 'title')} onOpenChange={(o) => setCardExpanded(`${visualKey}:general`, g.id, o)}>
-            <FormatCards visualKey={visualKey} cards={g.cards} query={query} />
+            <FormatCards visualKey={visualKey} cards={g.cards} query={query} stateId={stateId} />
           </FormatCard>
         );
       })}

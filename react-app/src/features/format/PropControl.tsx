@@ -3,7 +3,7 @@ import { useLocale, useT } from '@/i18n';
 import type { CatalogProp } from '@/pbi/catalog';
 import { enumLabel, propLabel } from '@/pbi/curation/labels';
 import type { Resolved, ValueSource } from '@/pbi/resolve';
-import { solid } from '@/pbi/types';
+import { solid, type PropValue } from '@/pbi/types';
 import { useThemeStore } from '@/store/theme';
 import { ColorField, Field, Input, NumberInput, Select, Switch } from '@/ui';
 import { fontOptions } from './fonts';
@@ -14,6 +14,10 @@ export interface PropControlProps {
   prop: CatalogProp;
   value: Resolved;
   source: ValueSource;
+  /** Stored value for object-typed properties (shown read-only). */
+  raw?: PropValue;
+  /** `$id` state the control writes to. */
+  stateId?: string;
 }
 
 const FONT_SIZE_KEYS = new Set(['fontSize', 'textSize', 'titleFontSize', 'secFontSize', 'secTitleFontSize', 'valueFontSize', 'detailFontSize', 'levelTitleFontSize', 'levelSubtitleFontSize', 'categoryLabelFontSize', 'dataLabelFontSize', 'titleSize', 'headerSize', 'searchTextSize']);
@@ -21,11 +25,12 @@ const PERCENT_KEYS = /transparency|Transparency|Percent|innerPadding|labelDensit
 const PX_KEYS = /^(width|weight|radius|top|bottom|left|right|borderSize|borderWidth|strokeWidth|markerSize|shadowBlur|shadowDistance|shadowSpread|gridlineThickness|gridLineWidth|steppedLayoutIndentation|rowPadding|imageHeight|rectangleRoundedCurve|roundEdge|barWeight|pageSizeWidth|pageSizeHeight|outlineWeight|iconSize|size|spacing|cardPadding|gridVerticalWeight|gridHorizontalWeight)$/;
 
 /** Renders the right control for a catalog property and writes to the store. */
-export const PropControl = memo(function PropControl({ visualKey, cardKey, prop, value, source }: PropControlProps) {
+export const PropControl = memo(function PropControl({ visualKey, cardKey, prop, value, source, raw, stateId }: PropControlProps) {
   const t = useT();
   const locale = useLocale();
-  const setCardProp = useThemeStore((s) => s.setCardProp);
-  const id = `${visualKey}-${cardKey}-${prop.key}`.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const setProp = useThemeStore((s) => s.setCardProp);
+  const setCardProp = (vk: string, ck: string, pk: string, v: PropValue | undefined) => setProp(vk, ck, pk, v, stateId);
+  const id = `${visualKey}-${cardKey}-${prop.key}${stateId ? `-${stateId}` : ''}`.replace(/[^a-zA-Z0-9_-]/g, '_');
   const label = propLabel(locale, prop);
   const sourceLabel = source === 'visual' ? t('format.setOnVisual') : source === 'global' ? t('format.inheritedFromGlobal') : source === 'base' ? t('format.inheritedBase') : t('format.inheritedDefault');
 
@@ -51,18 +56,24 @@ export const PropControl = memo(function PropControl({ visualKey, cardKey, prop,
         </Field>
       );
     case 'number':
-    case 'integer': {
-      const suffix = FONT_SIZE_KEYS.has(prop.key) ? 'pt' : PERCENT_KEYS.test(prop.key) ? '%' : PX_KEYS.test(prop.key) ? 'px' : prop.key.toLowerCase().includes('angle') || prop.key.toLowerCase().includes('rotation') ? '°' : undefined;
+    case 'integer':
+    case 'mixed': {
+      // `mixed` reaches here only for number|string unions (axis start/end): a number input, empty = automatic.
+      const isTransparency = /transparency/i.test(prop.key);
+      const suffix = FONT_SIZE_KEYS.has(prop.key) ? 'pt' : isTransparency || PERCENT_KEYS.test(prop.key) ? '%' : PX_KEYS.test(prop.key) ? 'px' : prop.key.toLowerCase().includes('angle') || prop.key.toLowerCase().includes('rotation') ? '°' : undefined;
+      const min = prop.min ?? (isTransparency ? 0 : undefined);
+      const max = prop.max ?? (isTransparency ? 100 : undefined);
       return (
         <Field id={id} label={label} inline source={source} sourceLabel={sourceLabel}>
           <NumberInput
             id={id}
             className="h-7 w-[96px]"
-            value={typeof value === 'number' ? value : undefined}
-            min={prop.min}
-            max={prop.max}
+            value={typeof value === 'number' ? value : typeof value === 'string' && value !== '' && Number.isFinite(Number(value)) ? Number(value) : undefined}
+            min={min}
+            max={max}
             integer={prop.type === 'integer'}
             suffix={suffix}
+            placeholder={prop.type === 'mixed' ? t('format.auto') : undefined}
             onValueChange={(n) => setCardProp(visualKey, cardKey, prop.key, n)}
           />
         </Field>
@@ -110,6 +121,16 @@ export const PropControl = memo(function PropControl({ visualKey, cardKey, prop,
             }}
             onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
           />
+        </Field>
+      );
+    }
+    case 'object': {
+      // image / fillRule / themeDataColor: shown as stored, editable via JSON only
+      const stored = raw !== undefined && raw !== null ? raw : undefined;
+      const summary = stored && typeof stored === 'object' && 'name' in (stored as Record<string, unknown>) ? String((stored as Record<string, unknown>).name) : stored !== undefined ? JSON.stringify(stored) : '—';
+      return (
+        <Field id={id} label={label} hint={t('format.objectOnlyJson')} source={source} sourceLabel={sourceLabel}>
+          <code className="block max-h-16 overflow-auto rounded-sm bg-surface-subtle px-1.5 py-1 font-mono text-[11px] text-text-muted" title={stored !== undefined ? JSON.stringify(stored) : undefined}>{summary}</code>
         </Field>
       );
     }

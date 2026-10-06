@@ -169,6 +169,19 @@ export const CARD_PROPS: Record<string, PropList> = {
   displayArea: ['verticalAlignment'],
 };
 
+/** Combo charts: the secondary Y axis is part of `valueAxis` (sec* properties) — there is no y2Axis card. */
+const VALUE_AXIS_COMBO: readonly string[] = [
+  ...(CARD_PROPS.valueAxis as readonly string[]),
+  'secShow', 'secAxisStyle', 'secLabelColor', 'secFontFamily', 'secFontSize', 'secBold', 'secItalic', 'secUnderline',
+  'secShowAxisTitle', 'secTitleText', 'secTitleColor', 'secTitleFontFamily', 'secTitleFontSize', 'secTitleBold', 'secTitleItalic', 'secTitleUnderline',
+  'secLabelDisplayUnits', 'secLabelPrecision', 'secLogAxisScale', 'alignZeros',
+];
+
+/** Card-visual / button-slicer variants of the common container cards (different property sets than the shared cards). */
+const CARD_VISUAL_PADDING: readonly string[] = ['paddingSelection', 'topMargin', 'bottomMargin', 'leftMargin', 'rightMargin'];
+const CARD_VISUAL_SPACING: readonly string[] = ['verticalSpacing'];
+const SLICER_BACKGROUND: readonly string[] = ['show', 'color', 'transparency', 'wrapContent'];
+
 /** Common container cards shown on the "Allgemein" tab, in Power BI order. */
 export const COMMON_CARDS: readonly string[] = ['title', 'subTitle', 'background', 'border', 'dropShadow', 'visualHeader', 'padding', 'spacing', 'divider', 'visualTooltip'];
 
@@ -178,7 +191,7 @@ export const PAGE_CARDS: readonly string[] = ['pageSize', 'background', 'outspac
 const CARTESIAN_BAR: readonly string[] = ['legend', 'categoryAxis', 'valueAxis', 'labels', 'dataPoint', 'plotArea', 'trend', 'zoom', 'totals', 'smallMultiplesLayout', 'y1AxisReferenceLine', 'xAxisReferenceLine', 'ribbonBands', 'layout'];
 const CARTESIAN_CLUSTERED: readonly string[] = ['legend', 'categoryAxis', 'valueAxis', 'labels', 'dataPoint', 'plotArea', 'trend', 'zoom', 'smallMultiplesLayout', 'y1AxisReferenceLine', 'xAxisReferenceLine', 'layout'];
 const CARTESIAN_LINE: readonly string[] = ['legend', 'categoryAxis', 'valueAxis', 'y2Axis', 'labels', 'dataPoint', 'lineStyles', 'markers', 'seriesLabels', 'plotArea', 'trend', 'forecast', 'referenceLine', 'zoom', 'smallMultiplesLayout'];
-const CARTESIAN_AREA: readonly string[] = ['legend', 'categoryAxis', 'valueAxis', 'labels', 'dataPoint', 'lineStyles', 'markers', 'seriesLabels', 'plotArea', 'trend', 'referenceLine', 'zoom', 'smallMultiplesLayout'];
+const CARTESIAN_AREA: readonly string[] = ['legend', 'categoryAxis', 'valueAxis', 'y2Axis', 'labels', 'dataPoint', 'lineStyles', 'markers', 'seriesLabels', 'plotArea', 'trend', 'referenceLine', 'zoom', 'smallMultiplesLayout'];
 const CARTESIAN_STACKED_AREA: readonly string[] = ['legend', 'categoryAxis', 'valueAxis', 'labels', 'dataPoint', 'lineStyles', 'markers', 'seriesLabels', 'plotArea', 'trend', 'zoom', 'smallMultiplesLayout'];
 const COMBO_STACKED: readonly string[] = ['legend', 'categoryAxis', 'valueAxis', 'labels', 'dataPoint', 'lineStyles', 'markers', 'seriesLabels', 'plotArea', 'zoom', 'smallMultiplesLayout'];
 const COMBO: readonly string[] = ['legend', 'categoryAxis', 'valueAxis', 'labels', 'dataPoint', 'lineStyles', 'markers', 'seriesLabels', 'plotArea', 'trend', 'referenceLine', 'zoom', 'smallMultiplesLayout'];
@@ -234,6 +247,8 @@ export const VISUAL_CARDS: Record<string, readonly string[]> = {
 
 /** Per-visual property overrides where a card name is reused with a different property set. */
 export const VISUAL_CARD_PROPS: Record<string, Record<string, PropList>> = {
+  lineClusteredColumnComboChart: { valueAxis: VALUE_AXIS_COMBO },
+  lineStackedColumnComboChart: { valueAxis: VALUE_AXIS_COMBO },
   lineChart: { dataPoint: ['defaultColor', 'showAllDataPoints', 'transparency'] },
   areaChart: { dataPoint: ['defaultColor', 'showAllDataPoints', 'transparency'] },
   stackedAreaChart: { dataPoint: ['defaultColor', 'showAllDataPoints', 'transparency'] },
@@ -263,21 +278,32 @@ export const VISUAL_CARD_PROPS: Record<string, Record<string, PropList>> = {
   },
   cardVisual: {
     layout: ['style', 'alignment', 'orientation', 'columnCount', 'rowCount', 'cellPadding', 'rectangleRoundedCurve', 'backgroundShow', 'backgroundFillColor', 'backgroundTransparency', 'borderWidth', 'borderColor', 'borderStyle', 'borderTransparency'],
+    border: ['show', 'color', 'width', 'style', 'transparency'],
+    divider: ['show', 'dividerColor', 'dividerLineStyle', 'dividerWidth', 'dividerTransparency', 'dividerIgnorePadding'],
+    padding: CARD_VISUAL_PADDING,
+    spacing: CARD_VISUAL_SPACING,
   },
   multiRowCard: { categoryLabels: ['show', 'color', 'fontFamily', 'fontSize', 'bold', 'italic', 'underline'] },
   advancedSlicerVisual: {
+    background: SLICER_BACKGROUND,
+    padding: CARD_VISUAL_PADDING,
+    spacing: CARD_VISUAL_SPACING,
     selection: ['singleSelect', 'strictSingleSelect', 'selectAllCheckboxEnabled', 'restrictToLeafNodes'],
     layout: ['style', 'alignment', 'orientation', 'columnCount', 'rowCount', 'cellPadding', 'rectangleRoundedCurve', 'backgroundShow', 'backgroundFillColor', 'backgroundTransparency', 'borderWidth', 'borderColor', 'borderStyle', 'borderTransparency', 'maxTiles'],
     value: ['show', 'fontColor', 'fontFamily', 'fontSize', 'bold', 'italic', 'underline', 'horizontalAlignment', 'verticalAlignment', 'textWrap', 'transparency'],
     label: ['show', 'position', 'fontColor', 'fontFamily', 'fontSize', 'bold', 'italic', 'underline', 'horizontalAlignment', 'textWrap', 'transparency'],
   },
   listSlicer: {
+    background: SLICER_BACKGROUND,
+    padding: CARD_VISUAL_PADDING,
+    spacing: CARD_VISUAL_SPACING,
     selection: ['singleSelect', 'strictSingleSelect', 'selectAllCheckboxEnabled', 'restrictToLeafNodes'],
     layout: ['style', 'alignment', 'orientation', 'columnCount', 'rowCount', 'cellPadding', 'rectangleRoundedCurve', 'backgroundShow', 'backgroundFillColor', 'backgroundTransparency', 'borderWidth', 'borderColor', 'borderStyle', 'borderTransparency', 'maxTiles'],
     value: ['show', 'fontColor', 'fontFamily', 'fontSize', 'bold', 'italic', 'underline', 'horizontalAlignment', 'verticalAlignment', 'textWrap', 'transparency'],
     label: ['show', 'position', 'fontColor', 'fontFamily', 'fontSize', 'bold', 'italic', 'underline', 'horizontalAlignment', 'textWrap', 'transparency'],
   },
   pivotTable: {
+    grid: ['gridVertical', 'gridVerticalColor', 'gridVerticalWeight', 'gridHorizontal', 'gridHorizontalColor', 'gridHorizontalWeight', 'outlineColor', 'outlineStyle', 'outlineWeight', 'rowPadding', 'textSize', 'imageHeight', 'imageWidth'],
     columnHeaders: ['fontColor', 'fontFamily', 'fontSize', 'bold', 'italic', 'underline', 'backColor', 'alignment', 'titleAlignment', 'outlineColor', 'outlineStyle', 'outlineWeight', 'wordWrap', 'autoSizeColumnWidth'],
     values: ['fontColor', 'fontFamily', 'fontSize', 'bold', 'italic', 'underline', 'backColor', 'backColorPrimary', 'backColorSecondary', 'fontColorPrimary', 'fontColorSecondary', 'bandedRowHeaders', 'valuesOnRow', 'outlineColor', 'outlineStyle', 'outlineWeight', 'wordWrap', 'urlIcon'],
     total: ['applyToHeaders', 'fontColor', 'fontFamily', 'fontSize', 'bold', 'italic', 'underline', 'backColor'],

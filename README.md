@@ -88,7 +88,7 @@ npm run generate:catalog   # nach einem Schema-Update neu erzeugen und committen
 
 - **Die Vorschau ist eine Nachbildung.** Geometrie, Beschriftungslogik und automatische Skalierung von Power BI werden angenähert, nicht reproduziert. Auf macOS und Linux fehlt Segoe UI, es wird mit IBM Plex Sans gerendert. Für die Abnahme eines Designs bleibt der Live-Modus oder Power BI Desktop der Referenzpunkt.
 - **Live-Modus** ist implementiert und mit simuliertem MSAL getestet, aber nicht gegen einen echten Tenant verifiziert.
-- **Bedingte Formatierung, Stilvorlagen (`stylePresets`) und `$id`-Zustände** werden beim Import erhalten und exportiert, aber nicht im Editor bearbeitet.
+- **Bedingte Formatierung (`fillRule`), Bild-Objekte und Stilvorlagen (`stylePresets`)** werden beim Import erhalten, exportiert und schreibgeschützt angezeigt, aber nicht im Editor bearbeitet. `$id`-Zustände (Filterkarten „Angewendet/Verfügbar“, Schaltflächen-/Datenschnitt-Zustände, Matrix-Zwischensummen Zeilen/Spalten) sind editierbar und werden in der Vorschau dargestellt.
 - Die kuratierten Eigenschaften decken die wichtigen Karten ab, nicht das vollständige Schema; alles andere ist nur über JSON erreichbar.
 - `powerbi/All_visuals_template.pbix` enthält Tenant- und Arbeitsbereichs-IDs aus dem Ursprungsreport (keine Geheimnisse). Bereinigung nur mit Power BI Desktop möglich.
 - Gemessene Bearbeitungslatenz im Produktions-Build: ca. 23 ms pro Änderung bei geöffnetem Formatbereich und 43 Visuals auf der Seite (Chromium, 1680 px). Im Dev-Server ist es wegen der React-Entwicklungsinstrumentierung ein Mehrfaches.
@@ -122,7 +122,7 @@ The app works fully with the mock preview and no configuration. To enable the li
 
 ### Known limitations
 
-The preview is an approximation of Power BI's rendering (no Segoe UI on macOS/Linux); the live mode is tested with a simulated MSAL only; conditional formatting, style presets and `$id` states are preserved but not editable; the sample `.pbix` still carries tenant and workspace IDs from the original report.
+The preview is an approximation of Power BI's rendering (no Segoe UI on macOS/Linux); the live mode is tested with a simulated MSAL only; conditional formatting (`fillRule`), image objects and style presets are preserved and shown read-only but not editable, while `$id` states (filter cards applied/available, button and slicer states, matrix subtotals rows/columns) are editable with a state preview; the sample `.pbix` still carries tenant and workspace IDs from the original report.
 
 ### Development
 

@@ -15,10 +15,12 @@ export interface FormatCardsProps {
   defaultOpen?: boolean;
   /** Single card without its own header (theme pane sections that are one card). */
   flat?: boolean;
+  /** `$id` state the cards edit (visual-level state switch or an explicit state like filter card "Applied"). */
+  stateId?: string;
 }
 
 /** A list of format cards for a visual with per-visual expanded-state memory. */
-export function FormatCards({ visualKey, cards, query = '', memoryKey, defaultOpen = false, flat }: FormatCardsProps) {
+export function FormatCards({ visualKey, cards, query = '', memoryKey, defaultOpen = false, flat, stateId }: FormatCardsProps) {
   const locale = useLocale();
   const key = memoryKey ?? visualKey;
   const expanded = useUiStore((s) => s.expandedCards[key]);
@@ -39,6 +41,7 @@ export function FormatCards({ visualKey, cards, query = '', memoryKey, defaultOp
           onOpenChange={(o) => setCardExpanded(key, c, o)}
           modified={modifiedSet?.has(c) ?? false}
           flat={flat && visible.length === 1}
+          stateId={stateId}
         />
       ))}
     </div>

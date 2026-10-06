@@ -56,10 +56,11 @@ function ButtonFace({ r, rc, label, uidKey, selected, defaultOutline, textDefaul
   const font = r.font('text', 'fontColor', textDefaultColor, 12);
   const hAlign = r.str('text', 'horizontalAlignment', 'center');
   const vAlign = r.str('text', 'verticalAlignment', 'middle');
-  const accentShow = r.bool('accentBar', 'show', false);
-  const accentColor = r.color('accentBar', 'color', r.dataColor(0));
-  const accentW = r.num('accentBar', 'width', 3);
-  const accentPos = r.str('accentBar', 'position', 'Bottom');
+  // navigators have an accent bar card, the action button does not
+  const accentShow = r.hasCard('accentBar') && r.bool('accentBar', 'show', false);
+  const accentColor = accentShow ? r.color('accentBar', 'color', r.dataColor(0)) : 'none';
+  const accentW = accentShow ? r.num('accentBar', 'width', 3) : 0;
+  const accentPos = accentShow ? r.str('accentBar', 'position', 'Bottom') : 'Bottom';
   const filterId = `${uidKey}-fx`;
   const tx = hAlign === 'left' ? rc.x + 10 : hAlign === 'right' ? rc.x + rc.width - 10 : rc.x + rc.width / 2;
   const ty = vAlign === 'top' ? rc.y + font.sizePx + 6 : vAlign === 'bottom' ? rc.y + rc.height - 8 : rc.y + rc.height / 2 + font.sizePx * 0.35;

@@ -47,6 +47,23 @@ describe('theme store', () => {
     expect(resolveProp(useThemeStore.getState().theme, 'pieChart', 'slices', 'startAngle')).toBe(0); // curated default
   });
 
+  it('writes $id states into their own entry and never splits the default entry', () => {
+    const s = useThemeStore.getState();
+    s.setCardProp('page', 'filterCard', 'foregroundColor', solid('#AA0000'), 'Applied');
+    s.setCardProp('page', 'filterCard', 'border', false, 'Available');
+    s.setCardProp('page', 'filterCard', 'transparency', 10);
+    let entries = useThemeStore.getState().theme.visualStyles!.page!['*']!.filterCard!;
+    expect(entries).toEqual([{ transparency: 10 }, { $id: 'Applied', foregroundColor: solid('#AA0000') }, { $id: 'Available', border: false }]);
+    s.setCardProp('page', 'filterCard', 'foregroundColor', undefined, 'Applied');
+    entries = useThemeStore.getState().theme.visualStyles!.page!['*']!.filterCard!;
+    expect(entries).toEqual([{ transparency: 10 }, { $id: 'Available', border: false }]);
+    // a card that only has a `$id: "default"` entry receives default-state writes in that entry
+    useThemeStore.getState().loadTheme({ name: 'd', visualStyles: { actionButton: { '*': { fill: [{ $id: 'default', show: true }] } } } });
+    useThemeStore.getState().setCardProp('actionButton', 'fill', 'fillColor', solid('#010101'));
+    useThemeStore.getState().setCardProp('actionButton', 'fill', 'fillColor', solid('#020202'), 'hover');
+    expect(useThemeStore.getState().theme.visualStyles!.actionButton!['*']!.fill).toEqual([{ $id: 'default', show: true, fillColor: solid('#010101') }, { $id: 'hover', fillColor: solid('#020202') }]);
+  });
+
   it('supports undo and redo', async () => {
     // edits within 400 ms of the previous recorded change are coalesced into one undo step
     await new Promise((r) => setTimeout(r, 450));

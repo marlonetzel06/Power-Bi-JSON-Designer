@@ -18,7 +18,7 @@ const SPECIFIC: Record<string, [card: string, prop: string, extra?: Record<strin
   barChart: ['categoryAxis', 'labelColor'], clusteredBarChart: ['valueAxis', 'gridlineColor', { gridlineShow: true }], hundredPercentStackedBarChart: ['labels', 'color', { show: true }],
   columnChart: ['legend', 'labelColor', { show: true }], clusteredColumnChart: ['valueAxis', 'labelColor'], hundredPercentStackedColumnChart: ['categoryAxis', 'labelColor'],
   lineChart: ['legend', 'labelColor', { show: true }], areaChart: ['valueAxis', 'labelColor'], stackedAreaChart: ['categoryAxis', 'labelColor'], hundredPercentStackedAreaChart: ['valueAxis', 'labelColor'],
-  lineClusteredColumnComboChart: ['y2Axis', 'secLabelColor', { show: true }], lineStackedColumnComboChart: ['valueAxis', 'labelColor'], ribbonChart: ['categoryAxis', 'labelColor'], waterfallChart: ['sentimentColors', 'increaseFill'],
+  lineClusteredColumnComboChart: ['valueAxis', 'secLabelColor', { secShow: true }], lineStackedColumnComboChart: ['valueAxis', 'labelColor'], ribbonChart: ['categoryAxis', 'labelColor'], waterfallChart: ['sentimentColors', 'increaseFill'],
   scatterChart: ['valueAxis', 'labelColor'], funnel: ['percentBarLabel', 'color', { show: true }], pieChart: ['labels', 'color', { show: true }], donutChart: ['legend', 'labelColor', { show: true }], treemap: ['categoryLabels', 'color', { show: true }],
   map: ['legend', 'labelColor', { show: true }], filledMap: ['legend', 'labelColor', { show: true }], shapeMap: ['legend', 'labelColor', { show: true }], azureMap: ['legend', 'labelColor', { show: true }],
   cardVisual: ['value', 'fontColor'], card: ['labels', 'color'], multiRowCard: ['dataLabels', 'color'], kpi: ['indicator', 'fontColor'], gauge: ['calloutValue', 'color', { show: true }],

@@ -20,12 +20,16 @@ export interface CatalogProp {
   min?: number;
   max?: number;
   ref?: string;
+  /** For `mixed`: the JSON types the schema allows (e.g. ["number", "string"] for axis start/end). */
+  kinds?: string[];
 }
 
 export interface CatalogCard {
   key: string;
   title?: string;
   props: CatalogProp[];
+  /** `$id` values the card accepts (button states, filter card Applied/Available, matrix Row/Column). */
+  states?: string[];
 }
 
 interface CatalogShape {
@@ -45,6 +49,8 @@ const catalog = catalogJson as unknown as CatalogShape;
 
 export const SCHEMA_VERSION = catalog.schemaVersion;
 export const SCHEMA_FILE = catalog.schemaFile;
+/** Official location of the vendored schema file (Microsoft publishes it in powerbi-desktop-samples). */
+export const SCHEMA_REF = `https://raw.githubusercontent.com/microsoft/powerbi-desktop-samples/main/Report-Theme-JSON-Schema/${SCHEMA_FILE}`;
 export const TEXT_CLASS_NAMES = catalog.textClasses;
 export const TOP_LEVEL_COLOR_KEYS = catalog.topLevelColors;
 export const ALL_SCHEMA_VISUAL_KEYS = catalog.allVisualKeys;
@@ -84,6 +90,31 @@ export function getAllCardKeys(visualKey: string): readonly string[] {
 
 export function getProp(visualKey: string, cardKey: string, propKey: string): CatalogProp | undefined {
   return getVisualCard(visualKey, cardKey)?.props.find((p) => p.key === propKey);
+}
+
+/** `$id` states of a card (undefined when the card has no states). */
+export function getCardStates(visualKey: string, cardKey: string): readonly string[] | undefined {
+  return getVisualCard(visualKey, cardKey)?.states;
+}
+
+/**
+ * States shared by at least two cards of a visual (buttons: fill/text/outline/… all take
+ * default|hover|selected|disabled). Shown as one "state" switch for the whole visual, like
+ * Power BI's "Apply settings to → State".
+ */
+export function getVisualStates(visualKey: string): readonly string[] | undefined {
+  const counts = new Map<string, { states: string[]; n: number }>();
+  for (const card of getAllCardKeys(visualKey)) {
+    const states = getCardStates(visualKey, card);
+    if (!states) continue;
+    const key = states.join('|');
+    const hit = counts.get(key);
+    if (hit) hit.n++;
+    else counts.set(key, { states: [...states], n: 1 });
+  }
+  let best: { states: string[]; n: number } | undefined;
+  for (const c of counts.values()) if (c.n >= 2 && (!best || c.n > best.n)) best = c;
+  return best?.states;
 }
 
 export function isCuratedVisual(key: string): boolean {

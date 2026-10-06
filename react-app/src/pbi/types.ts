@@ -54,12 +54,19 @@ export type ThemeColorKey =
   | 'backgroundLight' | 'backgroundNeutral' | 'backgroundDark' | 'hyperlink' | 'visitedHyperlink' | 'shapeStroke'
   | 'disabledText' | 'mapPushpin';
 
+/** Custom icon registered by the theme (`icons`), referenced by name from conditional formatting. */
+export interface ThemeIcon {
+  url: string;
+  description?: string;
+}
+
 export type ReportTheme = {
   $schema?: string;
   name: string;
   dataColors?: string[];
   textClasses?: TextClasses;
   visualStyles?: VisualStyles;
+  icons?: Record<string, ThemeIcon> | ThemeIcon[];
 } & Partial<Record<ThemeColorKey, string>>;
 
 /** Identifier of the page pseudo-visual inside visualStyles. */
@@ -68,6 +75,20 @@ export const PAGE_KEY = 'page';
 export const GLOBAL_KEY = '*';
 /** Default style preset name. */
 export const DEFAULT_PRESET = '*';
+/** `$id` of the default state; entries without `$id` mean the same. */
+export const DEFAULT_STATE = 'default';
+
+/** True for the default state (no `$id` or `$id: "default"`). */
+export function isDefaultState(stateId: string | undefined): boolean {
+  return stateId === undefined || stateId === DEFAULT_STATE;
+}
+
+/** The card entry for a state: default = entry without `$id`, else `$id: "default"`; other states by `$id`. */
+export function findStateEntry(entries: readonly CardEntry[] | undefined, stateId?: string): CardEntry | undefined {
+  if (!entries) return undefined;
+  if (!isDefaultState(stateId)) return entries.find((e) => e.$id === stateId);
+  return entries.find((e) => e.$id === undefined) ?? entries.find((e) => e.$id === DEFAULT_STATE);
+}
 
 export function isSolidFill(value: unknown): value is SolidFill {
   return typeof value === 'object' && value !== null && 'solid' in value && typeof (value as SolidFill).solid === 'object';

@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { buildDeltaTheme, buildExportTheme, themeFileName } from './builder';
+import { SCHEMA_REF } from './catalog';
 import { THEME_INITIAL } from './defaults';
 import { PRESETS, applyPresetTo } from './presets';
 import { validateTheme } from './validate';
-import { solid, type ReportTheme } from './types';
+import { solid, type CardEntry, type PropValue, type ReportTheme } from './types';
+import { getAllCardKeys, getVisualCard, type CatalogProp } from './catalog';
+import { VISUAL_KEYS } from './curation/selection';
 
 describe('buildExportTheme', () => {
   it('produces a schema-valid theme for the initial theme', async () => {
@@ -48,7 +51,20 @@ describe('buildDeltaTheme', () => {
     theme.good = '#00FF00';
     theme.visualStyles!.barChart!['*']!.legend = [{ show: false }];
     const delta = buildDeltaTheme(theme, THEME_INITIAL);
-    expect(delta).toEqual({ name: THEME_INITIAL.name, good: '#00FF00', visualStyles: { barChart: { '*': { legend: [{ show: false }] } } } });
+    expect(delta).toEqual({ $schema: SCHEMA_REF, name: THEME_INITIAL.name, good: '#00FF00', visualStyles: { barChart: { '*': { legend: [{ show: false }] } } } });
+  });
+});
+
+describe('$schema', () => {
+  it('points every export at the official schema file the catalog was generated from', () => {
+    expect(SCHEMA_REF).toBe('https://raw.githubusercontent.com/microsoft/powerbi-desktop-samples/main/Report-Theme-JSON-Schema/reportThemeSchema-2.144.json');
+    expect(buildExportTheme(THEME_INITIAL).$schema).toBe(SCHEMA_REF);
+    expect(buildExportTheme(THEME_INITIAL, { schemaRef: null }).$schema).toBeUndefined();
+    expect(Object.keys(buildExportTheme(THEME_INITIAL))[0]).toBe('name');
+  });
+  it('keeps custom icons on export', () => {
+    const theme: ReportTheme = { name: 'x', icons: { Flag: { url: 'https://example.com/flag.svg', description: 'Flag' } } };
+    expect(buildExportTheme(theme).icons).toEqual(theme.icons);
   });
 });
 
@@ -77,6 +93,54 @@ describe('validateTheme', () => {
     expect(codes).toContain('schema.unknownVisual:visualStyles.decompositionTree');
     expect(codes).toContain('schema.unknownVisual:visualStyles.__page__');
     expect(codes).toContain('schema.unknownTextClassProp:textClasses.title.fontBold');
+  });
+
+  it('validates the report/filter/group scopes and visual-own variants of common cards', async () => {
+    const t: ReportTheme = {
+      name: 'scopes',
+      visualStyles: {
+        report: { '*': { outspacePane: [{ foo: 1 }], nope: [{ a: 1 }] } },
+        group: { '*': { background: [{ color: solid('#fff') }] } },
+        cardVisual: { '*': { border: [{ style: 'dashed', radius: 4 }] } },
+      },
+    };
+    const codes = (await validateTheme(t)).issues.map((i) => `${i.code}:${i.path}`);
+    expect(codes).toContain('schema.unknownCard:visualStyles.report.*.nope');
+    expect(codes).toContain('schema.unknownProperty:visualStyles.report.*.outspacePane.0.foo');
+    expect(codes).not.toContain('schema.unknownProperty:visualStyles.cardVisual.*.border.0.style');
+    expect(codes).toContain('schema.unknownProperty:visualStyles.cardVisual.*.border.0.radius');
+    expect(codes.filter((c) => c.includes('visualStyles.group'))).toEqual([]);
+  });
+
+  it('accepts a theme that sets every curated property of every visual (curation = schema)', async () => {
+    const theme: ReportTheme = { name: 'all', visualStyles: {} };
+    const sample = (p: CatalogProp): PropValue => {
+      switch (p.type) {
+        case 'boolean': return true;
+        case 'color': return solid('#123456');
+        case 'enum': return p.options?.[0]?.value ?? '';
+        case 'integer':
+        case 'number': return p.min ?? 1;
+        case 'string': return 'x';
+        case 'mixed': return p.kinds?.includes('number') ? 1 : 'x';
+        default: return { name: 'img', url: 'https://example.com/a.png' };
+      }
+    };
+    for (const vk of [...VISUAL_KEYS, '*', 'page']) {
+      const cards: Record<string, CardEntry[]> = {};
+      for (const ck of getAllCardKeys(vk)) {
+        const card = getVisualCard(vk, ck)!;
+        const entry: CardEntry = {};
+        for (const p of card.props) if (p.type !== 'object') entry[p.key] = sample(p);
+        const entries: CardEntry[] = [entry];
+        for (const st of card.states ?? []) entries.push({ $id: st, ...entry });
+        cards[ck] = entries;
+      }
+      theme.visualStyles![vk] = { '*': cards };
+    }
+    const result = await validateTheme(buildExportTheme(theme));
+    const unknown = result.issues.filter((i) => i.code === 'schema.unknownCard' || i.code === 'schema.unknownProperty' || i.code === 'schema.unknownVisual');
+    expect(unknown.map((i) => i.path)).toEqual([]);
   });
 
   it('warns on low contrast and empty data colours', async () => {

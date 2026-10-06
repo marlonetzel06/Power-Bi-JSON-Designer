@@ -6,12 +6,12 @@ import type { BodyProps } from '../types';
 
 export function Funnel({ r, rect }: BodyProps) {
   const catShow = r.bool('categoryAxis', 'show', true);
-  const catFont = r.font('categoryAxis', 'color', r.structural.second, 9);
+  const catFont = r.font('categoryAxis', 'color', r.structural.second, 9, { textClass: 'label' });
   const labShow = r.bool('labels', 'show', true);
-  const labFont = r.font('labels', 'color', '#FFFFFF', 9);
+  const labFont = r.font('labels', 'color', '#FFFFFF', 9, { textClass: 'label' });
   const labelStyle = r.str('labels', 'funnelLabelStyle', 'Data');
   const pctShow = r.bool('percentBarLabel', 'show', true);
-  const pctFont = r.font('percentBarLabel', 'color', r.structural.second, 9);
+  const pctFont = r.font('percentBarLabel', 'color', r.structural.second, 9, { textClass: 'label' });
   const units = r.num('labels', 'labelDisplayUnits', 0);
   const precision = r.num('labels', 'labelPrecision', 0);
   const color = r.color('dataPoint', 'defaultColor', '') || r.dataColor(0);

@@ -8,12 +8,10 @@ import type { BodyProps } from '../types';
 export function ClassicSlicer({ r, rect }: BodyProps) {
   const mode = r.str('data', 'mode', 'Basic');
   const headerShow = r.bool('header', 'show', true);
-  const headerFont = r.font('header', 'fontColor', r.structural.first, 10);
-  headerFont.sizePx = r.num('header', 'textSize', 10) * (4 / 3);
+  const headerFont = r.font('header', 'fontColor', r.structural.first, 10, { props: { size: 'textSize' }, textClass: 'header' });
   const headerBg = r.color('header', 'background', '');
   const headerOutline = r.num('header', 'outlineStyle', 0);
-  const itemFont = r.font('items', 'fontColor', r.structural.second, 10);
-  itemFont.sizePx = r.num('items', 'textSize', 10) * (4 / 3);
+  const itemFont = r.font('items', 'fontColor', r.structural.second, 10, { props: { size: 'textSize' }, textClass: 'label' });
   const itemBg = r.color('items', 'background', '');
   const itemOutline = r.num('items', 'outlineStyle', 0);
   const padding = r.num('items', 'padding', 4);
@@ -38,7 +36,7 @@ export function ClassicSlicer({ r, rect }: BodyProps) {
     const sliderColor = r.color('slider', 'color', r.dataColor(0));
     const handle = r.color('slider', 'handleFillColor', r.structural.background);
     const handleBorder = r.color('slider', 'handleBorderColor', sliderColor);
-    const inputFont = r.font('numericInputStyle', 'fontColor', r.structural.first, 10);
+    const inputFont = r.font('numericInputStyle', 'fontColor', r.structural.first, 10, { props: { size: 'textSize' }, textClass: 'label' });
     const inputBg = r.color('numericInputStyle', 'background', r.structural.background);
     const boxW = (rect.width - 12) / 2;
     const boxH = inputFont.sizePx + 10;
@@ -101,7 +99,7 @@ export function ButtonSlicer({ r, rect, list }: BodyProps & { list?: boolean }) 
   const outlineShow = r.bool('outline', 'show', true);
   const outlineColor = r.color('outline', 'lineColor', r.structural.second);
   const outlineW = r.num('outline', 'weight', 1);
-  const valueFont = r.font('value', 'fontColor', r.structural.first, 10);
+  const valueFont = r.font('value', 'fontColor', r.structural.first, 10, { textClass: 'label' });
   const hAlign = r.str('value', 'horizontalAlignment', list ? 'left' : 'center');
   const accentShow = r.bool('accentBar', 'show', false);
   const accentColor = r.color('accentBar', 'color', r.dataColor(0));
@@ -142,20 +140,35 @@ export function ButtonSlicer({ r, rect, list }: BodyProps & { list?: boolean }) 
   return <g>{nodes}</g>;
 }
 
+/** Text slicer: input box (inputTextBox), typed text / placeholder (inputText), apply button (applyButton). */
 export function TextSlicer({ r, rect }: BodyProps) {
-  const font = r.font('inputText', 'fontColor', r.structural.first, 10);
-  const bg = r.color('inputTextBox', 'fillColor', r.structural.background);
-  const border = r.color('inputTextBox', 'borderColor', r.structural.fourth);
-  const radius = r.num('inputText', 'pillCornerRadius', 4);
-  const btnColor = r.color('applyButton', 'fillColor', r.dataColor(0));
+  const font = r.font('inputText', 'fontColor', r.structural.first, 10, { textClass: 'label' });
+  const placeholder = r.str('inputText', 'placeholder', '') || 'Text eingeben…';
+  const boxBg = r.bool('inputTextBox', 'backShow', true) ? withAlpha(r.color('inputTextBox', 'backColor', r.structural.background), r.num('inputTextBox', 'backTransparency', 0)) : 'none';
+  const boxBorderShow = r.bool('inputTextBox', 'borderShow', true);
+  const boxBorder = withAlpha(r.color('inputTextBox', 'borderColor', r.structural.fourth), r.num('inputTextBox', 'borderTransparency', 0));
+  const boxBorderW = r.num('inputTextBox', 'borderWidth', 1);
+  const accentShow = r.bool('inputTextBox', 'accentBarShow', false);
+  const accentColor = r.color('inputTextBox', 'accentBarColor', r.dataColor(0));
+  const accentW = r.num('inputTextBox', 'accentBarWidth', 3);
+  const btnShow = r.bool('applyButton', 'backShow', true);
+  const btnColor = withAlpha(r.color('applyButton', 'backColor', r.dataColor(0)), r.num('applyButton', 'backTransparency', 0));
+  const btnBorderShow = r.bool('applyButton', 'borderShow', false);
+  const btnBorder = r.color('applyButton', 'borderColor', r.structural.fourth);
+  const iconColor = r.color('applyButton', 'iconColor', r.structural.background);
+  const iconSize = r.num('applyButton', 'iconSize', 12);
+  const spacing = r.num('applyButton', 'spacing', 6);
   const h = Math.min(rect.height, font.sizePx + 14);
-  const btnW = Math.min(90, rect.width * 0.3);
+  const btnW = Math.min(h + 8, rect.width * 0.25);
+  const boxW = rect.width - btnW - spacing;
+  const cy = rect.y + h / 2;
   return (
     <g>
-      <rect x={rect.x} y={rect.y} width={rect.width - btnW - 6} height={h} rx={radius} fill={bg} stroke={border} />
-      <text x={rect.x + 8} y={rect.y + h / 2 + font.sizePx * 0.35} {...textProps(font)} fill={r.structural.fourth}>Text eingeben…</text>
-      <rect x={rect.x + rect.width - btnW} y={rect.y} width={btnW} height={h} rx={radius} fill={btnColor} />
-      <text x={rect.x + rect.width - btnW / 2} y={rect.y + h / 2 + font.sizePx * 0.35} textAnchor="middle" {...textProps(font)} fill={r.structural.background}>Anwenden</text>
+      <rect x={rect.x} y={rect.y} width={boxW} height={h} rx={2} fill={boxBg} stroke={boxBorderShow ? boxBorder : 'none'} strokeWidth={boxBorderShow ? boxBorderW : 0} />
+      {accentShow && <rect x={rect.x} y={rect.y + h - accentW} width={boxW} height={accentW} fill={accentColor} />}
+      <text x={rect.x + 8} y={cy + font.sizePx * 0.35} {...textProps(font)} fill={withAlpha(font.color, 45)}>{placeholder}</text>
+      <rect x={rect.x + rect.width - btnW} y={rect.y} width={btnW} height={h} rx={2} fill={btnShow ? btnColor : 'none'} stroke={btnBorderShow ? btnBorder : 'none'} />
+      <path d={`M${rect.x + rect.width - btnW / 2 - iconSize / 2},${cy} h${iconSize} m-${iconSize * 0.4},-${iconSize * 0.4} l${iconSize * 0.4},${iconSize * 0.4} l-${iconSize * 0.4},${iconSize * 0.4}`} stroke={iconColor} strokeWidth={1.5} fill="none" />
     </g>
   );
 }

@@ -6,16 +6,16 @@ import type { BodyProps } from '../types';
 
 export function DecompositionTree({ r, rect }: BodyProps) {
   const headerBg = r.color('levelHeader', 'levelHeaderBackgroundColor', '');
-  const titleFont = r.font('levelHeader', 'levelTitleFontColor', r.structural.first, 12, 'levelTitle');
-  const subFont = r.font('levelHeader', 'levelSubtitleFontColor', r.structural.second, 10, 'levelSubtitle');
+  const titleFont = r.font('levelHeader', 'levelTitleFontColor', r.structural.first, 12, { prefix: 'levelTitle', textClass: 'header' });
+  const subFont = r.font('levelHeader', 'levelSubtitleFontColor', r.structural.second, 10, { prefix: 'levelSubtitle', textClass: 'label' });
   const showSub = r.bool('levelHeader', 'showSubtitles', true);
   const accent = r.color('tree', 'accentColor', r.dataColor(0));
   const connector = r.color('tree', 'connectorDefaultColor', r.structural.fourth);
   const connectorType = r.str('tree', 'connectorType', 'curve');
   const barColor = r.color('dataBars', 'dataBarColor', accent);
   const barBg = r.color('dataBars', 'dataBarBackgroundColor', r.structural.third);
-  const catFont = r.font('categoryLabels', 'categoryLabelFontColor', r.structural.first, 10, 'categoryLabel');
-  const dataFont = r.font('dataLabels', 'dataLabelFontColor', r.structural.first, 10, 'dataLabel');
+  const catFont = r.font('categoryLabels', 'categoryLabelFontColor', r.structural.first, 10, { prefix: 'categoryLabel', textClass: 'label' });
+  const dataFont = r.font('dataLabels', 'dataLabelFontColor', r.structural.first, 10, { prefix: 'dataLabel', textClass: 'label' });
   const levels = DECOMP_LEVELS;
   const colW = rect.width / levels.length;
   const headerH = titleFont.sizePx + (showSub ? subFont.sizePx + 4 : 0) + 10;

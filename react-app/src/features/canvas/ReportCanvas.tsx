@@ -27,6 +27,7 @@ export function ReportCanvas() {
   const query = useUiStore((s) => s.canvasQuery);
   const setQuery = useUiStore((s) => s.setCanvasQuery);
   const setFocusVisual = useUiStore((s) => s.setFocusVisual);
+  const previewState = useUiStore((s) => s.previewState);
 
   const onSelectVisual = useCallback((key: string) => select({ kind: 'visual', key }), [select]);
   const onFocusVisualKey = useCallback(
@@ -107,6 +108,7 @@ export function ReportCanvas() {
                         modifiedCount={modified.cardCounts[v.key] ?? 0}
                         onSelect={onSelectVisual}
                         onFocus={onFocusVisualKey}
+                        stateId={previewState[v.key]}
                       />
                     ))}
                   </div>

@@ -12,14 +12,14 @@ export const useDataColors = () => useThemeStore((s) => s.theme.dataColors ?? []
 export const useVisualStyle = (visualKey: string) => useThemeStore((s) => s.theme.visualStyles?.[visualKey]);
 export const useGlobalStyle = () => useThemeStore((s) => s.theme.visualStyles?.['*']);
 
-/** All curated properties of a card, resolved through the visual → `*` → default chain. */
-export function useResolvedCard(visualKey: string, cardKey: string): Record<string, Resolved> {
+/** All curated properties of a card (for a `$id` state), resolved through the visual → `*` → default chain. */
+export function useResolvedCard(visualKey: string, cardKey: string, stateId?: string): Record<string, Resolved> {
   const theme = useTheme();
   const own = theme.visualStyles?.[visualKey]?.['*']?.[cardKey];
   const global = theme.visualStyles?.['*']?.['*']?.[cardKey];
   const dataColors = theme.dataColors;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  return useMemo(() => resolveCard(theme, visualKey, cardKey), [own, global, dataColors, visualKey, cardKey]);
+  return useMemo(() => resolveCard(theme, visualKey, cardKey, stateId), [own, global, dataColors, visualKey, cardKey, stateId]);
 }
 
 export function useModified() {

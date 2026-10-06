@@ -19,7 +19,7 @@ export interface LegendLayout {
 export function layoutLegend(r: Resolver, rect: Rect, items: LegendItem[], card = 'legend'): LegendLayout {
   const show = r.bool(card, 'show', true);
   if (!show || items.length === 0) return { plot: rect, element: null };
-  const font = r.font(card, 'labelColor', r.structural.second, 8);
+  const font = r.font(card, 'labelColor', r.structural.second, 8, { textClass: 'label' });
   const position = r.str(card, 'position', 'Top');
   const showTitle = r.bool(card, 'showTitle', false);
   const titleText = r.str(card, 'titleText', '') || 'Legende';

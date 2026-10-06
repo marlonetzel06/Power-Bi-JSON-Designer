@@ -9,7 +9,7 @@ export function PieDonut({ r, rect, donut }: BodyProps & { donut: boolean }) {
   const items = DONUT.map((_, i) => ({ label: PIE_LABELS[i] ?? '', color: r.dataColor(i) }));
   const { plot, element } = layoutLegend(r, rect, items);
   const labelsShow = r.bool('labels', 'show', true);
-  const labelFont = r.font('labels', 'color', r.structural.second, 9);
+  const labelFont = r.font('labels', 'color', r.structural.second, 9, { textClass: 'label' });
   const labelStyle = r.str('labels', 'labelStyle', 'Category');
   const position = r.str('labels', 'position', 'preferOutside');
   const units = r.num('labels', 'labelDisplayUnits', 0);

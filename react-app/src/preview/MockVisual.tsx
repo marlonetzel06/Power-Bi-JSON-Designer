@@ -18,18 +18,20 @@ export interface MockVisualProps {
   /** Static preview: no pointer events, decorative. */
   decorative?: boolean;
   title?: string;
+  /** `$id` state to render (buttons: hover/selected/disabled, slicers: selected tile …). */
+  stateId?: string;
 }
 
 
 /**
  * Theme-driven SVG mock of a Power BI visual. Pure function of (theme, visualKey, size).
  */
-export const MockVisual = memo(function MockVisual({ theme, visualKey, width, height, className, decorative = true, title }: MockVisualProps) {
+export const MockVisual = memo(function MockVisual({ theme, visualKey, width, height, className, decorative = true, title, stateId }: MockVisualProps) {
   const uid = useId().replace(/:/g, '');
   const size = mockVisualSize(visualKey);
   const w = width ?? size.width;
   const h = height ?? size.height;
-  const r = useMemo(() => createResolver(theme, visualKey), [theme, visualKey]);
+  const r = useMemo(() => createResolver(theme, visualKey, { stateId }), [theme, visualKey, stateId]);
   const entry = getRenderer(visualKey);
   const label = title ?? entry?.title ?? visualKey;
 
@@ -69,6 +71,7 @@ export const MockVisual = memo(function MockVisual({ theme, visualKey, width, he
       aria-hidden={decorative ? true : undefined}
       aria-label={decorative ? undefined : label}
       data-visual={visualKey}
+      data-state={stateId}
       style={{ display: 'block', pointerEvents: decorative ? 'none' : undefined }}
     >
       {content}
@@ -81,4 +84,5 @@ export const MockVisual = memo(function MockVisual({ theme, visualKey, width, he
   prev.className === next.className &&
   prev.decorative === next.decorative &&
   prev.title === next.title &&
+  prev.stateId === next.stateId &&
   visualThemeEqual(prev.theme, next.theme, next.visualKey));

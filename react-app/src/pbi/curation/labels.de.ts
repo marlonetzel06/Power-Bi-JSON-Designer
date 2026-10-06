@@ -207,6 +207,30 @@ export const PROP_LABELS_DE: Record<string, string> = {
   pageSizeWidth: 'Breite (px)', pageSizeHeight: 'Höhe (px)', titleSize: 'Titelgröße', headerSize: 'Überschriftengröße', searchTextSize: 'Suchtextgröße', inputBoxColor: 'Eingabefeldfarbe',
   checkboxAndApplyColor: 'Kontrollkästchen und Schaltfläche', border: 'Rahmen', borderStyle: 'Rahmenstil', backgroundShow: 'Hintergrund', backgroundFillColor: 'Hintergrundfarbe',
   cellPadding: 'Zellenabstand', maxTiles: 'Max. Kacheln', orientation: 'Ausrichtung', pillCornerRadius: 'Abgerundete Ecken', showByDefault: 'Standardmäßig anzeigen',
+  // variant cards (card visual, button/list slicer), matrix grid, combo secondary axis
+  dividerColor: 'Farbe', dividerLineStyle: 'Stil', dividerWidth: 'Breite (px)', dividerTransparency: 'Transparenz (%)', dividerIgnorePadding: 'Abstand ignorieren',
+  paddingSelection: 'Abstandsvorgabe', wrapContent: 'Inhalt umbrechen',
+  imageWidth: 'Bildbreite', target: 'Ziel', fill: 'Füllfarbe', padding: 'Innenabstand (px)', outerPadding: 'Außenabstand (px)', tilingMethod: 'Kachelmethode', secShow: 'Sekundäre Achse anzeigen', secTitleItalic: 'Titel kursiv', secTitleUnderline: 'Titel unterstrichen', alignZeros: 'Nullen ausrichten',
+  // text slicer
+  backShow: 'Hintergrund', backTransparency: 'Hintergrund-Transparenz',
+  placeholder: 'Platzhaltertext', fontTransparency: 'Text-Transparenz', dismissColor: 'Löschsymbol-Farbe', dismissSize: 'Löschsymbol-Größe', dismissSpacing: 'Löschsymbol-Abstand', dismissTransparency: 'Löschsymbol-Transparenz',
+  paddingTop: 'Abstand oben', paddingBottom: 'Abstand unten', paddingLeft: 'Abstand links', paddingRight: 'Abstand rechts', accentBarShow: 'Akzentleiste', accentBarColor: 'Akzentleistenfarbe',
+  accentBarPosition: 'Akzentleistenposition', accentBarWidth: 'Akzentleistenbreite', accentBarTransparency: 'Akzentleisten-Transparenz', iconColor: 'Symbolfarbe', iconTransparency: 'Symbol-Transparenz', multiselect: 'Mehrfachauswahl',
+};
+
+/** `$id` state labels (Power BI "Anwenden auf → Zustand"). */
+export const STATE_LABELS_DE: Record<string, string> = {
+  default: 'Standard', hover: 'Beim Daraufzeigen', selected: 'Beim Drücken', disabled: 'Deaktiviert',
+  Applied: 'Angewendet', Available: 'Verfügbar', Row: 'Zeilen', Column: 'Spalten',
+  // button / list slicer (actionStates): interaction and selection states
+  'interaction:hover': 'Beim Daraufzeigen', 'interaction:press': 'Beim Drücken', press: 'Beim Drücken (veraltet)', selection: 'Ausgewählt (veraltet)',
+  'selection:selected': 'Ausgewählt', 'selection:unselected': 'Nicht ausgewählt', 'expansion:expanded': 'Erweitert', 'expansion:collapsed': 'Reduziert', 'series:selectall': '„Alle auswählen“',
+};
+export const STATE_LABELS_EN: Record<string, string> = {
+  default: 'Default', hover: 'On hover', selected: 'On press', disabled: 'Disabled',
+  Applied: 'Applied', Available: 'Available', Row: 'Rows', Column: 'Columns',
+  'interaction:hover': 'On hover', 'interaction:press': 'On press', press: 'On press (legacy)', selection: 'Selected (legacy)',
+  'selection:selected': 'Selected', 'selection:unselected': 'Unselected', 'expansion:expanded': 'Expanded', 'expansion:collapsed': 'Collapsed', 'series:selectall': '"Select all"',
 };
 
 /** German labels for enum option values (fallback: schema title). */
@@ -225,6 +249,8 @@ export const ENUM_LABELS_DE: Record<string, string> = {
   Cards: 'Karten', Table: 'Tabelle', belowValue: 'Unter dem Wert', aboveValue: 'Über dem Wert', VerticalList: 'Vertikale Liste', HorizontalList: 'Horizontale Liste', Dropdown: 'Dropdown', Between: 'Zwischen', Before: 'Vor', After: 'Nach', Basic: 'Liste', Relative: 'Relatives Datum', Single: 'Einzelwert', RelativeTime: 'Relative Zeit',
   'High is good': 'Hoch ist gut', 'Low is good': 'Niedrig ist gut', Positive: 'Positiv', Negative: 'Negativ', Value: 'Wert', Percent: 'Prozent', 'Value, percent': 'Wert, Prozent', Name: 'Name', ValueAndName: 'Wert und Name',
   back: 'Hinten', front: 'Vorn', before: 'Davor', after: 'Danach', none: 'Keine', Outer: 'Außen', Inner: 'Innen', Default: 'Standard', Canvas: 'Canvas',
+  None: 'Keine', Thousands: 'Tausend', Millions: 'Millionen', Billions: 'Milliarden', Trillions: 'Billionen',
+  Wide: 'Weit', Narrow: 'Eng',
   rectangle: 'Rechteck', rectangleRounded: 'Abgerundetes Rechteck', oval: 'Oval', pill: 'Pille', pentagon: 'Fünfeck', hexagon: 'Sechseck', octagon: 'Achteck', arrow: 'Pfeil', arrowChevron: 'Chevron', heart: 'Herz', line: 'Linie',
   parallelogram: 'Parallelogramm', trapezoid: 'Trapez', triangleIsoc: 'Gleichschenkliges Dreieck', triangleRight: 'Rechtwinkliges Dreieck', road: 'Straße', aerial: 'Luftbild', grayscale: 'Graustufen', canvasDark: 'Dunkel', canvasLight: 'Hell',
   tile: 'Kachel', list: 'Liste', curve: 'Kurve', round: 'Abgerundet', dense: 'Dicht', default: 'Standard', sparse: 'Locker', Heading2: 'Überschrift 2', Heading3: 'Überschrift 3', Heading4: 'Überschrift 4', Heading5: 'Überschrift 5', Heading6: 'Überschrift 6',

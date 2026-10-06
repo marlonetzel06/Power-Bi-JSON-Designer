@@ -4,7 +4,7 @@ import { LiveReport } from './LiveReport';
 import { useLiveAvailability } from './useLiveAvailability';
 import { MockVisual } from '@/preview/MockVisual';
 import { useTheme } from '@/store/selectors';
-import type { PreviewMode } from '@/store/uiStore';
+import { useUiStore, type PreviewMode } from '@/store/uiStore';
 
 export interface PreviewHostProps {
   visualKey: string;
@@ -23,12 +23,13 @@ export interface PreviewHostProps {
  */
 export function PreviewHost({ visualKey, mode, className, width, height, style }: PreviewHostProps) {
   const theme = useTheme();
+  const stateId = useUiStore((s) => s.previewState[visualKey]);
   const availability = useLiveAvailability(visualKey);
   const hasConfig = useAuthStore((s) => s.embedConfig !== null);
   const showLive = mode === 'live' && availability.available;
   return (
     <div className={className} style={{ position: 'relative', ...style }}>
-      {!showLive && <MockVisual theme={theme} visualKey={visualKey} width={width} height={height} />}
+      {!showLive && <MockVisual theme={theme} visualKey={visualKey} width={width} height={height} stateId={stateId} />}
       {hasConfig && (
         <div style={{ position: 'absolute', inset: 0, visibility: showLive ? 'visible' : 'hidden', pointerEvents: showLive ? 'auto' : 'none' }} aria-hidden={!showLive}>
           <LiveReport visualKey={visualKey} className="h-full w-full" />

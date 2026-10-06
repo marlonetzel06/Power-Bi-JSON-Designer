@@ -2,6 +2,7 @@
  * Export helpers. Because the in-memory model already uses Power BI names, export
  * is a structural clean-up: drop empty cards/visuals and undefined values.
  */
+import { SCHEMA_REF } from './catalog';
 import type { CardEntry, CardSet, ReportTheme, VisualStyle, VisualStyles } from './types';
 
 export function deepClone<T>(value: T): T {
@@ -41,11 +42,16 @@ function cleanVisualStyles(styles: VisualStyles): VisualStyles | undefined {
   return Object.keys(out).length > 0 ? out : undefined;
 }
 
-/** Full theme ready for Power BI (download / applyTheme). */
-export function buildExportTheme(theme: ReportTheme, options: { schemaRef?: string } = {}): ReportTheme {
+/**
+ * Full theme ready for Power BI (download / applyTheme). `$schema` points to the official
+ * schema the catalog was generated from (editor support in VS Code, documented by Microsoft);
+ * pass `schemaRef: null` to omit it.
+ */
+export function buildExportTheme(theme: ReportTheme, options: { schemaRef?: string | null } = {}): ReportTheme {
   const t = deepClone(theme);
   const out: ReportTheme = { name: t.name || 'Custom Theme' };
-  if (options.schemaRef) out.$schema = options.schemaRef;
+  const schemaRef = options.schemaRef === undefined ? SCHEMA_REF : options.schemaRef;
+  if (schemaRef) out.$schema = schemaRef;
   for (const [k, v] of Object.entries(t)) {
     if (k === 'name' || k === '$schema' || k === 'visualStyles' || k === 'textClasses') continue;
     if (v === undefined || v === null) continue;
@@ -72,12 +78,13 @@ function sameJson(a: unknown, b: unknown): boolean {
 }
 
 /** Only what differs from the baseline (a minimal theme that layers on top of it). */
-export function buildDeltaTheme(theme: ReportTheme, baseline: ReportTheme): ReportTheme {
-  const full = buildExportTheme(theme);
-  const base = buildExportTheme(baseline);
+export function buildDeltaTheme(theme: ReportTheme, baseline: ReportTheme, options: { schemaRef?: string | null } = {}): ReportTheme {
+  const full = buildExportTheme(theme, options);
+  const base = buildExportTheme(baseline, options);
   const delta: ReportTheme = { name: full.name };
+  if (full.$schema) delta.$schema = full.$schema;
   for (const [k, v] of Object.entries(full)) {
-    if (k === 'name' || k === 'visualStyles' || k === 'textClasses') continue;
+    if (k === 'name' || k === '$schema' || k === 'visualStyles' || k === 'textClasses') continue;
     if (!sameJson(v, (base as Record<string, unknown>)[k])) (delta as Record<string, unknown>)[k] = v;
   }
   if (!sameJson(full.textClasses, base.textClasses) && full.textClasses) {
