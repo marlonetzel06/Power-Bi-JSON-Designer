@@ -122,6 +122,9 @@ export const CARD_LABELS_DE: Record<string, string> = {
   imageScaling: 'Skalierung', mapStyles: 'Kartenstil', mapControls: 'Kartensteuerelemente', stroke: 'Umrandung', defaultColors: 'Standardfarbe',
   bubbleLayer: 'Blasenebene', filledMap: 'Flächenkartogramm-Ebene', heatMapLayer: 'Wärmebildebene', barChart: 'Balkendiagramm-Ebene',
   inputText: 'Eingabetext', inputTextBox: 'Eingabefeld', applyButton: 'Schaltfläche „Anwenden“', slicerSettings: 'Datenschnitteinstellungen',
+  error: 'Fehlerbalken', subheader: 'Unterüberschrift', visualHeaderTooltip: 'QuickInfo der Kopfzeile', anomalyDetection: 'Anomalien', heatMap: 'Wärmebild',
+  referenceLabelLayout: 'Referenzbeschriftungen – Layout', referenceLabelDetail: 'Referenzbeschriftung – Detail', image: 'Bild', shadowCustom: 'Schatten', glowCustom: 'Leuchten',
+  sparklines: 'Sparklines', blankRows: 'Leerzeilen', pendingChangesIcon: 'Symbol für ausstehende Änderungen', expansionIcon: 'Erweiterungssymbol',
   outspace: 'Hintergrundbild (Wallpaper)', outspacePane: 'Filterbereich', filterCard: 'Filterkarten', pageSize: 'Canvas-Einstellungen', displayArea: 'Anzeigebereich',
 };
 
@@ -129,7 +132,7 @@ export const CARD_LABELS_EN_OVERRIDE: Record<string, string> = {
   background: 'Background', border: 'Visual border', dropShadow: 'Shadow', visualHeader: 'Header icons', padding: 'Padding',
   categoryAxis: 'X-axis (category)', valueAxis: 'Y-axis (value)', y2Axis: 'Secondary Y-axis', labels: 'Data labels', dataPoint: 'Data point / colors',
   outspace: 'Wallpaper', outspacePane: 'Filter pane', filterCard: 'Filter cards', pageSize: 'Canvas settings', displayArea: 'Display area',
-  header: 'Slicer header', items: 'Values', value: 'Callout values', indicator: 'Callout value', calloutValue: 'Callout value', slices: 'Slices',
+  header: 'Slicer header', items: 'Values', shadowCustom: 'Shadow', glowCustom: 'Glow', referenceLabelLayout: 'Reference labels – layout', referenceLabelDetail: 'Reference label – detail', value: 'Callout values', indicator: 'Callout value', calloutValue: 'Callout value', slices: 'Slices',
 };
 
 export const PROP_LABELS_DE: Record<string, string> = {
@@ -211,6 +214,32 @@ export const PROP_LABELS_DE: Record<string, string> = {
   dividerColor: 'Farbe', dividerLineStyle: 'Stil', dividerWidth: 'Breite (px)', dividerTransparency: 'Transparenz (%)', dividerIgnorePadding: 'Abstand ignorieren',
   paddingSelection: 'Abstandsvorgabe', wrapContent: 'Inhalt umbrechen',
   imageWidth: 'Bildbreite', target: 'Ziel', fill: 'Füllfarbe', padding: 'Innenabstand (px)', outerPadding: 'Außenabstand (px)', tilingMethod: 'Kachelmethode', secShow: 'Sekundäre Achse anzeigen', secTitleItalic: 'Titel kursiv', secTitleUnderline: 'Titel unterstrichen', alignZeros: 'Nullen ausrichten',
+  // Phase 2: lines, axes, labels, reference lines, error bars, anomalies, card visual, tables, icons
+  interpolationSmoothParam: 'Glättungsstärke', segmentAlignment: 'Segmentausrichtung', strokeShow: 'Linie anzeigen', strokeDashArray: 'Strichmuster (benutzerdefiniert)',
+  legendMarkerRendering: 'Legendenmarkierung', matchLineColor: 'Linienfarbe übernehmen', gridlineDashArray: 'Gitternetz-Strichmuster', gridlineDashCap: 'Gitternetz-Strichende', gridlineAutoScale: 'Gitternetz automatisch skalieren',
+  start: 'Minimum', end: 'Maximum', secStart: 'Minimum (sekundär)', secEnd: 'Maximum (sekundär)',
+  titleTransparency: 'Titel-Transparenz', detailUnderline: 'Detail unterstrichen', detailTransparency: 'Detail-Transparenz', detailLabelDisplayUnits: 'Detail-Anzeigeeinheiten', detailLabelPrecision: 'Detail-Dezimalstellen',
+  leaderLines: 'Verbindungslinien', leaderLineColor: 'Verbindungslinienfarbe', leaderLinePattern: 'Verbindungslinienmuster', leaderLineWidth: 'Verbindungslinienbreite', leaderLineTransparency: 'Verbindungslinien-Transparenz',
+  dashArray: 'Strichmuster (benutzerdefiniert)', dashCap: 'Strichende', shadeColorMatchStroke: 'Schattierung = Linienfarbe', matchSeriesInterpolation: 'Interpolation der Reihe übernehmen', bandLineMatchColor: 'Bandlinie = Linienfarbe', bandLineTransparency: 'Bandlinien-Transparenz',
+  enabled: 'Aktiviert', barMatchSeriesColor: 'Balken = Reihenfarbe', barWidth: 'Balkenbreite', barBorderColor: 'Balkenrahmenfarbe', barBorderSize: 'Balkenrahmenbreite', markerShow: 'Markierung anzeigen',
+  labelShow: 'Beschriftung anzeigen', labelMatchSeriesColor: 'Beschriftung = Reihenfarbe', labelFontFamily: 'Beschriftungs-Schriftart', labelFontSize: 'Beschriftungs-Textgröße', labelBold: 'Beschriftung fett', labelItalic: 'Beschriftung kursiv', labelUnderline: 'Beschriftung unterstrichen',
+  labelBackground: 'Beschriftungshintergrund', labelBackgroundColor: 'Beschriftungshintergrundfarbe', labelBackgroundTransparency: 'Beschriftungshintergrund-Transparenz', shadeMatchSeriesColor: 'Schattierung = Reihenfarbe', shadeBandStyle: 'Bandstil',
+  markerShapeSize: 'Markierungsgröße', markerTransparency: 'Markierungs-Transparenz', markerRotation: 'Markierungsdrehung', markerBorderShow: 'Markierungsrahmen', markerBorderColor: 'Markierungsrahmenfarbe', markerBorderWidth: 'Markierungsrahmenbreite',
+  markerBorderTransparency: 'Markierungsrahmen-Transparenz', markerBorderColorMatchFill: 'Markierungsrahmen = Füllfarbe', confidenceBandShow: 'Erwarteter Bereich', confidenceBandColor: 'Bereichsfarbe', confidenceBandStyle: 'Bereichsstil', isAnomalyHighlighted: 'Anomalie hervorheben',
+  clusteredGapSize: 'Lücke zwischen Säulen (%)', clusteredGapOverlaps: 'Überlappung', clusteredGapOverlapReverse: 'Überlappung umkehren',
+  customizePadding: 'Abstände anpassen', columnPadding: 'Spaltenabstand', topOuterMargin: 'Außenrand oben', bottomOuterMargin: 'Außenrand unten', leftOuterMargin: 'Außenrand links', rightOuterMargin: 'Außenrand rechts',
+  rectangleRoundedCurveCustomStyle: 'Ecken einzeln festlegen', rectangleRoundedCurveLeftTop: 'Ecke oben links (px)', rectangleRoundedCurveRightTop: 'Ecke oben rechts (px)', rectangleRoundedCurveLeftBottom: 'Ecke unten links (px)', rectangleRoundedCurveRightBottom: 'Ecke unten rechts (px)',
+  customizeLines: 'Linien anpassen', lineWidth: 'Linienbreite', gridlineWidth: 'Gitternetzbreite', calloutSize: 'Legendenwertgröße',
+  indentation: 'Einzug', containerIndentation: 'Container-Einzug', reverseIndentation: 'Einzug umkehren', fixedButtonsCount: 'Feste Anzahl Schaltflächen',
+  alignBaselines: 'Grundlinien ausrichten', glowDistance: 'Abstand', glowPositionPreset: 'Position', glowSpread: 'Größe',
+  color0: 'Niedrig', color50: 'Mitte', color100: 'Hoch', filterRadius: 'Radius', unit: 'Einheit',
+  iconType: 'Symboltyp', iconUrl: 'Symbol-URL', imageType: 'Bildtyp', imageUrl: 'Bild-URL', fixedSize: 'Feste Größe', imageAreaSize: 'Bildbereich (%)',
+  tooltipLabel: 'QuickInfo-Beschriftung', tooltipText: 'QuickInfo-Text', detailBackgroundColor: 'Detail-Hintergrundfarbe', detailDisplayUnits: 'Detail-Anzeigeeinheiten', detailFontColor: 'Detailfarbe', detailPrecision: 'Detail-Dezimalstellen',
+  arrangement: 'Anordnung', labelSpace: 'Beschriftungsbereich (%)', paddingAfterDivider: 'Abstand nach Trennlinie', paddingBeforeDivider: 'Abstand vor Trennlinie', valueArea: 'Wertbereich (%)',
+  valueDisplayUnits: 'Wert-Anzeigeeinheiten', valuePrecision: 'Wert-Dezimalstellen', valueTransparency: 'Wert-Transparenz', valueUnderline: 'Wert unterstrichen',
+  overlayToggle: 'Als Überlagerung', showIconByState: 'Symbol je Zustand', chartType: 'Diagrammtyp', dataColor: 'Datenfarbe', markers: 'Markierungen',
+  showBlankRows: 'Leerzeilen anzeigen', blankRowColor: 'Leerzeilenfarbe', blankRowTransparency: 'Leerzeilen-Transparenz', showBorder: 'Rahmen anzeigen', borderPosition: 'Rahmenposition',
+  themedBackground: 'Hintergrund aus Design', themedTitleFontColor: 'Titelfarbe aus Design', themedValueFontColor: 'Wertfarbe aus Design', actionFontColor: 'Aktionsfarbe',
   // text slicer
   backShow: 'Hintergrund', backTransparency: 'Hintergrund-Transparenz',
   placeholder: 'Platzhaltertext', fontTransparency: 'Text-Transparenz', dismissColor: 'Löschsymbol-Farbe', dismissSize: 'Löschsymbol-Größe', dismissSpacing: 'Löschsymbol-Abstand', dismissTransparency: 'Löschsymbol-Transparenz',
@@ -254,6 +283,16 @@ export const ENUM_LABELS_DE: Record<string, string> = {
   rectangle: 'Rechteck', rectangleRounded: 'Abgerundetes Rechteck', oval: 'Oval', pill: 'Pille', pentagon: 'Fünfeck', hexagon: 'Sechseck', octagon: 'Achteck', arrow: 'Pfeil', arrowChevron: 'Chevron', heart: 'Herz', line: 'Linie',
   parallelogram: 'Parallelogramm', trapezoid: 'Trapez', triangleIsoc: 'Gleichschenkliges Dreieck', triangleRight: 'Rechtwinkliges Dreieck', road: 'Straße', aerial: 'Luftbild', grayscale: 'Graustufen', canvasDark: 'Dunkel', canvasLight: 'Hell',
   tile: 'Kachel', list: 'Liste', curve: 'Kurve', round: 'Abgerundet', dense: 'Dicht', default: 'Standard', sparse: 'Locker', Heading2: 'Überschrift 2', Heading3: 'Überschrift 3', Heading4: 'Überschrift 4', Heading5: 'Überschrift 5', Heading6: 'Überschrift 6',
+  Box: 'Quader', Cylinder: 'Zylinder', Chevron: 'Chevron', 'Plus/minus': 'Plus/Minus', Caret: 'Winkel', Grid: 'Raster', 'Single column': 'Eine Spalte', 'Single row': 'Eine Zeile', Vertical: 'Vertikal', Horizontal: 'Horizontal',
+  BottomLeft: 'Unten links', TopLeft: 'Oben links', Center: 'Mitte', Middle: 'Mitte', TopAndBottom: 'Oben und unten', 'Above text': 'Über dem Text', 'Below text': 'Unter dem Text', 'Below callout': 'Unter dem Legendenwert',
+  albersUsa: 'Albers (USA)', equirectangular: 'Rechteckig', mercator: 'Mercator', orthographic: 'Orthografisch', applyAllSlicers: 'Alle Datenschnitte anwenden', clearAllSlicers: 'Alle Datenschnitte löschen',
+  arrowPentagon: 'Pfeil (Fünfeck)', bevel: 'Abgeschrägt', miter: 'Gehrung', blank: 'Leer', blank_accessible: 'Leer (barrierefrei)', bookmarks: 'Lesezeichen', help: 'Hilfe', information: 'Information', leftArrow: 'Pfeil links', rightArrow: 'Pfeil rechts', qna: 'Q&A', reset: 'Zurücksetzen', spinner: 'Ladesymbol',
+  topLeft: 'Oben links', topCenter: 'Oben zentriert', topRight: 'Oben rechts', middleLeft: 'Mitte links', middleRight: 'Mitte rechts', bottomLeft: 'Unten links', bottomCenter: 'Unten zentriert', bottomRight: 'Unten rechts',
+  cardinal: 'Kardinal', monotoneX: 'Monoton', column: 'Säule', columns: 'Spalten', rows: 'Zeilen', dataRange: 'Datenbereich', magnitude: 'Größenordnung', fieldName: 'Feldname', fillLine: 'Fläche und Linie', flat: 'Flach',
+  grayscale_dark: 'Graustufen (dunkel)', grayscale_light: 'Graustufen (hell)', high_contrast_dark: 'Hoher Kontrast (dunkel)', high_contrast_light: 'Hoher Kontrast (hell)', night: 'Nacht', road_shaded_relief: 'Relief', satellite: 'Satellit', satellite_road_labels: 'Hybrid',
+  image: 'Bild', imageUrl: 'Bild-URL', levelMaximum: 'Ebenenmaximum', parentNode: 'Übergeordneter Knoten', topNode: 'Oberster Knoten', lineAndMarker: 'Linie und Markierung', lineOnly: 'Linie', markerOnly: 'Markierung', markerCircleDefault: 'Markierung (Kreis)',
+  meters: 'Meter', pixels: 'Pixel', rectangleRoundedByPixel: 'Abgerundetes Rechteck (px)', sentence: 'Satz', tabular: 'Tabellarisch', speechbubbleRectangle: 'Sprechblase',
+  tabCutCorner: 'Register, Ecke oben rechts abgeschnitten', tabCutTopCorners: 'Register, obere Ecken abgeschnitten', tabCutTopCornersByPixel: 'Register, obere Ecken abgeschnitten (px)', tabRoundCorner: 'Register, Ecke oben rechts gerundet', tabRoundTopCorners: 'Register, obere Ecken gerundet', droplet: 'Tropfen',
   stableSquarified: 'Quadriert', binary: 'Binär', alternating: 'Abwechselnd', MultiLine: 'Mehrzeilig', SingleLine: 'Einzeilig', 'Series name': 'Reihenname', all: 'Alle', inner: 'Innen', innerHorizontal: 'Innen horizontal', innerVertical: 'Innen vertikal',
 };
 

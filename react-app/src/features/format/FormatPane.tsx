@@ -19,7 +19,7 @@ const GENERAL_GROUPS: readonly { id: string; labelKey: 'format.general.propertie
   { id: 'properties', labelKey: 'format.general.properties', cards: ['padding'] },
   { id: 'title', labelKey: 'format.general.title', cards: ['title', 'subTitle', 'divider', 'spacing'] },
   { id: 'effects', labelKey: 'format.general.effects', cards: ['background', 'border', 'dropShadow'] },
-  { id: 'header', labelKey: 'format.general.header', cards: ['visualHeader'] },
+  { id: 'header', labelKey: 'format.general.header', cards: ['visualHeader', 'visualHeaderTooltip'] },
   { id: 'tooltips', labelKey: 'format.general.tooltips', cards: ['visualTooltip'] },
 ];
 

@@ -20,9 +20,9 @@ export interface PropControlProps {
   stateId?: string;
 }
 
-const FONT_SIZE_KEYS = new Set(['fontSize', 'textSize', 'titleFontSize', 'secFontSize', 'secTitleFontSize', 'valueFontSize', 'detailFontSize', 'levelTitleFontSize', 'levelSubtitleFontSize', 'categoryLabelFontSize', 'dataLabelFontSize', 'titleSize', 'headerSize', 'searchTextSize']);
-const PERCENT_KEYS = /transparency|Transparency|Percent|innerPadding|labelDensity|maxMarginFactor|seriesMaximumWidth|innerRadiusRatio/;
-const PX_KEYS = /^(width|weight|radius|top|bottom|left|right|borderSize|borderWidth|strokeWidth|markerSize|shadowBlur|shadowDistance|shadowSpread|gridlineThickness|gridLineWidth|steppedLayoutIndentation|rowPadding|imageHeight|rectangleRoundedCurve|roundEdge|barWeight|pageSizeWidth|pageSizeHeight|outlineWeight|iconSize|size|spacing|cardPadding|gridVerticalWeight|gridHorizontalWeight)$/;
+const FONT_SIZE_KEYS = new Set(['fontSize', 'textSize', 'titleFontSize', 'secFontSize', 'secTitleFontSize', 'valueFontSize', 'detailFontSize', 'levelTitleFontSize', 'levelSubtitleFontSize', 'categoryLabelFontSize', 'dataLabelFontSize', 'titleSize', 'headerSize', 'searchTextSize', 'labelFontSize', 'calloutSize']);
+const PERCENT_KEYS = /transparency|Transparency|Percent|innerPadding|labelDensity|maxMarginFactor|seriesMaximumWidth|innerRadiusRatio|clusteredGapSize|stackedGapSize|ribbonGapSize|labelSpace|valueArea|imageAreaSize|interpolationSmoothParam/;
+const PX_KEYS = /^(width|weight|radius|top|bottom|left|right|borderSize|borderWidth|strokeWidth|markerSize|markerShapeSize|markerBorderWidth|shadowBlur|shadowDistance|shadowSpread|glowDistance|glowSpread|gridlineThickness|gridLineWidth|gridlineWidth|lineWidth|steppedLayoutIndentation|rowPadding|columnPadding|cellPadding|imageHeight|imageWidth|rectangleRoundedCurve\w*|roundEdge|barWeight|barWidth|barBorderSize|pageSizeWidth|pageSizeHeight|outlineWeight|iconSize|size|spacing|cardPadding|gridVerticalWeight|gridHorizontalWeight|\w+OuterMargin|\w+Margin|padding\w*|outerPadding|paddingBeforeDivider|paddingAfterDivider|leaderLineWidth|dividerWidth|indentation|containerIndentation|bubbleRadius|minBubbleRadius|maxRadius|bubbleStrokeWidth|borderThickness|filterRadius|dismissSize|dismissSpacing)$/;
 
 /** Renders the right control for a catalog property and writes to the store. */
 export const PropControl = memo(function PropControl({ visualKey, cardKey, prop, value, source, raw, stateId }: PropControlProps) {
