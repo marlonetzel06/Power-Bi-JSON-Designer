@@ -11,14 +11,15 @@
 
 ## How to test
 
-<!-- Steps to verify the change works -->
-1. Run `cd react-app && npm run dev`
+1. `cd react-app && npm ci && npm run dev`
 2. Open `http://localhost:5173`
 3. 
 
 ## Checklist
 
-- [ ] Tested in Chrome/Edge
-- [ ] No existing visuals are broken
-- [ ] JSON export still produces valid Power BI theme output
+- [ ] `npm run check` passes (lint, typecheck, unit tests, build)
+- [ ] `npm run test:e2e` passes (Playwright smoke + axe)
+- [ ] Mock preview reflects the change (and live preview, if the change touches the embed)
+- [ ] Exported theme validates against the official schema (JSON pane shows "Schema valid")
+- [ ] New UI strings exist in `src/i18n/de.ts` and `src/i18n/en.ts`
 - [ ] No secrets or credentials committed

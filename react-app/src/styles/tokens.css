@@ -1,0 +1,193 @@
+/* ============================================================
+   M&M Software Design System — Token sheet (Rayfin)
+   Source: rayfin-hifi-mockup/DESIGN-TOKENS.md
+   Primitives (--mm-*) are only referenced here; components use
+   the semantic layer (--color-*, --text-*, --surface-*, ...).
+   ============================================================ */
+:root {
+  /* ---- Primitives ---- */
+  --mm-cyan: #00F2E5;
+  --mm-cyan-bright: #2BFFF4;
+  --mm-cyan-dim: #00C2B8;
+  --mm-navy: #041C2C;
+  --mm-navy-700: #07293F;
+  --mm-navy-600: #0B3A57;
+  --mm-turquoise-100: #6BC2BB;
+  --mm-turquoise-200: #29B4AA;
+  --mm-turquoise-300: #008E82;
+  --mm-turquoise-400: #004440;
+  --mm-blue-100: #6CB8E7;
+  --mm-blue-200: #2E8ACB;
+  --mm-blue-300: #006BA9;
+  --mm-blue-400: #004266;
+  --mm-white: #FFFFFF;
+  --mm-gray-50: #F8F9FA;
+  --mm-gray-100: #F1F3F5;
+  --mm-gray-200: #DEE2E6;
+  --mm-gray-300: #CED4DA;
+  --mm-gray-400: #ADB5BD;
+  --mm-gray-500: #6C757D;
+  --mm-gray-600: #495057;
+  --mm-gray-700: #343A40;
+  --mm-gray-800: #212529;
+  --mm-gray-900: #041C2C;
+  --mm-success: #198754;
+  --mm-success-soft: #D1E7DD;
+  --mm-warning: #FFC107;
+  --mm-warning-soft: #FFF3CD;
+  --mm-danger: #DC3545;
+  --mm-danger-soft: #F8D7DA;
+  --mm-info: #0DCAF0;
+  --mm-info-soft: #CFF4FC;
+
+  /* ---- Brand & accent ---- */
+  --color-brand: var(--mm-turquoise-300);
+  --color-brand-hover: var(--mm-turquoise-400);
+  --color-brand-soft: #E1F3F1;
+  --color-accent: var(--mm-cyan);
+
+  /* ---- Status ---- */
+  --color-success: var(--mm-success);
+  --color-success-soft: var(--mm-success-soft);
+  --color-warning: var(--mm-warning);
+  --color-warning-soft: var(--mm-warning-soft);
+  --color-danger: var(--mm-danger);
+  --color-danger-soft: var(--mm-danger-soft);
+  --color-info: var(--mm-info);
+  --color-info-soft: var(--mm-info-soft);
+  /* Text on the soft status surfaces (AA on the *-soft colours) */
+  --color-success-text: #0F5132;
+  --color-warning-text: #664D03;
+  --color-danger-text: #842029;
+  --color-info-text: #055160;
+
+  /* ---- Text ---- */
+  --text-primary: var(--mm-navy);
+  --text-body: var(--mm-gray-800);
+  --text-muted: var(--mm-gray-500);
+  --text-brand: var(--mm-turquoise-300);
+  --text-link: var(--mm-blue-300);
+  --text-on-brand: var(--mm-white);
+  --text-on-dark: var(--mm-white);
+
+  /* ---- Surfaces ---- */
+  --surface-page: var(--mm-white);
+  --surface-subtle: var(--mm-gray-50);
+  --surface-card: var(--mm-white);
+  --surface-raised: var(--mm-white);
+  --surface-overlay: rgba(4, 28, 44, 0.72);
+  --surface-dark: var(--mm-navy);
+  --canvas-bg: var(--mm-gray-100);
+  --stage-bg: #C4CAD3;
+
+  /* ---- Borders ---- */
+  --border-subtle: var(--mm-gray-200);
+  --border-default: var(--mm-gray-300);
+  --border-strong: var(--mm-gray-500);
+  --border-brand: var(--mm-turquoise-300);
+
+  /* ---- Focus ---- */
+  --focus-ring: var(--mm-cyan);
+
+  /* ---- Spacing (8px grid) ---- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+
+  /* ---- Radius ---- */
+  --radius-none: 0;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 20px;
+  --radius-pill: 9999px;
+
+  /* ---- Elevation (navy tinted) ---- */
+  --shadow-xs: 0 1px 2px rgba(4, 28, 44, 0.06);
+  --shadow-sm: 0 1px 3px rgba(4, 28, 44, 0.08), 0 1px 2px rgba(4, 28, 44, 0.06);
+  --shadow-md: 0 4px 12px rgba(4, 28, 44, 0.10);
+  --shadow-lg: 0 12px 28px rgba(4, 28, 44, 0.14);
+  --shadow-xl: 0 24px 56px rgba(4, 28, 44, 0.18);
+  --shadow-glow: 0 0 0 1px rgba(0, 242, 229, 0.4), 0 0 24px rgba(0, 242, 229, 0.25);
+
+  /* ---- Motion ---- */
+  --dur-fast: 120ms;
+  --dur-normal: 200ms;
+  --dur-slow: 320ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* ---- Typography ---- */
+  --font-display: 'Titillium Web', 'MMType', Arial, sans-serif;
+  --font-body: 'IBM Plex Sans', 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'SFMono-Regular', 'Cascadia Mono', Menlo, monospace;
+  --fs-h1: 2.25rem;
+  --fs-h2: 1.75rem;
+  --fs-h3: 1.375rem;
+  --fs-h4: 1.125rem;
+  --fs-body-lg: 1.125rem;
+  --fs-body: 1rem;
+  --fs-body-sm: 0.875rem;
+  --fs-caption: 0.75rem;
+  --fs-overline: 0.6875rem;
+
+  /* ---- JSON syntax colours (token based) ---- */
+  --json-key: var(--mm-blue-300);
+  --json-string: var(--mm-turquoise-300);
+  --json-number: #B35900;
+  --json-boolean: #7C3AED;
+  --json-null: var(--mm-gray-500);
+
+  /* ---- App layout ---- */
+  --topbar-h: 68px;
+  --pane-w: 380px;
+  --pane-collapsed-w: 36px;
+  --json-pane-w: 440px;
+}
+
+[data-theme="dark"] {
+  --color-brand: var(--mm-cyan);
+  --color-brand-hover: var(--mm-cyan-bright);
+  --color-brand-soft: rgba(0, 242, 229, 0.12);
+  --color-accent: var(--mm-cyan);
+
+  --color-success-soft: rgba(25, 135, 84, 0.22);
+  --color-warning-soft: rgba(255, 193, 7, 0.20);
+  --color-danger-soft: rgba(220, 53, 69, 0.22);
+  --color-info-soft: rgba(13, 202, 240, 0.18);
+  --color-success-text: #75B798;
+  --color-warning-text: #FFDA6A;
+  --color-danger-text: #EA868F;
+  --color-info-text: #6EDFF6;
+
+  --text-primary: #FFFFFF;
+  --text-body: var(--mm-gray-200);
+  --text-muted: var(--mm-gray-400);
+  --text-brand: var(--mm-cyan);
+  --text-link: var(--mm-blue-100);
+  --text-on-brand: var(--mm-navy);
+
+  --surface-page: var(--mm-navy);
+  --surface-subtle: var(--mm-navy-700);
+  --surface-card: #082B41;
+  --surface-raised: var(--mm-navy-600);
+  --canvas-bg: #011520;
+  --stage-bg: #010407;
+
+  --border-subtle: rgba(255, 255, 255, 0.10);
+  --border-default: rgba(255, 255, 255, 0.18);
+  --border-strong: rgba(255, 255, 255, 0.40);
+  --border-brand: var(--mm-cyan);
+
+  --json-key: var(--mm-blue-100);
+  --json-string: var(--mm-cyan);
+  --json-number: #FFB86B;
+  --json-boolean: #C4B5FD;
+  --json-null: var(--mm-gray-400);
+}

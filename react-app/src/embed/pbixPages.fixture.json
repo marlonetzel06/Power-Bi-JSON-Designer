@@ -1,0 +1,219 @@
+[
+  {
+    "name": "d07715da2f4b81693caa",
+    "displayName": "Stacked Bar chart",
+    "visualTypes": [
+      "barChart"
+    ]
+  },
+  {
+    "name": "5212c4797cf143446b33",
+    "displayName": "Stacked Column Chart",
+    "visualTypes": [
+      "columnChart"
+    ]
+  },
+  {
+    "name": "3d086184ea2433d0de47",
+    "displayName": " Grouped Bar chart",
+    "visualTypes": [
+      "clusteredBarChart"
+    ]
+  },
+  {
+    "name": "c13d71386b4f24ff9c3a",
+    "displayName": "Grouped Coulmn chart",
+    "visualTypes": [
+      "clusteredColumnChart"
+    ]
+  },
+  {
+    "name": "0f7551748e9716990f53",
+    "displayName": "Stacked Barchart 100%",
+    "visualTypes": [
+      "hundredPercentStackedBarChart"
+    ]
+  },
+  {
+    "name": "5375e6c54d3e11687616",
+    "displayName": "Stacked Column Chart 100%",
+    "visualTypes": [
+      "hundredPercentStackedColumnChart"
+    ]
+  },
+  {
+    "name": "cbcf2ef765eed81721a5",
+    "displayName": "Line Chart",
+    "visualTypes": [
+      "lineChart"
+    ]
+  },
+  {
+    "name": "d44b562c7bae7272a63d",
+    "displayName": "Area Chart",
+    "visualTypes": [
+      "areaChart"
+    ]
+  },
+  {
+    "name": "e5a3d76d4af867026df0",
+    "displayName": "Stacked Area Chart",
+    "visualTypes": [
+      "stackedAreaChart"
+    ]
+  },
+  {
+    "name": "79254bf59b21be2357d8",
+    "displayName": "Stacked Area Chart 100%",
+    "visualTypes": [
+      "hundredPercentStackedAreaChart"
+    ]
+  },
+  {
+    "name": "7d7d3a06fa52810e3040",
+    "displayName": "Stacked Column chart with Line",
+    "visualTypes": [
+      "lineStackedColumnComboChart"
+    ]
+  },
+  {
+    "name": "4429c6ab43e62a63c045",
+    "displayName": "Grouped Column Chart with Line",
+    "visualTypes": [
+      "lineClusteredColumnComboChart"
+    ]
+  },
+  {
+    "name": "478132fba7757b7265f2",
+    "displayName": "Ribbon Chart",
+    "visualTypes": [
+      "ribbonChart"
+    ]
+  },
+  {
+    "name": "d4e9a06f4e04c6a030da",
+    "displayName": "Waterfall chart",
+    "visualTypes": [
+      "waterfallChart"
+    ]
+  },
+  {
+    "name": "b43ca3671211f2ddb2e2",
+    "displayName": "Funnel Chart",
+    "visualTypes": [
+      "funnel"
+    ]
+  },
+  {
+    "name": "143244b6f12f9dd63c74",
+    "displayName": "Scatter Chart",
+    "visualTypes": [
+      "scatterChart"
+    ]
+  },
+  {
+    "name": "0cb69257f236ee80ef30",
+    "displayName": "Pie chart",
+    "visualTypes": [
+      "pieChart"
+    ]
+  },
+  {
+    "name": "7de0f380bbacbefa79d4",
+    "displayName": "Donut Chart",
+    "visualTypes": [
+      "donutChart"
+    ]
+  },
+  {
+    "name": "a4aa6e92fa0221abdd05",
+    "displayName": "Heatmap",
+    "visualTypes": [
+      "treemap"
+    ]
+  },
+  {
+    "name": "0af6272c579115acd73c",
+    "displayName": "Azure Maps",
+    "visualTypes": [
+      "azureMap"
+    ]
+  },
+  {
+    "name": "9ef1ef6f5a45b606519a",
+    "displayName": "Gauge Chart",
+    "visualTypes": [
+      "gauge"
+    ]
+  },
+  {
+    "name": "f3b3709a7be9127005c2",
+    "displayName": "KPI Card",
+    "visualTypes": [
+      "cardVisual"
+    ]
+  },
+  {
+    "name": "4ac488f5cb6427b2ea0b",
+    "displayName": "KPI Card (muiliticard view)",
+    "visualTypes": [
+      "cardVisual"
+    ]
+  },
+  {
+    "name": "16912b2594f2ae3c265d",
+    "displayName": "Slicer",
+    "visualTypes": [
+      "slicer"
+    ]
+  },
+  {
+    "name": "69566f58a5b3b21063af",
+    "displayName": "Button Slicer",
+    "visualTypes": [
+      "advancedSlicerVisual"
+    ]
+  },
+  {
+    "name": "b26350a40cc8abeda9f8",
+    "displayName": "Text slicer",
+    "visualTypes": [
+      "textSlicer"
+    ]
+  },
+  {
+    "name": "3933f75110768f95c9fe",
+    "displayName": "Table",
+    "visualTypes": [
+      "tableEx"
+    ]
+  },
+  {
+    "name": "ce40283de8370c664867",
+    "displayName": "Matrix",
+    "visualTypes": [
+      "pivotTable"
+    ]
+  },
+  {
+    "name": "c0114a176917e4ac876a",
+    "displayName": "List Slicer",
+    "visualTypes": [
+      "listSlicer"
+    ]
+  },
+  {
+    "name": "0b190968b091dd592928",
+    "displayName": "Column Chart",
+    "visualTypes": [
+      "columnChart"
+    ]
+  },
+  {
+    "name": "53ca836f8a2093d91102",
+    "displayName": "Bar Chart",
+    "visualTypes": [
+      "barChart"
+    ]
+  }
+]

@@ -1,0 +1,8 @@
+{
+  "name": "Kaputtes Theme",
+  "dataColors": ["#111111"],
+  "visualStyles": {
+    "gauge": { "*": { "gauge": [{ "min": 0 }] } },
+    "lineChart": { "*": { "lineStyles": [{ "strokeWidth": 2, "nichtVorhanden": true }] } }
+  }
+}
