@@ -101,7 +101,7 @@ export function CartesianChart({ r, rect, uid, options }: BodyProps & { options:
           { label: 'Rückgang', color: r.color('sentimentColors', 'decreaseFill', r.structural.bad) },
           { label: 'Gesamt', color: r.color('sentimentColors', 'totalFill', r.structural.second) },
         ]
-      : rawSeries.map((_, i) => ({ label: SERIES_NAMES[i] ?? `Serie ${i + 1}`, color: seriesColor(r, i, seriesCount), marker: isLine && variant === 'line' ? 'line' : 'square' }));
+      : rawSeries.map((_, i) => ({ label: SERIES_NAMES[i] ?? `Serie ${i + 1}`, color: seriesColor(r, i, seriesCount), marker: 'circle' }));
 
   const { plot: afterLegend, element: legendEl } = layoutLegend(r, rect, legendItems);
 

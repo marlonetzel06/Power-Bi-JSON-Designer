@@ -5,7 +5,7 @@ import type { Rect } from '../types';
 export interface LegendItem {
   label: string;
   color: string;
-  /** line marker (line charts) vs square swatch */
+  /** Power BI draws round legend markers for every visual type; 'square' is kept for explicit use. */
   marker?: 'square' | 'line' | 'circle';
 }
 
@@ -92,12 +92,11 @@ export function layoutLegend(r: Resolver, rect: Rect, items: LegendItem[], card 
 function renderItem(item: LegendItem, x: number, y: number, sw: number, font: ReturnType<Resolver['font']>, maxTextW: number, key: string) {
   const cy = y + Math.max(sw, font.sizePx) / 2 + 3;
   const marker =
-    item.marker === 'line' ? (
-      <g><line x1={x} x2={x + sw} y1={cy} y2={cy} stroke={item.color} strokeWidth={2} /><circle cx={x + sw / 2} cy={cy} r={sw / 3.2} fill={item.color} /></g>
-    ) : item.marker === 'circle' ? (
-      <circle cx={x + sw / 2} cy={cy} r={sw / 2} fill={item.color} />
-    ) : (
+    item.marker === 'square' ? (
       <rect x={x} y={cy - sw / 2} width={sw} height={sw} fill={item.color} />
+    ) : (
+      // Power BI: round marker for bars, columns, lines, areas and pies alike.
+      <circle cx={x + sw / 2} cy={cy} r={sw / 2} fill={item.color} />
     );
   return (
     <g key={key}>
