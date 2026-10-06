@@ -1,6 +1,6 @@
 // Dev helper: CHROMIUM_PATH=... node scripts/screenshot.mjs <outDir> [baseUrl]
 // Walks through the main flows (German UI) and writes screenshots + console errors.
-import { chromium } from '@playwright/test';
+import { chromium, expect } from '@playwright/test';
 const out = process.argv[2] ?? '.';
 const base = process.argv[3] ?? 'http://localhost:5173';
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
@@ -53,14 +53,11 @@ await page.getByTestId('format-search').fill('Linien');
 await page.waitForTimeout(400);
 await page.screenshot({ path: `${out}/10-line-cards.png` });
 await page.getByTestId('format-search').fill('');
-// theme pane filter cards
-await page.getByTestId('toggle-theme-pane').click();
-try {
-  await page.getByRole('button', { name: 'Filterkarten' }).first().click({ timeout: 5000 });
-  await page.waitForTimeout(400);
-  await page.screenshot({ path: `${out}/11-filter-cards.png` });
-} catch (e) {
-  errors.push('filter cards step skipped: ' + e.message.split('\n')[0]);
-}
+// theme pane filter cards (the pane is still open from step 05: the toggle button would close it)
+if (!(await page.getByTestId('theme-pane').isVisible())) await page.getByTestId('toggle-theme-pane').click();
+await page.locator('[data-card="theme-filterCards"]').getByRole('button', { name: 'Filterkarten' }).click();
+await expect(page.getByTestId('filter-cards-Applied')).toBeVisible();
+await page.waitForTimeout(400);
+await page.screenshot({ path: `${out}/11-filter-cards.png` });
 console.log(JSON.stringify(errors, null, 1));
 await browser.close();

@@ -17,11 +17,13 @@ export function PagePreview({ r, width, height }: { r: Resolver; width: number; 
   const paneBorder = r.bool('outspacePane', 'border', true);
   const paneBorderColor = r.color('outspacePane', 'borderColor', r.structural.third);
   const paneW = Math.min(width * 0.26, Math.max(60, (r.num('outspacePane', 'width', 240) / 1280) * width));
-  const titleSize = (r.num('outspacePane', 'titleSize', 14) * 4) / 3 * (width / 1280) * 2.2;
-  const headerSize = (r.num('outspacePane', 'headerSize', 12) * 4) / 3 * (width / 1280) * 2.2;
-  const searchSize = (r.num('outspacePane', 'searchTextSize', 10) * 4) / 3 * (width / 1280) * 2.2;
+  // Text scale: the pane is drawn at page scale (width / 1280) with a readability factor; 1.6 keeps
+  // the title, search box, header and three filter cards above the apply button at 16:9.
+  const scale = (width / 1280) * 1.6;
+  const titleSize = (r.num('outspacePane', 'titleSize', 14) * 4) / 3 * scale;
+  const headerSize = (r.num('outspacePane', 'headerSize', 12) * 4) / 3 * scale;
+  const searchSize = (r.num('outspacePane', 'searchTextSize', 10) * 4) / 3 * scale;
   const inputBox = r.color('outspacePane', 'inputBoxColor', r.structural.background);
-  const scale = (width / 1280) * 2.2;
   // Filter cards exist in two states: the first card is an applied filter, the others are available.
   const cardStyle = (state: 'Applied' | 'Available') => {
     const rs = r.withState(state);
@@ -62,6 +64,7 @@ export function PagePreview({ r, width, height }: { r: Resolver; width: number; 
     { label: 'Jahr', value: 'ist (Alle)', style: available },
   ];
   const cardH = cardText * 3.2;
+  const buttonTop = height - margin - cardH * 0.8;
   return (
     <g>
       <rect x={0} y={0} width={width} height={height} fill={wallpaper} />
@@ -74,12 +77,13 @@ export function PagePreview({ r, width, height }: { r: Resolver; width: number; 
       </g>
       <rect x={px} y={margin} width={paneW} height={height - margin * 2} fill={paneBg} stroke={paneBorder ? paneBorderColor : 'none'} />
       <text x={px + paneW * 0.08} y={margin + titleSize * 1.5} {...textProps(titleFont)}>Filter</text>
-      <rect data-part="filter-search" x={px + paneW * 0.06} y={margin + titleSize * 1.5 + headerSize * 0.4} width={paneW * 0.88} height={searchSize * 1.8} rx={2} fill={inputBox} stroke={paneBorderColor} />
-      <text x={px + paneW * 0.1} y={margin + titleSize * 1.5 + headerSize * 0.4 + searchSize * 1.25} {...textProps({ ...headerFont, sizePx: searchSize })} opacity={0.6}>Suchen</text>
-      <text x={px + paneW * 0.08} y={margin + titleSize * 1.5 + headerSize * 0.6 + searchSize * 1.8 + headerSize * 1.4} {...textProps(headerFont)}>Filter für diese Seite</text>
+      <rect data-part="filter-search" x={px + paneW * 0.06} y={margin + titleSize * 1.5 + headerSize * 0.4} width={paneW * 0.88} height={searchSize * 1.6} rx={2} fill={inputBox} stroke={paneBorderColor} />
+      <text x={px + paneW * 0.1} y={margin + titleSize * 1.5 + headerSize * 0.4 + searchSize * 1.15} {...textProps({ ...headerFont, sizePx: searchSize })} opacity={0.6}>Suchen</text>
+      <text x={px + paneW * 0.08} y={margin + titleSize * 1.5 + headerSize * 0.6 + searchSize * 1.6 + headerSize * 1.4} {...textProps(headerFont)}>Filter für diese Seite</text>
       {cards.map((c, i) => {
-        const y = margin + titleSize * 1.5 + headerSize * 0.6 + searchSize * 1.8 + headerSize * 2.2 + i * (cardH + cardText * 0.8);
-        if (y + cardH > height - margin - cardH) return null;
+        const y = margin + titleSize * 1.5 + headerSize * 0.6 + searchSize * 1.6 + headerSize * 2.0 + i * (cardH + cardText * 0.8);
+        // cards stop above the apply button
+        if (y + cardH > buttonTop - cardText * 0.5) return null;
         const font = { ...titleFont, family: fontSpec(c.style.family).family, weight: 400, sizePx: c.style.text, color: c.style.fg };
         return (
           <g key={c.label} data-filter-card={c.style === applied ? 'Applied' : 'Available'}>
@@ -89,8 +93,8 @@ export function PagePreview({ r, width, height }: { r: Resolver; width: number; 
           </g>
         );
       })}
-      <rect x={px + paneW * 0.06} y={height - margin - cardH * 0.8} width={paneW * 0.88} height={cardH * 0.6} rx={2} fill={applyColor} />
-      <text x={px + paneW / 2} y={height - margin - cardH * 0.8 + cardH * 0.4} textAnchor="middle" {...textProps({ ...titleFont, weight: 400, sizePx: cardText })} fill={r.structural.background}>Filter anwenden</text>
+      <rect x={px + paneW * 0.06} y={buttonTop} width={paneW * 0.88} height={cardH * 0.6} rx={2} fill={applyColor} />
+      <text x={px + paneW / 2} y={buttonTop + cardH * 0.4} textAnchor="middle" {...textProps({ ...titleFont, weight: 400, sizePx: cardText })} fill={r.structural.background}>Filter anwenden</text>
     </g>
   );
 }

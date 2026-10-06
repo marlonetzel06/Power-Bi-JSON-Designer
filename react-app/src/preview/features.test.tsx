@@ -209,7 +209,9 @@ describe('tables', () => {
 describe('cards, KPI, slicers, buttons', () => {
   it('card visual: tile shape, label text, reference label detail and value units', () => {
     const c = svg('cardVisual', { shapeCustomRectangle: { tileShape: 'pill' }, label: { show: true, text: 'Kennzahl' }, referenceLabelDetail: { show: true, detailFontColor: solid('#AB0015') }, value: { labelDisplayUnits: 1000000, labelPrecision: 2 } }, [320, 220]);
-    expect(c.querySelector('[data-part="card-fill"] rect')?.getAttribute('rx')).not.toBe('7');
+    const pill = c.querySelector('[data-part="card-fill"] rect')!;
+    expect(pill).not.toBeNull();
+    expect(Number(pill.getAttribute('rx'))).toBeCloseTo(Math.min(Number(pill.getAttribute('width')), Number(pill.getAttribute('height'))) / 2, 3);
     expect(c.querySelector('[data-part="card-label"]')?.textContent).toBe('Kennzahl');
     expect(c.querySelector('[data-part="card-value"]')?.textContent).toBe('4,74 Mio.');
     expect([...c.querySelectorAll('[data-part="reference-label"] text')].some((t) => t.getAttribute('fill') === '#AB0015')).toBe(true);
@@ -219,6 +221,26 @@ describe('cards, KPI, slicers, buttons', () => {
     expect(neg.querySelector('[data-part="kpi-icon"]')?.getAttribute('fill')).toBe('#AB0016');
     expect(neg.querySelector('[data-part="kpi-distance"]')?.textContent).toMatch(/\(\+/);
     expect(neg.querySelector('[data-part="kpi-date"]')).not.toBeNull();
+    // the status colour follows status.direction only; goals.direction flips the sign of the distance
+    const low = svg('kpi', { status: { direction: 'Positive', goodColor: solid('#AB0030') }, goals: { direction: 'Low is good', distanceLabel: 'Percent' } });
+    expect(low.querySelector('[data-part="kpi-icon"]')?.getAttribute('fill')).toBe('#AB0030');
+    expect(low.querySelector('[data-part="kpi-distance"]')?.textContent).toMatch(/^-/);
+    expect(svg('kpi', { goals: { direction: 'High is good' } }).querySelector('[data-part="kpi-distance"]')?.textContent).toMatch(/^\+/);
+  });
+  it('card visual: shadow and glow render in one filter, centred reference block on flat tiles', () => {
+    const c = svg('cardVisual', { shadowCustom: { show: true }, glowCustom: { show: true, color: solid('#AB0031') }, referenceLabelLayout: { position: 'right' } }, [560, 90]);
+    const filter = c.querySelector('[data-part="card-fill"]')!.getAttribute('filter')!;
+    expect(filter).toMatch(/^url\(#/);
+    const def = c.querySelector(`filter[id="${filter.slice(5, -1)}"]`)!;
+    expect(def.querySelectorAll('feFlood').length).toBe(2);
+    expect([...def.querySelectorAll('feFlood')].some((f) => f.getAttribute('flood-color') === '#AB0031')).toBe(true);
+    const tile = c.querySelector('[data-part="card-fill"] rect')!;
+    const ref = [...c.querySelectorAll('[data-part="reference-label"] text')];
+    expect(ref.length).toBeGreaterThan(0);
+    const ys = ref.map((t) => Number(t.getAttribute('y')));
+    const tileMid = Number(tile.getAttribute('y')) + Number(tile.getAttribute('height')) / 2;
+    expect(Math.min(...ys)).toBeLessThan(tileMid);
+    expect(Math.max(...ys)).toBeGreaterThan(tileMid - 2);
   });
   it('button slicer: selected tile uses the selection state, label and selection icon render', () => {
     const c = svg('advancedSlicerVisual', { label: { show: true }, selectionIcon: { show: true, color: solid('#AB0017') } });
@@ -233,6 +255,35 @@ describe('cards, KPI, slicers, buttons', () => {
     expect(svg('slicer', { searchBox: { background: solid('#AB0018') } }).querySelector('[data-part="slicer-search"]')?.getAttribute('fill')).toBe('#AB0018');
     expect(svg('slicer', { selection: { selectAllCheckboxEnabled: true } }).innerHTML).toContain('Alle auswählen');
     expect(svg('slicer', { data: { mode: 'Relative' }, date: { background: solid('#AB0019') } }).querySelector('[data-part="slicer-date"]')?.getAttribute('fill')).toBe('#AB0019');
+    // the horizontal list has no search box and is limited by the width, not the height
+    const horizontal = svg('slicer', { data: { mode: 'HorizontalList' }, searchBox: { background: solid('#AB0018') } }, [600, 60]);
+    expect(horizontal.querySelector('[data-part="slicer-search"]')).toBeNull();
+    expect(horizontal.querySelectorAll('[data-part="slicer-item"]').length).toBeGreaterThan(1);
+  });
+  it('button slicer: the fallback highlight yields to a theme font colour and a selected-state fill', () => {
+    const own = svg('advancedSlicerVisual', { value: { fontColor: solid('#AB0032') } });
+    const selectedText = [...own.querySelectorAll('[data-part="slicer-value"]')][1]!;
+    expect(selectedText.getAttribute('fill')).toBe('#AB0032');
+    const theme: ReportTheme = { name: 's', visualStyles: { advancedSlicerVisual: { '*': { fillCustom: [{ $id: 'selection:selected', fillColor: solid('#BB0001') }] } } } };
+    const sel = render(<MockVisual theme={theme} visualKey="advancedSlicerVisual" width={320} height={160} />).container;
+    expect(sel.querySelector('[data-part="slicer-tile"][data-selected]')?.getAttribute('fill')).toBe('#BB0001');
+  });
+  it('navigators render the current page in the selected state', () => {
+    const theme: ReportTheme = { name: 'n', visualStyles: { pageNavigator: { '*': { fill: [{ fillColor: solid('#0000CC') }, { $id: 'selected', fillColor: solid('#CC0000') }] } } } };
+    const c = render(<MockVisual theme={theme} visualKey="pageNavigator" width={400} height={60} />).container;
+    const faces = [...c.querySelectorAll('[data-part="button-face"]')];
+    expect(faces[0]!.getAttribute('fill')).toBe('#CC0000');
+    expect(faces[1]!.getAttribute('fill')).toBe('#0000CC');
+    // explicit state: every tile shows it
+    const hover = render(<MockVisual theme={theme} visualKey="pageNavigator" width={400} height={60} stateId="hover" />).container;
+    expect(new Set([...hover.querySelectorAll('[data-part="button-face"]')].map((f) => f.getAttribute('fill'))).size).toBe(1);
+  });
+  it('buttons: shadow and glow together produce one filter with both effects', () => {
+    const c = svg('actionButton', { shadow: { show: true }, glow: { show: true, color: solid('#AB0033') } });
+    const face = c.querySelector('[data-part="button-face"]')!;
+    const def = c.querySelector(`filter[id="${face.getAttribute('filter')!.slice(5, -1)}"]`)!;
+    expect(def.querySelectorAll('feFlood').length).toBe(2);
+    expect([...def.querySelectorAll('feFlood')].some((f) => f.getAttribute('flood-color') === '#AB0033')).toBe(true);
   });
   it('buttons: icon, shadow preset, rotation and tile shapes', () => {
     const c = svg('actionButton', { icon: { show: true, shapeType: 'rightArrow', lineColor: solid('#AB0020') }, shadow: { show: true, shadowPositionPreset: 'topLeft', shadowDistance: 4 }, rotation: { angle: 10 }, shape: { tileShape: 'hexagon' } });
@@ -243,6 +294,16 @@ describe('cards, KPI, slicers, buttons', () => {
   });
 });
 
+describe('page', () => {
+  it('shows all three filter cards above the apply button at 16:9', () => {
+    for (const size of [[640, 360], [1280, 720], [320, 180]] as [number, number][]) {
+      const c = svg('page', {}, size);
+      expect(c.querySelectorAll('[data-filter-card]').length, `${size[0]}x${size[1]}`).toBe(3);
+    }
+    expect(svg('page', {}, [640, 360]).querySelectorAll('[data-filter-card="Available"]').length).toBe(2);
+  });
+});
+
 describe('remaining visuals', () => {
   it('treemap squarified tiles with a fill override, map heat layer, funnel outside labels, page search box', () => {
     const tm = svg('treemap', { layout: { tilingMethod: 'stableSquarified' }, dataPoint: { fill: solid('#AB0021') } });
@@ -250,7 +311,9 @@ describe('remaining visuals', () => {
     expect(tiles.length).toBe(5);
     expect(tiles[0]!.getAttribute('fill')).toBe('#AB0021');
     expect(svg('map', { heatMap: { show: true } }).querySelector('[data-part="heat-map"]')).not.toBeNull();
-    expect(svg('funnel', { labels: { show: true, labelPosition: 'OutsideEnd' } }).querySelector('[data-part="data-label"] text')?.getAttribute('text-anchor')).toBe('start');
+    const funnelLabels = [...svg('funnel', { labels: { show: true, labelPosition: 'OutsideEnd' } }).querySelectorAll('[data-part="data-label"] text')];
+    expect(funnelLabels[funnelLabels.length - 1]?.getAttribute('text-anchor')).toBe('start');
+    expect(funnelLabels[0]?.getAttribute('text-anchor')).toBe('middle'); // the widest bar has no room outside → inside
     expect(svg('page', { outspacePane: { inputBoxColor: solid('#AB0022') } }, [800, 450]).querySelector('[data-part="filter-search"]')?.getAttribute('fill')).toBe('#AB0022');
   });
 });

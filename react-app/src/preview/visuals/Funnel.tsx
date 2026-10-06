@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { truncate } from '../fonts';
 import { textProps, withAlpha } from '../resolver';
-import { FUNNEL, formatNumber } from '../sampleData';
+import { FUNNEL, clampPrecision, formatNumber } from '../sampleData';
 import type { BodyProps } from '../types';
 
 export function Funnel({ r, rect }: BodyProps) {
@@ -13,8 +13,8 @@ export function Funnel({ r, rect }: BodyProps) {
   const pctShow = r.bool('percentBarLabel', 'show', true);
   const pctFont = r.font('percentBarLabel', 'color', r.structural.second, 9, { textClass: 'label' });
   const units = r.num('labels', 'labelDisplayUnits', 0);
-  const precision = r.num('labels', 'labelPrecision', 0);
-  const pctPrecision = r.num('labels', 'percentageLabelPrecision', 0);
+  const precision = clampPrecision(r.num('labels', 'labelPrecision', 0));
+  const pctPrecision = clampPrecision(r.num('labels', 'percentageLabelPrecision', 0));
   const labelPos = r.str('labels', 'labelPosition', 'InsideCenter');
   const labelBg = r.bool('labels', 'enableBackground', false);
   const labelBgColor = labelBg ? withAlpha(r.color('labels', 'backgroundColor', '#FFFFFF'), r.num('labels', 'backgroundTransparency', 90)) : 'none';
@@ -46,10 +46,11 @@ export function Funnel({ r, rect }: BodyProps) {
       else if (ls === 'percent of previous') text = `${prev} %`;
       else if (ls.includes('first') && ls.startsWith('data')) text = `${text} (${pctFirst})`;
       else if (ls.includes('previous') && ls.startsWith('data')) text = `${text} (${prev} %)`;
-      const outside = labelPos === 'OutsideEnd';
+      const lw = text.length * labFont.sizePx * 0.55 + 6;
+      // "OutsideEnd" moves inside when the label would leave the visual (the widest bar), like Power BI
+      const outside = labelPos === 'OutsideEnd' && x + w + 6 + lw <= rect.x + rect.width;
       const lx = outside ? x + w + 6 : rect.x + catW + barArea / 2;
       const ly = y + rowH / 2 + labFont.sizePx * 0.35;
-      const lw = text.length * labFont.sizePx * 0.55 + 6;
       nodes.push(
         <g key={`l${i}`} data-part="data-label">
           {labelBg && <rect x={outside ? lx - 3 : lx - lw / 2} y={ly - labFont.sizePx} width={lw} height={labFont.sizePx + 4} rx={2} fill={labelBgColor} />}

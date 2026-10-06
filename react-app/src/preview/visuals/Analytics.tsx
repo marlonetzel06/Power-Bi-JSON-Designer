@@ -39,8 +39,8 @@ export function DecompositionTree({ r, rect }: BodyProps) {
       nodes.push(<text key={`nl${li}-${ni}`} x={x + 10} y={y + catFont.sizePx + 3} {...textProps(catFont)}>{truncate(n.label, w - 12, catFont.sizePx)}</text>);
       nodes.push(<text key={`nv${li}-${ni}`} x={x + w - 2} y={y + catFont.sizePx + 3} textAnchor="end" {...textProps(dataFont)}>{formatNumber(n.value * 1_000_000, r.num('dataLabels', 'dataLabelDisplayUnits', 0), 2)}</text>);
       const barY = y + nodeH - 7;
-      nodes.push(<rect key={`bb${li}-${ni}`} x={x + 10} y={barY} width={w - 14} height={3} fill={barBg} />);
-      nodes.push(<rect key={`bf${li}-${ni}`} x={x + 10} y={barY} width={(w - 14) * n.width} height={3} fill={barColor} />);
+      nodes.push(<rect key={`bb${li}-${ni}`} x={x + 10} y={barY} width={Math.max(0, w - 14)} height={3} fill={barBg} />);
+      nodes.push(<rect key={`bf${li}-${ni}`} x={x + 10} y={barY} width={Math.max(0, (w - 14) * n.width)} height={3} fill={barColor} />);
       cs.push(y + nodeH / 2);
     });
     centers.push(cs);
@@ -101,7 +101,7 @@ export function KeyInfluencers({ r, rect }: BodyProps) {
         const y = rect.y + 54 + i * rowH;
         return (
           <g key={`d${i}`}>
-            <rect x={bx} y={y + 6} width={bw * v} height={rowH - 14} fill={i === 0 ? drill : secondary} />
+            <rect x={bx} y={y + 6} width={Math.max(0, bw * v)} height={Math.max(0, rowH - 14)} fill={i === 0 ? drill : secondary} />
           </g>
         );
       })}
@@ -130,7 +130,7 @@ export function Scorecard({ r, rect }: BodyProps) {
     { name: 'Neukunden', status: 'Gefährdet', color: r.structural.neutral, value: '128', target: '150' },
     { name: 'Churn-Rate', status: 'Hinter Plan', color: r.structural.bad, value: '6,2 %', target: '5,0 %' },
   ];
-  const rowH = Math.min(34, (rect.height - headerH - colH) / rows.length);
+  const rowH = Math.max(0, Math.min(34, (rect.height - headerH - colH) / rows.length));
   const cols = [0, 0.42, 0.62, 0.82].map((f) => rect.x + f * rect.width);
   return (
     <g>
@@ -141,7 +141,7 @@ export function Scorecard({ r, rect }: BodyProps) {
           <text x={rect.x + 8} y={rect.y + 22} fontSize={14} fontWeight={600} fontFamily={family} fill={headerFg}>Vertriebs-Scorecard</text>
         </g>
       )}
-      <rect x={rect.x} y={rect.y + headerH} width={rect.width} height={rect.height - headerH} fill={tableBg} />
+      <rect x={rect.x} y={rect.y + headerH} width={rect.width} height={Math.max(0, rect.height - headerH)} fill={tableBg} />
       {colShow && ['Ziel', 'Status', 'Aktuell', 'Vorgabe'].map((c, i) => (
         <text key={c} x={cols[i]! + 8} y={rect.y + headerH + 14} fontSize={10} fontFamily={family} fill={colFg}>{c}</text>
       ))}

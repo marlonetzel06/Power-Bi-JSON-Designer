@@ -123,6 +123,11 @@ export function formatWithUnit(v: number, unit: number, precision?: number): str
   return (v / u).toLocaleString('de-DE', { minimumFractionDigits: p, maximumFractionDigits: p }) + (UNIT_SUFFIX[u] ?? '');
 }
 
+/** Precision from the theme as a safe digit count (toFixed/toLocaleString throw on negative or huge values). */
+export function clampPrecision(p: number): number {
+  return Math.max(0, Math.min(10, Math.round(Number(p) || 0)));
+}
+
 /** Decimals an automatic axis needs so ticks of the given step stay distinct (step 2.5 → 1). */
 export function autoPrecision(step: number): number {
   if (!(step > 0) || !Number.isFinite(step)) return 0;

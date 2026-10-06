@@ -6,6 +6,7 @@ import { SLICER_ITEMS } from '../sampleData';
 import { tilePath } from '../shared/shapes';
 import type { BodyProps, Rect } from '../types';
 import { cornerRadii, customEffects } from '../shared/cardStyle';
+import { getCardEntry } from '@/pbi/resolve';
 
 function outlineOn(v: string | number | boolean | undefined): boolean {
   return v !== undefined && v !== 0 && v !== '0' && v !== 'None' && v !== false && v !== '';
@@ -80,8 +81,8 @@ export function ClassicSlicer({ r, rect }: BodyProps) {
   }
   const horizontal = mode === 'HorizontalList';
   const rowH = itemFont.sizePx + padding * 2 + 2;
-  // search box (searchBox card): shown in list mode so its colours are visible
-  if (!horizontal && r.has('searchBox', 'background') || r.has('searchBox', 'borderColor') || outlineOn(r.raw('searchBox', 'outlineStyle'))) {
+  // search box (searchBox card): shown in list mode so its colours are visible; never in the horizontal list
+  if (!horizontal && (r.has('searchBox', 'background') || r.has('searchBox', 'borderColor') || outlineOn(r.raw('searchBox', 'outlineStyle')))) {
     const h = itemFont.sizePx + 8;
     nodes.push(<rect key="sb" data-part="slicer-search" x={rect.x} y={y} width={rect.width} height={h} fill={r.color('searchBox', 'background', r.structural.background)} stroke={r.color('searchBox', 'borderColor', r.structural.fourth)} />);
     nodes.push(<text key="sbt" x={rect.x + 6} y={y + h / 2 + itemFont.sizePx * 0.35} {...textProps(itemFont)} fill={withAlpha(itemFont.color, 45)}>Suchen</text>);
@@ -89,7 +90,8 @@ export function ClassicSlicer({ r, rect }: BodyProps) {
     y += h + 4;
   }
   const baseItems = selectAll ? ['Alle auswählen', ...SLICER_ITEMS.slice(1)] : SLICER_ITEMS;
-  const items = baseItems.slice(0, Math.max(1, Math.floor((rect.y + rect.height - y) / rowH)));
+  // the horizontal list is limited by the width (one row of chips), the vertical list by the height
+  const items = baseItems.slice(0, Math.max(1, horizontal ? Math.floor(rect.width / (itemFont.sizePx * 4.5)) : Math.floor((rect.y + rect.height - y) / rowH)));
   if (horizontal) {
     const w = rect.width / items.length;
     items.forEach((it, i) => {
@@ -165,7 +167,9 @@ export function ButtonSlicer({ r, rect, uid, list }: BodyProps & { list?: boolea
   }
   const availableH = area.y + area.height - top;
   const cellW = (area.width - colGap * (cols - 1)) / cols;
-  const cellH = Math.min((availableH - rowGap * (rows - 1)) / rows, list ? labelFont.sizePx + 18 : 60);
+  const cellH = Math.max(4, Math.min((availableH - rowGap * (rows - 1)) / rows, list ? labelFont.sizePx + 18 : 60));
+  // the theme styles the selected state itself when its `selection:selected` entry sets a fill colour
+  const stateHasFill = getCardEntry(r.theme, r.visualKey, 'fillCustom', undefined, 'selection:selected')?.fillColor !== undefined;
   if (bgShow) nodes.push(<g key="bg" data-part="slicer-bg" fill={bgColor} stroke={bgBorderW > 0 ? bgBorder : 'none'} strokeWidth={bgBorderW}>{tilePath('rectangleRounded', area, corners)}</g>);
   items.forEach((it, i) => {
     const col = i % cols;
@@ -209,7 +213,7 @@ export function ButtonSlicer({ r, rect, uid, list }: BodyProps & { list?: boolea
     const expandSpacing = expandShow ? r.num('expansionIcon', 'spacing', 6) : 0;
 
     // Without a state entry the default styling marks the selected tile with the first data colour (Power BI default).
-    const fallbackSelected = selected && !r.stateId && !rs.has('fillCustom', 'fillColor');
+    const fallbackSelected = selected && !r.stateId && !stateHasFill;
     const tileFill = fallbackSelected ? (style === 'Table' || list ? r.structural.third : r.dataColor(0)) : fillColor;
     if (style === 'Table' || list) {
       if (fillShow) nodes.push(<rect key={`f${i}`} data-part="slicer-tile" data-selected={selected ? '' : undefined} x={x} y={y} width={w} height={cellH} fill={tileFill} stroke={outlineShow ? outlineColor : 'none'} strokeWidth={outlineShow ? outlineW : 0} />);
@@ -248,7 +252,8 @@ export function ButtonSlicer({ r, rect, uid, list }: BodyProps & { list?: boolea
     }
     const tx = hAlign === 'center' ? (left + right) / 2 : hAlign === 'right' ? right : left;
     const ty = vAlign === 'top' ? y + valueFont.sizePx + 4 : vAlign === 'bottom' ? y + cellH - 6 : y + cellH / 2 + valueFont.sizePx * 0.35;
-    const color = fallbackSelected && style !== 'Table' && !list ? r.structural.background : valueFont.color;
+    // the fallback highlight inverts the text only when the theme sets no font colour of its own
+    const color = fallbackSelected && style !== 'Table' && !list && !rs.has('value', 'fontColor') ? r.structural.background : valueFont.color;
     if (valueShow) nodes.push(<text key={`t${i}`} data-part="slicer-value" x={tx} y={ty} textAnchor={hAlign === 'center' ? 'middle' : hAlign === 'right' ? 'end' : 'start'} opacity={valueOpacity} {...textProps(valueFont)} fill={color}>{truncate(it, Math.max(10, right - left), valueFont.sizePx)}</text>);
   });
   if (labelShow && labelPos === 'belowValue') nodes.push(<text key="label" data-part="slicer-label" x={area.x} y={area.y + area.height - 2} opacity={labelOpacity} {...textProps(labelFont)}>Produktgruppe</text>);

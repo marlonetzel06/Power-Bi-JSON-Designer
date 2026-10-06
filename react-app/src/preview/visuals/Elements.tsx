@@ -2,7 +2,8 @@ import type { ReactNode } from 'react';
 import { fontSpec, ptToPx, truncate } from '../fonts';
 import { textProps, withAlpha, type Resolver } from '../resolver';
 import { NAV_PAGES } from '../sampleData';
-import { shadowFilter, shadowOffset } from '../shared/effects';
+import { effectsFilter, shadowOffset, type ShadowSpec } from '../shared/effects';
+import { getCardEntry } from '@/pbi/resolve';
 import { iconGlyph, tilePath } from '../shared/shapes';
 import type { BodyProps, Rect } from '../types';
 
@@ -43,7 +44,7 @@ function ButtonFace({ r, rc, label, uidKey, selected, defaultOutline, textDefaul
   const hasIconGlyph = iconOn && iconType !== 'blank';
 
   const filterId = `${uidKey}-fx`;
-  const [sdx, sdy] = shadowShow ? shadowOffset(r.str('shadow', 'shadowPositionPreset', 'bottomRight'), r.num('shadow', 'shadowDistance', 2), r.num('shadow', 'angle', 45)) : [0, 0];
+  const effects = buttonEffects(r, shadowShow, glowShow);
   const cx = rc.x + rc.width / 2;
   const cy = rc.y + rc.height / 2;
 
@@ -76,13 +77,8 @@ function ButtonFace({ r, rc, label, uidKey, selected, defaultOutline, textDefaul
   const ty = vAlign === 'top' ? text.y + font.sizePx + 4 : vAlign === 'bottom' ? text.y + text.height - 6 : text.y + text.height / 2 + font.sizePx * 0.35;
   return (
     <g transform={rotation ? `rotate(${rotation} ${cx} ${cy})` : undefined}>
-      {(shadowShow || glowShow) && (
-        <defs>
-          {shadowShow && shadowFilter(filterId, { dx: sdx, dy: sdy, blur: r.num('shadow', 'shadowBlur', 4), spread: 0, color: r.color('shadow', 'color', '#000000'), opacity: 1 - r.num('shadow', 'transparency', 60) / 100 })}
-          {glowShow && !shadowShow && shadowFilter(filterId, { dx: 0, dy: 0, blur: r.num('glow', 'shadowBlur', 4) * 2, spread: 1, color: r.color('glow', 'color', r.dataColor(0)), opacity: 1 - r.num('glow', 'transparency', 60) / 100 })}
-        </defs>
-      )}
-      <g data-part="button-face" transform={shapeAngle ? `rotate(${shapeAngle} ${cx} ${cy})` : undefined} fill={fillShow ? (selected ? r.structural.first : fillColor) : 'none'} stroke={outlineShow ? outlineColor : 'none'} strokeWidth={outlineShow ? outlineW : 0} filter={shadowShow || glowShow ? `url(#${filterId})` : undefined}>
+      {effects.length > 0 && <defs>{effectsFilter(filterId, effects)}</defs>}
+      <g data-part="button-face" transform={shapeAngle ? `rotate(${shapeAngle} ${cx} ${cy})` : undefined} fill={fillShow ? (selected ? r.structural.first : fillColor) : 'none'} stroke={outlineShow ? outlineColor : 'none'} strokeWidth={outlineShow ? outlineW : 0} filter={effects.length > 0 ? `url(#${filterId})` : undefined}>
         {tilePath(shape, rc, { radius })}
       </g>
       {accentShow && (
@@ -105,6 +101,17 @@ function ButtonFace({ r, rc, label, uidKey, selected, defaultOutline, textDefaul
   );
 }
 
+/** shadow + glow cards of buttons/shapes as filter specs (both may be on at once). */
+function buttonEffects(r: Resolver, shadowShow: boolean, glowShow: boolean): ShadowSpec[] {
+  const specs: ShadowSpec[] = [];
+  if (shadowShow) {
+    const [dx, dy] = shadowOffset(r.str('shadow', 'shadowPositionPreset', 'bottomRight'), r.num('shadow', 'shadowDistance', 2), r.num('shadow', 'angle', 45));
+    specs.push({ dx, dy, blur: r.num('shadow', 'shadowBlur', 4), spread: 0, color: r.color('shadow', 'color', '#000000'), opacity: 1 - r.num('shadow', 'transparency', 60) / 100 });
+  }
+  if (glowShow) specs.push({ dx: 0, dy: 0, blur: r.num('glow', 'shadowBlur', 4) * 2, spread: 1, color: r.color('glow', 'color', r.dataColor(0)), opacity: 1 - r.num('glow', 'transparency', 60) / 100 });
+  return specs;
+}
+
 export function ActionButton({ r, rect, uid }: BodyProps) {
   const h = Math.min(rect.height, 40);
   const w = Math.min(rect.width, 160);
@@ -121,16 +128,21 @@ export function Navigator({ r, rect, uid, bookmarks }: BodyProps & { bookmarks?:
   const cellW = vertical ? rect.width : (rect.width - pad * (n - 1)) / n;
   const cellH = vertical ? (rect.height - pad * (n - 1)) / n : Math.min(rect.height, 40);
   const top = vertical ? rect.y : rect.y + (rect.height - cellH) / 2;
+  // The current page/bookmark is the `selected` state. With an explicit state every tile shows it;
+  // otherwise tile 0 renders in `selected`, falling back to fixed highlight colours only when the
+  // theme has no fill colour for that state.
+  const selectedR = r.stateId ? r : r.withState('selected');
+  const stateHasFill = getCardEntry(r.theme, r.visualKey, 'fill', undefined, 'selected')?.fillColor !== undefined;
   return (
     <g>
       {labels.map((label, i) => (
         <ButtonFace
           key={label}
-          r={r}
-          rc={{ x: vertical ? rect.x : rect.x + i * (cellW + pad), y: vertical ? top + i * (cellH + pad) : top, width: cellW, height: cellH }}
+          r={i === 0 ? selectedR : r}
+          rc={{ x: vertical ? rect.x : rect.x + i * (cellW + pad), y: vertical ? top + i * (cellH + pad) : top, width: Math.max(0, cellW), height: Math.max(0, cellH) }}
           label={label}
           uidKey={`${uid}-${i}`}
-          selected={i === 0}
+          selected={i === 0 && !r.stateId && !stateHasFill}
           defaultOutline={false}
           textDefaultColor={r.structural.second}
         />
@@ -157,23 +169,18 @@ export function Shape({ r, rect, uid }: BodyProps) {
   const vAlign = r.str('text', 'verticalAlignment', 'middle');
   const margin = { top: r.num('text', 'topMargin', 0), bottom: r.num('text', 'bottomMargin', 0), left: r.num('text', 'leftMargin', 0), right: r.num('text', 'rightMargin', 0) };
   const inset = 6;
-  const rc = { x: rect.x + inset, y: rect.y + inset, width: rect.width - inset * 2, height: rect.height - inset * 2 };
+  const rc = { x: rect.x + inset, y: rect.y + inset, width: Math.max(0, rect.width - inset * 2), height: Math.max(0, rect.height - inset * 2) };
   const cx = rc.x + rc.width / 2;
   const cy = rc.y + rc.height / 2;
   const shadowShow = r.bool('shadow', 'show', false);
   const glowShow = r.bool('glow', 'show', false);
-  const [sdx, sdy] = shadowShow ? shadowOffset(r.str('shadow', 'shadowPositionPreset', 'bottomRight'), r.num('shadow', 'shadowDistance', 2), r.num('shadow', 'angle', 45)) : [0, 0];
+  const effects = buttonEffects(r, shadowShow, glowShow);
   const tx = hAlign === 'left' ? rc.x + 8 + margin.left : hAlign === 'right' ? rc.x + rc.width - 8 - margin.right : cx;
   const ty = vAlign === 'top' ? rc.y + margin.top + font.sizePx + 4 : vAlign === 'bottom' ? rc.y + rc.height - margin.bottom - 6 : cy + font.sizePx * 0.35;
   return (
     <g transform={rotation ? `rotate(${rotation} ${cx} ${cy})` : undefined}>
-      {(shadowShow || glowShow) && (
-        <defs>
-          {shadowShow && shadowFilter(`${uid}-sh`, { dx: sdx, dy: sdy, blur: r.num('shadow', 'shadowBlur', 4), spread: 0, color: r.color('shadow', 'color', '#000000'), opacity: 1 - r.num('shadow', 'transparency', 60) / 100 })}
-          {glowShow && !shadowShow && shadowFilter(`${uid}-sh`, { dx: 0, dy: 0, blur: r.num('glow', 'shadowBlur', 4) * 2, spread: 1, color: r.color('glow', 'color', r.dataColor(0)), opacity: 1 - r.num('glow', 'transparency', 60) / 100 })}
-        </defs>
-      )}
-      <g data-part="shape" transform={shapeAngle ? `rotate(${shapeAngle} ${cx} ${cy})` : undefined} fill={fillShow ? fillColor : 'none'} stroke={outlineShow || shape === 'line' ? outlineColor : 'none'} strokeWidth={outlineShow || shape === 'line' ? Math.max(outlineW, shape === 'line' ? 2 : 0) : 0} strokeLinecap={linecap === 'round' ? 'round' : linecap === 'square' ? 'square' : 'butt'} filter={shadowShow || glowShow ? `url(#${uid}-sh)` : undefined}>
+      {effects.length > 0 && <defs>{effectsFilter(`${uid}-sh`, effects)}</defs>}
+      <g data-part="shape" transform={shapeAngle ? `rotate(${shapeAngle} ${cx} ${cy})` : undefined} fill={fillShow ? fillColor : 'none'} stroke={outlineShow || shape === 'line' ? outlineColor : 'none'} strokeWidth={outlineShow || shape === 'line' ? Math.max(outlineW, shape === 'line' ? 2 : 0) : 0} strokeLinecap={linecap === 'round' ? 'round' : linecap === 'square' ? 'square' : 'butt'} filter={effects.length > 0 ? `url(#${uid}-sh)` : undefined}>
         {tilePath(shape, rc, { radius })}
       </g>
       {textShow && <text data-part="shape-text" x={tx} y={ty} textAnchor={hAlign === 'left' ? 'start' : hAlign === 'right' ? 'end' : 'middle'} transform={textAngle ? `rotate(${textAngle} ${tx} ${ty})` : undefined} {...textProps(font)}>{r.str('text', 'text', '') || 'Text'}</text>}

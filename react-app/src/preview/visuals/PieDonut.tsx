@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { layoutLegend } from '../cartesian/Legend';
 import { textProps, withAlpha } from '../resolver';
-import { DONUT, PIE_LABELS, formatNumber } from '../sampleData';
+import { DONUT, PIE_LABELS, formatNumber, clampPrecision } from '../sampleData';
 import type { BodyProps } from '../types';
 
 export function PieDonut({ r, rect, donut }: BodyProps & { donut: boolean }) {
@@ -14,7 +14,7 @@ export function PieDonut({ r, rect, donut }: BodyProps & { donut: boolean }) {
   const position = r.str('labels', 'position', 'preferOutside');
   const units = r.num('labels', 'labelDisplayUnits', 0);
   const precision = r.num('labels', 'labelPrecision', 0);
-  const pctPrecision = r.num('labels', 'percentageLabelPrecision', 0);
+  const pctPrecision = clampPrecision(r.num('labels', 'percentageLabelPrecision', 0));
   const labelBackground = String(r.raw('labels', 'background') ?? 'auto');
   const overflow = r.bool('labels', 'overflow', false);
   const innerRatio = donut ? Math.min(0.9, Math.max(0, r.num('slices', 'innerRadiusRatio', 60) / 100)) : 0;

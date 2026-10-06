@@ -37,7 +37,6 @@ export function Table({ r, rect, matrix }: BodyProps & { matrix?: boolean }) {
   const headerOutline = outlineOn(r.raw('columnHeaders', 'outlineStyle'));
   const headerOutlineColor = r.color('columnHeaders', 'outlineColor', outlineColor);
   const headerOutlineW = r.num('columnHeaders', 'outlineWeight', 1);
-  const headerWrap = r.bool('columnHeaders', 'wordWrap', true);
 
   const valueFont = cellFont(r, 'values', r.structural.first, gridText);
   const valueBg = r.color('values', 'backColor', '');
@@ -110,7 +109,8 @@ export function Table({ r, rect, matrix }: BodyProps & { matrix?: boolean }) {
   cols.forEach((c, ci) => {
     const anchor = alignOf(ci, headerAlign);
     const font = extraCol && ci === cols.length - 1 && subtotalToHeaders ? colTotalFont : headerFont;
-    nodes.push(<text key={`h${ci}`} data-part="column-header" x={textX(ci, anchor)} y={y + headerH / 2 + headerFont.sizePx * 0.35} textAnchor={anchor} {...textProps(font)}>{headerWrap ? truncate(c, colW[ci]! - 12, headerFont.sizePx, headerFont.weight >= 600) : c}</text>);
+    // one header line in the mock: a header that does not fit is cut, with or without word wrap
+    nodes.push(<text key={`h${ci}`} data-part="column-header" x={textX(ci, anchor)} y={y + headerH / 2 + headerFont.sizePx * 0.35} textAnchor={anchor} {...textProps(font)}>{truncate(c, colW[ci]! - 12, headerFont.sizePx, headerFont.weight >= 600)}</text>);
   });
   if (headerOutline) nodes.push(<rect key="ho" data-part="header-outline" x={rect.x} y={y} width={rect.width} height={headerH} fill="none" stroke={headerOutlineColor} strokeWidth={headerOutlineW} />);
   else if (gridH) nodes.push(<line key="hl" x1={rect.x} x2={rect.x + rect.width} y1={y + headerH} y2={y + headerH} stroke={gridHColor} strokeWidth={gridHW} />);
@@ -135,9 +135,13 @@ export function Table({ r, rect, matrix }: BodyProps & { matrix?: boolean }) {
 
   const rowBlocks: { y0: number; y1: number }[] = [];
   let dataRowIndex = 0;
+  let full = false; // once a row does not fit, no later (shorter) row may sneak in below it
   rows.forEach((row, ri) => {
     const h = row.blank ? Math.max(4, rowH * 0.5) : rowH;
-    if (y + h > rect.y + rect.height - (totalShow || matrix ? rowH : 0)) return;
+    if (full || y + h > rect.y + rect.height - (totalShow || matrix ? rowH : 0)) {
+      full = true;
+      return;
+    }
     if (row.blank) {
       nodes.push(<rect key={`blank${ri}`} data-part="blank-row" x={rect.x} y={y} width={rect.width} height={h} fill={blankRowColor} />);
       if (blankBorder && blankBorderPos !== 'Bottom') nodes.push(<line key={`bbt${ri}`} x1={rect.x} x2={rect.x + rect.width} y1={y} y2={y} stroke={blankBorderColor} strokeWidth={blankBorderW} />);
@@ -176,7 +180,10 @@ export function Table({ r, rect, matrix }: BodyProps & { matrix?: boolean }) {
       }
       const anchor = ci === 0 ? alignOf(0, rowHeaderAlign) : 'end';
       let x = textX(ci, anchor);
-      if (ci === 0 && matrix && stepped) x += row.level * indent + (expandIcons && row.level === 0 ? expandSize + 4 : 0);
+      if (ci === 0 && matrix) {
+        if (stepped) x += row.level * indent;
+        if (expandIcons && row.level === 0) x += expandSize + 4; // the icon takes its space with or without stepped layout
+      }
       if (ci === 0 && matrix && expandIcons && row.level === 0 && !row.isSubtotal) {
         const s = expandSize / 2;
         nodes.push(<path key={`ex${ri}`} data-part="expand-icon" d={`M${colX[0]! + 8},${y + h / 2 - s * 0.6} l${s},${s} l${s},${-s}`} stroke={expandColor} strokeWidth={1.4} fill="none" />);

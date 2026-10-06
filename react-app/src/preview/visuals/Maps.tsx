@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { layoutLegend } from '../cartesian/Legend';
 import { withAlpha } from '../resolver';
-import { formatWithUnit, resolveUnit } from '../sampleData';
+import { formatWithUnit, resolveUnit, precisionOf } from '../sampleData';
 import { MAP_BUBBLES, CATEGORIES } from '../sampleData';
 import type { BodyProps, Rect } from '../types';
 
@@ -40,14 +40,15 @@ export function MapVisual({ r, rect, uid, kind }: BodyProps & { kind: MapKind })
     // shade regions with the palette (choropleth)
     const { x, y, width: w, height: h } = plot;
     nodes.push(<path key="r1" d={`M${x + 0.52 * w},${y + 0.22 * h} C${x + 0.6 * w},${y + 0.1 * h} ${x + 0.82 * w},${y + 0.12 * h} ${x + 0.92 * w},${y + 0.3 * h} C${x + 0.98 * w},${y + 0.45 * h} ${x + 0.88 * w},${y + 0.62 * h} ${x + 0.76 * w},${y + 0.66 * h} C${x + 0.66 * w},${y + 0.7 * h} ${x + 0.6 * w},${y + 0.56 * h} ${x + 0.55 * w},${y + 0.45 * h} C${x + 0.5 * w},${y + 0.36 * h} ${x + 0.48 * w},${y + 0.3 * h} ${x + 0.52 * w},${y + 0.22 * h} Z`} fill={withAlpha(kind === 'shapeMap' ? r.dataColor(1) : r.dataColor(1), t)} stroke={strokeShow ? strokeColor : 'none'} strokeWidth={strokeW} />);
+    nodes.push(<path key="r2" d={`M${x + 0.62 * w},${y + 0.72 * h} C${x + 0.7 * w},${y + 0.68 * h} ${x + 0.84 * w},${y + 0.72 * h} ${x + 0.86 * w},${y + 0.84 * h} C${x + 0.86 * w},${y + 0.92 * h} ${x + 0.7 * w},${y + 0.95 * h} ${x + 0.62 * w},${y + 0.9 * h} C${x + 0.56 * w},${y + 0.86 * h} ${x + 0.56 * w},${y + 0.76 * h} ${x + 0.62 * w},${y + 0.72 * h} Z`} fill={withAlpha(r.dataColor(2), t)} stroke={strokeShow ? strokeColor : 'none'} strokeWidth={strokeW} />);
+    // labels last, so the southern region (r2) does not cover its own label
     if (kind === 'filledMap' && r.hasCard('labels') && r.bool('labels', 'show', false)) {
       const lfColor = r.color('labels', 'color', r.structural.first);
       const lf = { family: r.textClass('label').fontFace ?? 'Segoe UI', sizePx: 12, color: lfColor };
       const units = r.num('labels', 'labelDisplayUnits', 0);
-      const prec = r.num('labels', 'labelPrecision', 0);
+      const prec = precisionOf(r, 'labels', 'labelPrecision');
       [[0.25, 0.45, 1248300], [0.72, 0.42, 986750], [0.73, 0.82, 655100]].forEach(([fx, fy, v], i) => nodes.push(<text key={`fl${i}`} data-part="map-label" x={x + fx! * w} y={y + fy! * h} textAnchor="middle" fontFamily={lf.family} fontSize={lf.sizePx} fill={lf.color}>{formatWithUnit(v!, resolveUnit(units, [v!]), prec)}</text>));
     }
-    nodes.push(<path key="r2" d={`M${x + 0.62 * w},${y + 0.72 * h} C${x + 0.7 * w},${y + 0.68 * h} ${x + 0.84 * w},${y + 0.72 * h} ${x + 0.86 * w},${y + 0.84 * h} C${x + 0.86 * w},${y + 0.92 * h} ${x + 0.7 * w},${y + 0.95 * h} ${x + 0.62 * w},${y + 0.9 * h} C${x + 0.56 * w},${y + 0.86 * h} ${x + 0.56 * w},${y + 0.76 * h} ${x + 0.62 * w},${y + 0.72 * h} Z`} fill={withAlpha(r.dataColor(2), t)} stroke={strokeShow ? strokeColor : 'none'} strokeWidth={strokeW} />);
   } else {
     nodes.push(<g key="land">{landmass(plot, land, dark ? '#55657A' : '#C9C6BD', 1)}</g>);
     const bubbleCard = kind === 'azureMap' ? 'bubbleLayer' : 'bubbles';

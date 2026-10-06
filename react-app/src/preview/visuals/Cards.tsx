@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { dashArray } from '../cartesian/axis';
 import { truncate } from '../fonts';
 import { textProps, withAlpha, type FontStyle } from '../resolver';
-import { KPI_SPARK, TABLE_ROWS, formatWithUnit, precisionOf, resolveUnit } from '../sampleData';
+import { KPI_SPARK, TABLE_ROWS, clampPrecision, formatWithUnit, precisionOf, resolveUnit } from '../sampleData';
 import { cornerRadii, customEffects } from '../shared/cardStyle';
 import { tilePath } from '../shared/shapes';
 import type { BodyProps, Rect } from '../types';
@@ -123,8 +123,9 @@ export function NewCard({ r, rect, uid }: BodyProps) {
     const y = area.y + row * (tileH + rowPad);
     const rc: Rect = { x, y, width: tileW, height: tileH };
     const isTable = style === 'Table';
-    if (bgShow && !isTable) nodes.push(<g key={`bg${i}`} data-part="card-bg" fill={bgColor} stroke={borderW > 0 ? borderColor : 'none'} strokeWidth={borderW} strokeDasharray={borderDash} filter={filter}>{tilePath('rectangleRounded', rc, corners)}</g>);
-    if (fillShow) nodes.push(<g key={`f${i}`} data-part="card-fill" fill={fillColor} stroke={outlineShow ? outlineColor : 'none'} strokeWidth={outlineShow ? outlineW : 0}>{tilePath(tileShape, { x: x + 1, y: y + 1, width: tileW - 2, height: tileH - 2 }, { radius: Math.max(0, tileCorners.radius - 1), radii: tileCorners.radii })}</g>);
+    // shadow/glow belong to the tile shape (the card's fill); only without a fill they fall to the background
+    if (bgShow && !isTable) nodes.push(<g key={`bg${i}`} data-part="card-bg" fill={bgColor} stroke={borderW > 0 ? borderColor : 'none'} strokeWidth={borderW} strokeDasharray={borderDash} filter={fillShow ? undefined : filter}>{tilePath('rectangleRounded', rc, corners)}</g>);
+    if (fillShow) nodes.push(<g key={`f${i}`} data-part="card-fill" fill={fillColor} stroke={outlineShow ? outlineColor : 'none'} strokeWidth={outlineShow ? outlineW : 0} filter={filter}>{tilePath(tileShape, { x: x + 1, y: y + 1, width: Math.max(0, tileW - 2), height: Math.max(0, tileH - 2) }, { radius: Math.max(0, tileCorners.radius - 1), radii: tileCorners.radii })}</g>);
     if (isTable && i > 0 && (customLines || gridShow)) nodes.push(<line key={`ln${i}`} data-part="card-line" x1={x} x2={x + tileW} y1={y - rowPad / 2} y2={y - rowPad / 2} stroke={customLines ? lineColor : gridColor} strokeWidth={customLines ? lineW : gridW} strokeDasharray={customLines ? lineDash : gridDash} />);
     if (accentShow) {
       const horizontalBar = accentPos === 'Top' || accentPos === 'Bottom';
@@ -144,8 +145,10 @@ export function NewCard({ r, rect, uid }: BodyProps) {
     const anchor = (align: string) => (align === 'center' ? 'middle' : align === 'right' ? 'end' : 'start');
     const vSize = Math.min(valueFont.sizePx, innerW / 5, tileH * 0.4);
     const valueText = formatWithUnit(t.value, unit, valuePrecision);
-    const refBlockH = hasRef && tileH > 110 ? (refTitleShow ? refTitleFont.sizePx * 1.2 : 0) + (refValueShow ? refValueFont.sizePx * 1.2 : 0) + (refDetailShow ? refDetailFont.sizePx * 1.2 : 0) + 6 : 0;
+    const refLinesH = (refTitleShow ? refTitleFont.sizePx * 1.2 : 0) + (refValueShow ? refValueFont.sizePx * 1.2 : 0) + (refDetailShow ? refDetailFont.sizePx * 1.2 : 0) + 6;
     const refRight = hasRef && refLayoutPos === 'right' && tileW > 200;
+    // below the value the block needs a tall tile; to the right it is centred on the value whatever the height
+    const refBlockH = hasRef && !refRight && tileH > 110 ? refLinesH : 0;
     const mainW = refRight ? innerW * 0.6 : innerW;
     const mainCenterY = y + (tileH - (refRight ? 0 : refBlockH)) / 2;
     let cy = mainCenterY + vSize * 0.35;
@@ -160,7 +163,7 @@ export function NewCard({ r, rect, uid }: BodyProps) {
     if (hasRef && (refBlockH > 0 || refRight)) {
       const rx = refRight ? ax('left') + mainW + 8 : ax(refAlign);
       const rAnchor = refRight ? 'start' : anchor(refAlign);
-      let ry = refRight ? mainCenterY - refBlockH / 2 + refTitleFont.sizePx : y + tileH - 8 - refBlockH + refTitleFont.sizePx;
+      let ry = refRight ? mainCenterY - refLinesH / 2 + refTitleFont.sizePx : y + tileH - 8 - refBlockH + refTitleFont.sizePx;
       const line = (key: string, text: string, font: FontStyle, bg?: string) => {
         const w = text.length * font.sizePx * 0.55 + 6;
         nodes.push(
@@ -207,9 +210,9 @@ export function MultiRowCard({ r, rect }: BodyProps) {
   const nodes: ReactNode[] = [];
   rows.forEach((row, i) => {
     const y = rect.y + i * rowH;
-    if (cardBg) nodes.push(<rect key={`bg${i}`} x={rect.x} y={y} width={rect.width} height={rowH - 2} fill={cardBg} />);
-    if (outlined) nodes.push(<rect key={`o${i}`} x={rect.x} y={y} width={rect.width} height={rowH - 2} fill="none" stroke={outlineColor} strokeWidth={outlineW} />);
-    if (barShow) nodes.push(<rect key={`b${i}`} data-part="card-bar" x={rect.x} y={y + 2} width={barW} height={rowH - 6} fill={barColor} />);
+    if (cardBg) nodes.push(<rect key={`bg${i}`} x={rect.x} y={y} width={rect.width} height={Math.max(0, rowH - 2)} fill={cardBg} />);
+    if (outlined) nodes.push(<rect key={`o${i}`} x={rect.x} y={y} width={rect.width} height={Math.max(0, rowH - 2)} fill="none" stroke={outlineColor} strokeWidth={outlineW} />);
+    if (barShow) nodes.push(<rect key={`b${i}`} data-part="card-bar" x={rect.x} y={y + 2} width={Math.max(0, barW)} height={Math.max(0, rowH - 6)} fill={barColor} />);
     const x = rect.x + (barShow ? barW : 0) + padding;
     nodes.push(<text key={`t${i}`} data-part="card-title" x={x} y={y + padding + titleFont.sizePx} {...textProps(titleFont)}>{truncate(row[0] ?? '', rect.width - x, titleFont.sizePx)}</text>);
     const cols = [1, 2].map((ci) => ({ label: ['Umsatz', 'Plan'][ci - 1]!, value: row[ci] ?? '' }));
@@ -250,9 +253,11 @@ export function Kpi({ r, rect }: BodyProps) {
   const statusDirection = r.str('status', 'direction', 'Positive');
   const good = r.color('status', 'goodColor', r.structural.good);
   const bad = r.color('status', 'badColor', r.structural.bad);
-  // the sample value is above goal: good when "high is good" / positive, bad otherwise
-  const favourable = (goalDirection === 'High is good') === (statusDirection === 'Positive');
+  // kpi.status.direction is the status itself (Positive = good colour, Negative = bad colour);
+  // kpi.goals.direction only decides whether the distance to the goal counts as positive
+  const favourable = statusDirection === 'Positive';
   const statusColor = favourable ? good : bad;
+  const valueAboveGoal = SAMPLE_VALUE > SAMPLE_PLAN;
   const lastDateShow = r.bool('lastDate', 'show', false);
   const lastDateFont = r.font('lastDate', 'lastDateFontColor', r.structural.second, 9, { props: { family: 'lastDateFontFamily' }, textClass: 'label' });
   const value = formatWithUnit(SAMPLE_VALUE, resolveUnit(indUnits, [SAMPLE_VALUE]), indPrecision);
@@ -271,7 +276,8 @@ export function Kpi({ r, rect }: BodyProps) {
   nodes.push(<text key="v" data-part="kpi-value" x={x + (showIcon && anchor === 'start' ? iconSize * 1.2 : 0)} y={cy} textAnchor={anchor} {...textProps(indFont)} fontSize={size}>{value}</text>);
   if (showIcon) {
     const ix = anchor === 'start' ? x : anchor === 'end' ? x - size * 3.6 - iconSize : x - size * 2.4 - iconSize;
-    const up = favourable === (statusDirection === 'Positive');
+    // the arrow follows the value against its goal
+    const up = valueAboveGoal;
     nodes.push(up
       ? <polygon key="icon" data-part="kpi-icon" points={`${ix},${cy - iconSize * 0.1} ${ix + iconSize},${cy - iconSize * 0.1} ${ix + iconSize / 2},${cy - iconSize * 0.9}`} fill={statusColor} />
       : <polygon key="icon" data-part="kpi-icon" points={`${ix},${cy - iconSize * 0.9} ${ix + iconSize},${cy - iconSize * 0.9} ${ix + iconSize / 2},${cy - iconSize * 0.1}`} fill={statusColor} />);
@@ -283,8 +289,10 @@ export function Kpi({ r, rect }: BodyProps) {
     gy += distFont.sizePx + 4;
   }
   if (distShow) {
-    const diff = SAMPLE_VALUE - SAMPLE_PLAN;
-    const pct = `${diff >= 0 ? '+' : ''}${((diff / SAMPLE_PLAN) * 100).toLocaleString('de-DE', { minimumFractionDigits: r.num('goals', 'labelPrecision', 1), maximumFractionDigits: r.num('goals', 'labelPrecision', 1) })} %`;
+    // "Low is good": the distance is goal − value, so an overshoot reads negative
+    const diff = goalDirection === 'Low is good' ? SAMPLE_PLAN - SAMPLE_VALUE : SAMPLE_VALUE - SAMPLE_PLAN;
+    const distPrecision = clampPrecision(r.num('goals', 'labelPrecision', 1));
+    const pct = `${diff >= 0 ? '+' : ''}${((diff / SAMPLE_PLAN) * 100).toLocaleString('de-DE', { minimumFractionDigits: distPrecision, maximumFractionDigits: distPrecision })} %`;
     const abs = `${diff >= 0 ? '+' : ''}${formatWithUnit(diff, resolveUnit(indUnits, [diff]), indPrecision)}`;
     const text = distanceLabel === 'Value' ? abs : distanceLabel === 'Value, percent' ? `${abs} (${pct})` : pct;
     nodes.push(<text key="d" data-part="kpi-distance" x={x} y={gy} textAnchor={anchor} {...textProps(distFont)}>{text}</text>);

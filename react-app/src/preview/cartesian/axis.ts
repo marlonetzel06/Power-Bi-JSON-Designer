@@ -90,8 +90,10 @@ export function ticksBetween(min: number, max: number, count = 5): number[] {
   const norm = rough / mag;
   const step = (norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 2.5 ? 2.5 : norm <= 5 ? 5 : 10) * mag;
   const first = Math.floor(min / step) * step;
+  // the last tick covers the maximum (81 → 100), like Power BI's automatic axis
+  const last = Math.ceil(max / step - 1e-9) * step;
   const ticks: number[] = [];
-  for (let v = first, i = 0; v <= max + step * 0.001 && i < 50; v += step, i++) {
+  for (let v = first, i = 0; v <= last + step * 0.001 && i < 50; v += step, i++) {
     const t = Number(v.toFixed(6));
     if (ticks[ticks.length - 1] !== t) ticks.push(t);
   }
