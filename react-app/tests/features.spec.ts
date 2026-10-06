@@ -176,7 +176,8 @@ test('button states: a hover fill colour shows only in the hover state and lands
   await page.getByTestId('canvas-actionButton').click();
   const state = page.getByTestId('format-state');
   await expect(state).toBeVisible();
-  await state.getByRole('radio', { name: 'Beim Daraufzeigen' }).click();
+  await state.getByRole('combobox', { name: 'Zustand' }).click();
+  await page.getByRole('option', { name: 'Beim Daraufzeigen' }).click();
   const fill = page.locator('[data-card="card-actionButton-fill-hover"]');
   await fill.getByRole('button', { name: 'Füllung' }).click();
   await fill.getByRole('button', { name: /^Füllfarbe/ }).click();
@@ -185,7 +186,8 @@ test('button states: a hover fill colour shows only in the hover state and lands
   const svg = page.locator('[data-canvas-visual="actionButton"] svg[data-visual]');
   await expect(svg).toHaveAttribute('data-state', 'hover');
   await expect(svg.locator('[fill="#AB12CD"]')).toHaveCount(1);
-  await state.getByRole('radio', { name: 'Standard' }).click();
+  await state.getByRole('combobox', { name: 'Zustand' }).click();
+  await page.getByRole('option', { name: 'Standard' }).click();
   await expect(svg).not.toHaveAttribute('data-state', 'hover');
   await expect(svg.locator('[fill="#AB12CD"]')).toHaveCount(0);
   await page.getByTestId('toggle-json-pane').click();

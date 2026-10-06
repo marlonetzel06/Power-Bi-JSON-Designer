@@ -8,7 +8,7 @@ import { GLOBAL_KEY, PAGE_KEY } from '@/pbi/types';
 import { useModified } from '@/store/selectors';
 import { useThemeStore } from '@/store/theme';
 import { useUiStore } from '@/store/uiStore';
-import { Badge, ConfirmDialog, EmptyState, FormatCard, IconButton, SearchField, SegmentedControl, Select, Tabs, TabsContent, TabsList, TabsTrigger, Tooltip } from '@/ui';
+import { Badge, ConfirmDialog, EmptyState, FormatCard, IconButton, SearchField, Select, Tabs, TabsContent, TabsList, TabsTrigger, Tooltip } from '@/ui';
 import { VisualIcon } from '../visualGallery/icons';
 import { CopyVisualDialog } from './CopyVisualDialog';
 import { FormatCards } from './FormatCards';
@@ -80,25 +80,14 @@ export function FormatPane() {
       {states && stateId && (
         <div className="flex items-center gap-2 px-3 pb-2" data-testid="format-state">
           <Tooltip content={t('format.stateHint')}><span className="shrink-0 text-[12px] text-text-muted">{t('format.state')}</span></Tooltip>
-          {states.length <= 4 ? (
-            <SegmentedControl
-              size="sm"
-              aria-label={t('format.state')}
-              value={stateId}
-              onValueChange={(v) => setPreviewState(visualKey, v)}
-              options={states.map((st) => ({ value: st, label: stateLabel(locale, st), 'aria-label': stateLabel(locale, st) }))}
-              className="min-w-0 flex-1 overflow-x-auto"
-            />
-          ) : (
-            <Select
-              size="sm"
-              aria-label={t('format.state')}
-              value={stateId}
-              onValueChange={(v) => setPreviewState(visualKey, v)}
-              options={states.map((st) => ({ value: st, label: stateLabel(locale, st) }))}
-              className="min-w-0 flex-1"
-            />
-          )}
+          <Select
+            size="sm"
+            aria-label={t('format.state')}
+            value={stateId}
+            onValueChange={(v) => setPreviewState(visualKey, v)}
+            options={states.map((st) => ({ value: st, label: stateLabel(locale, st) }))}
+            className="min-w-0 flex-1"
+          />
         </div>
       )}
     </>

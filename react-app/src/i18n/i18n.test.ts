@@ -8,6 +8,9 @@ describe('i18n', () => {
     for (const [k, v] of Object.entries(de)) expect(v.trim(), `de.${k}`).not.toBe('');
     for (const [k, v] of Object.entries(en)) expect(v.trim(), `en.${k}`).not.toBe('');
   });
+  it('has the same keys in German and English', () => {
+    expect(Object.keys(en).sort()).toEqual(Object.keys(de).sort());
+  });
   it('interpolates parameters', () => {
     expect(translate('de', 'format.modifiedCards', { count: 3 })).toBe('3 geänderte Karten');
     expect(translate('en', 'json.errors', { count: 2 })).toBe('2 errors');

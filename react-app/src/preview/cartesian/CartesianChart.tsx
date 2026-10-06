@@ -666,12 +666,12 @@ export function CartesianChart({ r, rect, uid, options }: BodyProps & { options:
   );
   if (horizontal) {
     if (catAxis.show) categories.forEach((c, ci) => nodes.push(tickText(catAxis, plot.x - 6, catPos(ci) + catLabelFont.sizePx * 0.35, 'end', truncate(c, plot.x - afterLegend.x - 8, catLabelFont.sizePx), `cl${ci}`)));
-    if (valAxis.show) ticks.forEach((t, i) => nodes.push(tickText(valAxis, valueScale(t), valAxis.switchPosition ? plot.y - 4 : plot.y + plot.height + valLabelFont.sizePx + 4, 'middle', tickLabels[i]!, `vl${i}`)));
+    if (valAxis.show) ticks.forEach((t, i) => nodes.push(tickText(valAxis, valueScale(t), valAxis.switchPosition ? plot.y - 4 : plot.y + plot.height + valLabelFont.sizePx + 4, i === ticks.length - 1 && !valAxis.invert ? 'end' : i === 0 && valAxis.invert ? 'end' : 'middle', tickLabels[i]!, `vl${i}`)));
     if (catAxis.showTitle) nodes.push(<text key="ct" data-part="axis-title" transform={`translate(${afterLegend.x + catAxis.titleFont.sizePx},${plot.y + plot.height / 2}) rotate(-90)`} textAnchor="middle" {...textProps(catAxis.titleFont)}>{catAxis.titleText}</text>);
     if (valAxis.showTitle) nodes.push(<text key="vt" data-part="axis-title" x={plot.x + plot.width / 2} y={afterLegend.y + afterLegend.height - 2} textAnchor="middle" {...textProps(valAxis.titleFont)}>{valAxis.titleText}</text>);
   } else {
     if (catAxis.show) {
-      if (isScatter) xTicks.forEach((t, i) => nodes.push(tickText(catAxis, xScale(t), plot.y + plot.height + catLabelFont.sizePx + 4, 'middle', xTickLabels[i]!, `cl${i}`)));
+      if (isScatter) xTicks.forEach((t, i) => nodes.push(tickText(catAxis, xScale(t), plot.y + plot.height + catLabelFont.sizePx + 4, i === xTicks.length - 1 ? 'end' : 'middle', xTickLabels[i]!, `cl${i}`)));
       else categories.forEach((c, ci) => nodes.push(tickText(catAxis, catPos(ci), plot.y + plot.height + catLabelFont.sizePx + 4, 'middle', truncate(c, bandSize - 4, catLabelFont.sizePx), `cl${ci}`)));
     }
     if (valAxis.show) ticks.forEach((t, i) => nodes.push(tickText(valAxis, valAxis.switchPosition ? plot.x + plot.width + 6 : plot.x - 6, valueScale(t) + valLabelFont.sizePx * 0.35, valAxis.switchPosition ? 'start' : 'end', tickLabels[i]!, `vl${i}`)));

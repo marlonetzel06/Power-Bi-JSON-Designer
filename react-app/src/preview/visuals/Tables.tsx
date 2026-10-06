@@ -93,7 +93,7 @@ export function Table({ r, rect, matrix }: BodyProps & { matrix?: boolean }) {
 
   const headerH = headerFont.sizePx + rowPadding * 2 + 6;
   const rowH = valueFont.sizePx + rowPadding * 2 + 4;
-  const cols = sparkOn ? [...TABLE_COLUMNS, 'Trend'] : TABLE_COLUMNS;
+  const cols = [...TABLE_COLUMNS, ...(sparkOn ? ['Trend'] : [])];
   const widthShares = sparkOn ? [0.3, 0.19, 0.19, 0.14, 0.18] : [0.34, 0.22, 0.22, 0.22];
   const extraCol = colTotalShow && matrix;
   const shares = extraCol ? [...widthShares.map((s) => s * 0.84), 0.16] : widthShares;

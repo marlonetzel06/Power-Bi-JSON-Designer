@@ -9,11 +9,12 @@ Ein Theme-Designer für Power BI im Stil von Power BI Desktop: Eine Berichtsseit
 
 ## Funktionen
 
-- **Vorschau ohne Anmeldung** – 43 Visualtypen als theme-getriebene SVG-Nachbildungen (Titel, Legende, Achsen, Gitternetz, Datenbeschriftungen, Rahmen, Schatten, Tabellenraster, Datenschnitte, Karten, KPIs, Seite mit Filterbereich …). Alle Formatkarten des Themes werden ausgewertet.
+- **Vorschau ohne Anmeldung** – 43 Visualtypen als theme-getriebene SVG-Nachbildungen. Dargestellt werden u. a. Linienglättung und Stufen, Strichmuster, Markierungen, sekundäre Achsen, feste Achsenbereiche, Bezugslinien mit Schattierung und Beschriftung, Datenbeschriftungs-Positionen, Fehlerbalken, Anomalien, Prognose, Gesamtbeschriftungen, Lücken zwischen Säulen, Titelumbruch, innere Schatten, Unterüberschrift, Tabellen-Sparklines und Leerzeilen, Karte (neu) mit Referenzbeschriftungen und Kachelformen, KPI-Status, Datenschnitt-Zustände, Schaltflächen-Symbole, -Schatten und -Drehung.
+- **Zustände wie in Power BI** – Umschalter „Zustand“ im Formatbereich (Standard, Beim Daraufzeigen, Beim Drücken, Deaktiviert; Datenschnitte zusätzlich Ausgewählt/Erweitert …), Filterkarten getrennt nach „Angewendet“ und „Verfügbar“, Matrix-Zwischensummen nach Zeilen/Spalten. Zustandswerte landen als `$id`-Einträge im JSON, die Vorschau zeigt den gewählten Zustand.
 - **Live-Vorschau (optional)** – im Fokusmodus ein echter eingebetteter Power-BI-Report, der das aktuelle Theme per `applyTheme` übernimmt. Benötigt Azure-AD-App und veröffentlichten Beispielreport.
 - **Formatbereich wie Power BI Desktop** – Karten pro Visual mit Umschalter im Kartenkopf, Suche, „Auf Standard zurücksetzen“ pro Karte und Visual, Übertragen auf ähnliche Visuals, Vererbungsanzeige (Visual → alle Visuals → Power-BI-Standard).
-- **Design anpassen** – Designeinstellungen, Farben (Datenfarben, Struktur-, Stimmungs-, divergierende Farben, Paletten-Generator, Vorlagen), Text (alle 14 Textklassen), Visualeigenschaften, Seite, Filterbereich, Filterkarten.
-- **Prüfung gegen das offizielle Schema** – `ajv` + `reportThemeSchema` (Version 2.144 / 5.65) plus Hinweise (Kontrast, fehlende Datenfarben). Fehler mit Sprung zur betroffenen Karte.
+- **Design anpassen** – Designeinstellungen, Farben (Datenfarben, Struktur-, Stimmungs-, divergierende Farben, Paletten-Generator, Vorlagen), Text (alle 14 Textklassen; sie wirken auf Titel, Beschriftungen, Legendenwerte und Kopfzeilen der Vorschau, solange die Karte nichts anderes setzt), Visualeigenschaften, Seite, Filterbereich, Filterkarten.
+- **Prüfung gegen das offizielle Schema** – `ajv` + `reportThemeSchema` (Version 2.144 / 5.65) plus Hinweise (Kontrast, fehlende Datenfarben); unbekannte Karten und Eigenschaften werden auch für `report`, `filter` und `group` gemeldet. Fehler mit Sprung zur betroffenen Karte. Jeder Export trägt `$schema` und behält `icons`.
 - **Basisdesign wie Power BI** – Werte, die das eigene Design nicht setzt, kommen aus Microsofts Basisdesign *Classic 2026* (`CY26SU02`, aus der Beispiel-`.pbix` extrahiert), in derselben Reihenfolge wie in Power BI: eigenes Visual → Basis-Visual → eigenes „Alle Visuals“ → Basis „Alle Visuals“. Der Formatbereich zeigt die Herkunft jedes Werts.
 - **Import** – Theme-JSON (inkl. Migration älterer Export-Formate) und PBIP-Projekte (`RegisteredResources`-Theme oder Extraktion aus den `visual.json`-Dateien).
 - **Export** – vollständiges Theme oder nur die Änderungen (Delta) gegenüber dem geladenen Stand.
@@ -69,7 +70,7 @@ react-app/
 ├─ src/ui/                  Radix-basierte Primitives mit M&M-Tokens
 ├─ src/features/            Shell, Canvas, Formatbereich, Design anpassen, JSON, Import/Export
 ├─ src/i18n/                de.ts / en.ts
-└─ tests/                   Playwright-Smoke-Tests (inkl. axe)
+└─ tests/                   Playwright-E2E-Tests (inkl. axe)
 ```
 
 ## Entwicklung
@@ -89,7 +90,8 @@ npm run generate:catalog   # nach einem Schema-Update neu erzeugen und committen
 - **Die Vorschau ist eine Nachbildung.** Geometrie, Beschriftungslogik und automatische Skalierung von Power BI werden angenähert, nicht reproduziert. Auf macOS und Linux fehlt Segoe UI, es wird mit IBM Plex Sans gerendert. Für die Abnahme eines Designs bleibt der Live-Modus oder Power BI Desktop der Referenzpunkt.
 - **Live-Modus** ist implementiert und mit simuliertem MSAL getestet, aber nicht gegen einen echten Tenant verifiziert.
 - **Bedingte Formatierung (`fillRule`), Bild-Objekte und Stilvorlagen (`stylePresets`)** werden beim Import erhalten, exportiert und schreibgeschützt angezeigt, aber nicht im Editor bearbeitet. `$id`-Zustände (Filterkarten „Angewendet/Verfügbar“, Schaltflächen-/Datenschnitt-Zustände, Matrix-Zwischensummen Zeilen/Spalten) sind editierbar und werden in der Vorschau dargestellt.
-- Die kuratierten Eigenschaften decken die wichtigen Karten ab, nicht das vollständige Schema; alles andere ist nur über JSON erreichbar.
+- Die Kuration deckt die sichtbaren Eigenschaften der 43 Visuals ab (ca. 5 300 Eigenschaften in 207 Kartendefinitionen, jede mit deutscher Beschriftung); ein Test belegt, dass alles Kuratierte schema-gültig ist. Nicht angeboten: Kleine Multiplikatoren (Layoutkarte vorhanden, keine Vorschau), Barrierefreiheits- und Spaltenbreiten-Karten, Daten-/Filter-Bindungen. Alles andere bleibt per JSON erreichbar.
+- Das Basisdesign ist fest *Classic 2026*; andere Basisdesigns (Fluent 2, Classic 2018) müssten aus einer entsprechend gespeicherten `.pbix` extrahiert werden.
 - `powerbi/All_visuals_template.pbix` enthält Tenant- und Arbeitsbereichs-IDs aus dem Ursprungsreport (keine Geheimnisse). Bereinigung nur mit Power BI Desktop möglich.
 - Gemessene Bearbeitungslatenz im Produktions-Build: ca. 23 ms pro Änderung bei geöffnetem Formatbereich und 43 Visuals auf der Seite (Chromium, 1680 px). Im Dev-Server ist es wegen der React-Entwicklungsinstrumentierung ein Mehrfaches.
 
@@ -101,13 +103,15 @@ A Power BI theme designer that mirrors Power BI Desktop: a report page with ever
 
 ### Features
 
-- **Preview without sign-in** – 43 visual types as theme-driven SVG mocks that honour every format card (title, legend, axes, gridlines, data labels, borders, shadows, table grid, slicers, cards, KPIs, page with filter pane …).
+- **Preview without sign-in** – 43 visual types as theme-driven SVG mocks: line smoothing and steps, dash patterns, markers, secondary axes, fixed axis ranges, reference lines with shading and labels, data label positions, error bars, anomalies, forecast, totals, clustered gaps, title wrap, inner shadows, subheader, table sparklines and blank rows, new card with reference labels and tile shapes, KPI status, slicer states, button icons/shadows/rotation.
+- **States like Power BI** – a "State" switch in the format pane (default, hover, press, disabled; slicers also selected/expanded …), filter cards split into applied/available, matrix subtotals rows/columns. State values are written as `$id` entries; the preview renders the chosen state.
 - **Live preview (optional)** – a real embedded Power BI report in focus mode, themed via `applyTheme`. Needs an Azure AD app and a published sample report.
 - **Format pane like Power BI Desktop** – per-visual cards with header toggles, search, reset per card and per visual, copy to similar visuals, inheritance indicator (visual → all visuals → Power BI default).
 - **Customize theme** – theme settings, colours (data, structural, sentiment, divergent, palette generator, presets), text (all 14 text classes), visual properties, page, filter pane, filter cards.
-- **Validation against the official schema** – `ajv` + `reportThemeSchema` (2.144 / 5.65) plus semantic warnings; issues link to the affected card.
+- **Validation against the official schema** – `ajv` + `reportThemeSchema` (2.144 / 5.65) plus semantic warnings, including unknown cards/properties under `report`, `filter` and `group`; issues link to the affected card. Exports carry `$schema` and keep `icons`.
 - **Base theme like Power BI** – anything the custom theme does not set comes from Microsoft's *Classic 2026* base theme (`CY26SU02`, extracted from the sample `.pbix`), resolved in Power BI's order: custom visual → base visual → custom "all visuals" → base "all visuals".
 - **Import** of theme JSON (with migration of older export formats) and PBIP projects; **export** of the full theme or the delta against the loaded baseline.
+- Text classes feed the preview (title, labels, callout values, headers) unless a card overrides them.
 - Undo/redo, local persistence, German/English, light/dark, keyboard operable.
 
 ### Quick start
@@ -122,7 +126,7 @@ The app works fully with the mock preview and no configuration. To enable the li
 
 ### Known limitations
 
-The preview is an approximation of Power BI's rendering (no Segoe UI on macOS/Linux); the live mode is tested with a simulated MSAL only; conditional formatting (`fillRule`), image objects and style presets are preserved and shown read-only but not editable, while `$id` states (filter cards applied/available, button and slicer states, matrix subtotals rows/columns) are editable with a state preview; the sample `.pbix` still carries tenant and workspace IDs from the original report.
+The preview is an approximation of Power BI's rendering (no Segoe UI on macOS/Linux); the live mode is tested with a simulated MSAL only; conditional formatting (`fillRule`), image objects and style presets are preserved and shown read-only but not editable, while `$id` states (filter cards applied/available, button and slicer states, matrix subtotals rows/columns) are editable with a state preview; the curation covers the visible properties of the 43 visuals (about 5,300 properties, all German-labelled, proven schema-valid by a test) but not small multiples, accessibility/column-width cards or data bindings; the base theme is fixed to *Classic 2026*; the sample `.pbix` still carries tenant and workspace IDs from the original report.
 
 ### Development
 

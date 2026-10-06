@@ -37,14 +37,30 @@ await page.waitForTimeout(800);
 await page.screenshot({ path: `${out}/08-focus.png` });
 await page.getByTestId('focus-back').click();
 await page.getByTestId('toggle-color-mode').click();
-await page.getByTestId('page-tab-cards').click();
-await page.waitForTimeout(600);
-await page.screenshot({ path: `${out}/09-cards-page.png` });
-await page.getByTestId('page-tab-elements').click();
-await page.waitForTimeout(600);
-await page.screenshot({ path: `${out}/10-elements-page.png` });
-await page.getByTestId('page-tab-slicers').click();
-await page.waitForTimeout(600);
-await page.screenshot({ path: `${out}/11-slicers-page.png` });
+// button states
+await page.getByTestId('canvas-search').fill('Schaltfläche');
+await page.waitForTimeout(400);
+await page.getByTestId('canvas-actionButton').click();
+await page.getByTestId('format-state').getByRole('combobox').click();
+await page.getByRole('option', { name: 'Beim Daraufzeigen' }).click();
+await page.waitForTimeout(400);
+await page.screenshot({ path: `${out}/09-button-hover-state.png` });
+await page.getByTestId('canvas-search').fill('');
+// line chart cards (lines, reference lines)
+await page.getByTestId('canvas-lineChart').click();
+await page.getByTestId('tab-visual').click();
+await page.getByTestId('format-search').fill('Linien');
+await page.waitForTimeout(400);
+await page.screenshot({ path: `${out}/10-line-cards.png` });
+await page.getByTestId('format-search').fill('');
+// theme pane filter cards
+await page.getByTestId('toggle-theme-pane').click();
+try {
+  await page.getByRole('button', { name: 'Filterkarten' }).first().click({ timeout: 5000 });
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: `${out}/11-filter-cards.png` });
+} catch (e) {
+  errors.push('filter cards step skipped: ' + e.message.split('\n')[0]);
+}
 console.log(JSON.stringify(errors, null, 1));
 await browser.close();
