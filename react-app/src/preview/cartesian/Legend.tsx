@@ -40,9 +40,9 @@ export function layoutLegend(r: Resolver, rect: Rect, items: LegendItem[], card 
   const pos = position.toLowerCase();
   const vertical = pos.startsWith('left') || pos.startsWith('right');
 
-  const wide = items.some((i) => i.marker === 'line' || i.marker === 'lineMarker');
-  const markerW = wide ? sw * 2.2 : sw;
-  const itemWidths = items.map((i) => markerW + gap + estimateTextWidth(i.label, font.sizePx, font.weight >= 600));
+  // only line entries get the wide (line) marker; plain markers keep the compact width
+  const markerW = (i: LegendItem) => (i.marker === 'line' || i.marker === 'lineMarker' ? sw * 2.2 : sw);
+  const itemWidths = items.map((i) => markerW(i) + gap + estimateTextWidth(i.label, font.sizePx, font.weight >= 600));
   const titleW = showTitle ? estimateTextWidth(titleText, font.sizePx, true) + itemGap : 0;
 
   let plot: Rect;
@@ -79,7 +79,7 @@ export function layoutLegend(r: Resolver, rect: Rect, items: LegendItem[], card 
     }
     items.forEach((item, i) => {
       if (y + lineH > ly + legendH) return;
-      nodes.push(renderItem(item, lx, y, sw, markerW, font, legendW - markerW - gap, `${i}`));
+      nodes.push(renderItem(item, lx, y, sw, markerW(item), font, legendW - markerW(item) - gap, `${i}`));
       y += lineH;
     });
   } else {
@@ -93,8 +93,8 @@ export function layoutLegend(r: Resolver, rect: Rect, items: LegendItem[], card 
     }
     items.forEach((item, i) => {
       const w = itemWidths[i] ?? 0;
-      if (x + w > lx + legendW + 1) return;
-      nodes.push(renderItem(item, x, ly, sw, markerW, font, w - markerW - gap, `${i}`));
+      // an entry that does not fit is dropped, but keeps its slot: Power BI never reorders the legend
+      if (x + w <= lx + legendW + 1) nodes.push(renderItem(item, x, ly, sw, markerW(item), font, w - markerW(item) - gap, `${i}`));
       x += w + itemGap;
     });
   }

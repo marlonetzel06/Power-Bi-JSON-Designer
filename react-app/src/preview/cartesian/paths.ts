@@ -9,12 +9,11 @@ export function stepPath(points: Point[], step: 'before' | 'center' | 'after'): 
   if (points.length === 0) return '';
   let d = `M${points[0]![0]},${points[0]![1]}`;
   for (let i = 1; i < points.length; i++) {
-    const [x0, y0] = points[i - 1]!;
+    const [x0] = points[i - 1]!;
     const [x1, y1] = points[i]!;
     if (step === 'before') d += ` V${y1} H${x1}`;
     else if (step === 'after') d += ` H${x1} V${y1}`;
     else d += ` H${(x0 + x1) / 2} V${y1} H${x1}`;
-    void y0;
   }
   return d;
 }
@@ -85,14 +84,20 @@ export interface LineShape {
   type: string;
   /** lineStyles.interpolationSmooth: monotoneX | cardinal */
   smooth: string;
-  /** lineStyles.interpolationSmoothParam 0–100 (cardinal tension) */
+  /** lineStyles.interpolationSmoothParam 0–100: the schema's "Tension" (100 = taut, straight segments) */
   smoothParam: number;
   /** lineStyles.interpolationStep: before | center | after */
   step: string;
 }
 
 export function linePath(points: Point[], shape: LineShape): string {
-  if (shape.type === 'smooth') return shape.smooth === 'cardinal' ? cardinalPath(points, 1 - shape.smoothParam / 100) : monotonePath(points);
+  if (shape.type === 'smooth') return shape.smooth === 'cardinal' ? cardinalPath(points, shape.smoothParam / 100) : monotonePath(points);
   if (shape.type === 'step') return stepPath(points, shape.step === 'before' ? 'before' : shape.step === 'after' ? 'after' : 'center');
   return linearPath(points);
+}
+
+/** Closed band between an upper and a lower polyline, both drawn with the series' line shape. */
+export function bandPath(upper: Point[], lower: Point[], shape: LineShape): string {
+  if (upper.length === 0) return '';
+  return `${linePath(upper, shape)} ${linePath([...lower].reverse(), shape).replace(/^M/, 'L')} Z`;
 }

@@ -37,7 +37,7 @@ export function VisualFrame({ r, width, height, uid, defaultTitle, suppressTitle
   const shadowInner = shadowShow && r.str('dropShadow', 'position', 'Outer') === 'Inner';
   const [offX, offY] = shadowShow ? shadowOffset(r.str('dropShadow', 'preset', 'BottomRight'), r.num('dropShadow', 'shadowDistance', 2), r.num('dropShadow', 'angle', 45)) : [0, 0];
   const shadowSpec = shadowShow
-    ? { dx: offX, dy: offY, blur: r.num('dropShadow', 'shadowBlur', 4), spread: r.num('dropShadow', 'shadowSpread', 0), color: r.color('dropShadow', 'color', '#000000'), opacity: 1 - r.num('dropShadow', 'transparency', 60) / 100, inner: shadowInner }
+    ? { dx: offX, dy: offY, blur: r.num('dropShadow', 'shadowBlur', 4), spread: r.num('dropShadow', 'shadowSpread', 0), color: r.color('dropShadow', 'color', '#000000'), opacity: 1 - r.num('dropShadow', 'transparency', 60) / 100, inner: shadowInner, shadowOnly: true }
     : undefined;
 
   // cardVisual and the button/list slicers use a padding variant (paddingSelection + *Margin).
@@ -138,6 +138,8 @@ export function VisualFrame({ r, width, height, uid, defaultTitle, suppressTitle
           <rect x={0} y={0} width={width} height={height} rx={radius} ry={radius} />
         </clipPath>
       </defs>
+      {/* Power BI casts the container's shadow whatever the background's transparency: paint it from an opaque stand-in. */}
+      {shadowSpec && <rect data-part="shadow" x={inset / 2} y={inset / 2} width={width - inset} height={height - inset} rx={radius} ry={radius} fill="#000000" filter={`url(#${shadowId})`} />}
       <rect
         data-part="frame"
         x={inset / 2}
@@ -150,7 +152,6 @@ export function VisualFrame({ r, width, height, uid, defaultTitle, suppressTitle
         stroke={borderShow ? borderColor : 'none'}
         strokeWidth={borderShow ? borderWidth : 0}
         strokeDasharray={borderShow ? borderDash : undefined}
-        filter={shadowSpec ? `url(#${shadowId})` : undefined}
       />
       <g clipPath={`url(#${clipId})`}>
         {header}

@@ -26,6 +26,8 @@ export interface ShadowSpec {
   /** 0–1 */
   opacity: number;
   inner?: boolean;
+  /** Paint only the shadow (the element carrying the filter is a stand-in for the shape, drawn separately). */
+  shadowOnly?: boolean;
 }
 
 /**
@@ -34,33 +36,30 @@ export interface ShadowSpec {
  */
 export function shadowFilter(id: string, spec: ShadowSpec): ReactNode {
   const std = Math.max(0, spec.blur) / 2;
+  const spread = Math.max(0, spec.spread);
   if (spec.inner) {
+    // spread grows the shadow inwards: erode the alpha before inverting it
     return (
       <filter id={id} x="-20%" y="-20%" width="140%" height="140%">
-        <feComponentTransfer in="SourceAlpha" result="inv"><feFuncA type="table" tableValues="1 0" /></feComponentTransfer>
+        {spread > 0 ? <feMorphology in="SourceAlpha" operator="erode" radius={spread} result="alpha" /> : <feOffset in="SourceAlpha" dx={0} dy={0} result="alpha" />}
+        <feComponentTransfer in="alpha" result="inv"><feFuncA type="table" tableValues="1 0" /></feComponentTransfer>
         <feGaussianBlur in="inv" stdDeviation={std} result="blur" />
         <feOffset in="blur" dx={spec.dx} dy={spec.dy} result="off" />
         <feFlood floodColor={spec.color} floodOpacity={spec.opacity} result="flood" />
         <feComposite in="flood" in2="off" operator="in" result="shadow" />
         <feComposite in="shadow" in2="SourceAlpha" operator="in" result="clipped" />
-        <feMerge><feMergeNode in="SourceGraphic" /><feMergeNode in="clipped" /></feMerge>
+        {spec.shadowOnly ? <feMerge><feMergeNode in="clipped" /></feMerge> : <feMerge><feMergeNode in="SourceGraphic" /><feMergeNode in="clipped" /></feMerge>}
       </filter>
     );
   }
   return (
     <filter id={id} x="-30%" y="-30%" width="160%" height="160%">
-      {spec.spread > 0 ? (
-        <>
-          <feMorphology in="SourceAlpha" operator="dilate" radius={spec.spread} result="spread" />
-          <feGaussianBlur in="spread" stdDeviation={std} result="blur" />
-          <feOffset in="blur" dx={spec.dx} dy={spec.dy} result="off" />
-          <feFlood floodColor={spec.color} floodOpacity={spec.opacity} result="flood" />
-          <feComposite in="flood" in2="off" operator="in" result="shadow" />
-          <feMerge><feMergeNode in="shadow" /><feMergeNode in="SourceGraphic" /></feMerge>
-        </>
-      ) : (
-        <feDropShadow dx={spec.dx} dy={spec.dy} stdDeviation={std} floodColor={spec.color} floodOpacity={spec.opacity} />
-      )}
+      {spread > 0 ? <feMorphology in="SourceAlpha" operator="dilate" radius={spread} result="alpha" /> : <feOffset in="SourceAlpha" dx={0} dy={0} result="alpha" />}
+      <feGaussianBlur in="alpha" stdDeviation={std} result="blur" />
+      <feOffset in="blur" dx={spec.dx} dy={spec.dy} result="off" />
+      <feFlood floodColor={spec.color} floodOpacity={spec.opacity} result="flood" />
+      <feComposite in="flood" in2="off" operator="in" result="shadow" />
+      {spec.shadowOnly ? <feMerge><feMergeNode in="shadow" /></feMerge> : <feMerge><feMergeNode in="shadow" /><feMergeNode in="SourceGraphic" /></feMerge>}
     </filter>
   );
 }

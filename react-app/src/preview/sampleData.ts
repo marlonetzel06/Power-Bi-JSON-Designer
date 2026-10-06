@@ -123,6 +123,12 @@ export function formatWithUnit(v: number, unit: number, precision?: number): str
   return (v / u).toLocaleString('de-DE', { minimumFractionDigits: p, maximumFractionDigits: p }) + (UNIT_SUFFIX[u] ?? '');
 }
 
+/** Decimals an automatic axis needs so ticks of the given step stay distinct (step 2.5 → 1). */
+export function autoPrecision(step: number): number {
+  if (!(step > 0) || !Number.isFinite(step)) return 0;
+  return Math.max(0, Math.min(6, -Math.floor(Math.log10(step) + 1e-9)));
+}
+
 /** Precision as set in the theme (custom or base); undefined = Power BI "Auto". */
 export function precisionOf(r: { has: (card: string, prop: string) => boolean; num: (card: string, prop: string, fb: number) => number; hasProp: (card: string, prop: string) => boolean }, card: string, prop: string): number | undefined {
   return r.hasProp(card, prop) && r.has(card, prop) ? r.num(card, prop, 0) : undefined;

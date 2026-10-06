@@ -17,7 +17,8 @@ export function marker(shape: MarkerShape, cx: number, cy: number, size: number,
   const s = size;
   const h = s / 2;
   const common = { fill: style.fill, stroke: style.stroke, strokeWidth: style.strokeWidth, opacity: style.opacity };
-  const line = { fill: 'none', stroke: style.stroke && style.strokeWidth ? style.stroke : style.fill, strokeWidth: Math.max(1.5, style.strokeWidth ?? 0) || 2, strokeLinecap: 'round' as const, opacity: style.opacity };
+  // stroke-only shapes take the fill colour: a white marker border must not turn an "x" invisible
+  const line = { fill: 'none', stroke: style.fill, strokeWidth: Math.max(1.5, style.strokeWidth ?? 0), strokeLinecap: 'round' as const, opacity: style.opacity };
   const transform = style.rotation ? `rotate(${style.rotation} ${cx} ${cy})` : undefined;
   switch (shape) {
     case 'none':

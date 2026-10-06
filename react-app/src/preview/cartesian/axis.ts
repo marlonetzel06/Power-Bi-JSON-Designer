@@ -54,6 +54,10 @@ export function readAxis(r: Resolver, card: 'categoryAxis' | 'valueAxis' | 'y2Ax
   const gridStyle = grid ? r.str(card, 'gridlineStyle', 'solid') : 'solid';
   // combo: `secShow` toggles the secondary axis; y2Axis card: `show`
   const show = secondary && card === 'valueAxis' ? r.bool(card, 'secShow', true) : r.bool(card, 'show', true);
+  const start = r.hasProp(card, p('start')) && r.has(card, p('start')) ? numberOrUndefined(r.raw(card, p('start'))) : undefined;
+  let end = r.hasProp(card, p('end')) && r.has(card, p('end')) ? numberOrUndefined(r.raw(card, p('end'))) : undefined;
+  // Power BI ignores an end at or below the start (the axis falls back to automatic)
+  if (start !== undefined && end !== undefined && end <= start) end = undefined;
   return {
     show,
     font,
@@ -63,8 +67,8 @@ export function readAxis(r: Resolver, card: 'categoryAxis' | 'valueAxis' | 'y2Ax
     gridShow: grid ? r.bool(card, 'gridlineShow', defaultGrid) : false,
     gridColor: grid ? r.color(card, 'gridlineColor', '#E6E6E6') : '#E6E6E6',
     gridDash: grid ? (gridCustom ? dashArray('custom', gridWidth, gridCustom) : dashArray(gridStyle, gridWidth)) : undefined,
-    start: r.hasProp(card, p('start')) && r.has(card, p('start')) ? numberOrUndefined(r.raw(card, p('start'))) : undefined,
-    end: r.hasProp(card, p('end')) && r.has(card, p('end')) ? numberOrUndefined(r.raw(card, p('end'))) : undefined,
+    start,
+    end,
     switchPosition: !secondary && r.hasProp(card, 'switchAxisPosition') ? r.bool(card, 'switchAxisPosition', false) : false,
     gridWidth,
     gridOpacity: grid ? 1 - r.num(card, 'gridlineTransparency', 0) / 100 : 1,
@@ -87,7 +91,10 @@ export function ticksBetween(min: number, max: number, count = 5): number[] {
   const step = (norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 2.5 ? 2.5 : norm <= 5 ? 5 : 10) * mag;
   const first = Math.floor(min / step) * step;
   const ticks: number[] = [];
-  for (let v = first; v <= max + step * 0.001; v += step) ticks.push(Number(v.toFixed(6)));
+  for (let v = first, i = 0; v <= max + step * 0.001 && i < 50; v += step, i++) {
+    const t = Number(v.toFixed(6));
+    if (ticks[ticks.length - 1] !== t) ticks.push(t);
+  }
   return ticks;
 }
 

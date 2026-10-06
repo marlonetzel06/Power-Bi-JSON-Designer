@@ -25,7 +25,7 @@ describe('lines and markers', () => {
   });
   it('draws markers with the markers card border and legend line+marker', () => {
     const c = svg('lineChart', { lineStyles: { showMarker: true, markerShape: 'diamond', markerSize: 6 }, markers: { borderShow: true, borderColor: solid('#ABCDEF'), borderWidth: 2 }, legend: { show: true, legendMarkerRendering: 'lineAndMarker' } });
-    const m = c.querySelector('[data-part="cartesian"] > polygon')!;
+    const m = c.querySelector('[data-part="cartesian"] g[clip-path] > polygon')!; // markers are clipped to the plot
     expect(m.getAttribute('stroke')).toBe('#ABCDEF');
     expect(m.getAttribute('stroke-width')).toBe('2');
     expect(c.querySelector('[data-legend-marker="lineMarker"]')).not.toBeNull();
@@ -61,6 +61,33 @@ describe('axes', () => {
     const tick = [...c.querySelectorAll('[data-part="axis-label"]')].find((t) => t.textContent === '100 Tsd.')!;
     expect(tick.getAttribute('text-anchor')).toBe('start'); // labels on the right
   });
+  it('clips values to a fixed range and ignores an end at or below the start', () => {
+    // range 20…60 cuts the bars (sample values go up to 81): no bar may leave the plot
+    const c = svg('clusteredColumnChart', { valueAxis: { start: 20, end: 60 } });
+    const grid = [...c.querySelectorAll('[data-part="gridline"]')].map((g) => Number(g.getAttribute('y1')));
+    const plotTop = Math.min(...grid);
+    for (const bar of c.querySelectorAll('[data-part="bar"]')) expect(Number(bar.getAttribute('y'))).toBeGreaterThanOrEqual(plotTop - 0.01);
+    const labels = [...c.querySelectorAll('[data-part="axis-label"]')].map((t) => t.textContent);
+    expect(labels).not.toContain('80 Tsd.');
+    // lines are clipped via clipPath instead of being cut point by point
+    const line = svg('lineChart', { valueAxis: { start: 30, end: 60 } });
+    expect(line.querySelector('clipPath rect')).not.toBeNull();
+    expect(line.querySelector('g[clip-path] [data-part="line"]')).not.toBeNull();
+    // end <= start: the end is dropped, the axis stays automatic above the start
+    const bad = [...svg('clusteredColumnChart', { valueAxis: { start: 20, end: 10 } }).querySelectorAll('[data-part="axis-label"]')].map((t) => t.textContent);
+    expect(bad).toContain('80 Tsd.');
+    expect(bad).not.toContain('0 Tsd.');
+  });
+  it('keeps the secondary axis inside its range and the switched primary axis on the left', () => {
+    // the secondary axis never shows ticks below its start / above its end
+    const sec = [...svg('lineClusteredColumnComboChart', { valueAxis: { secShow: true, secStart: 40, secEnd: 70 } }).querySelectorAll('[data-part="secondary-axis"]')].map((t) => t.textContent);
+    expect(sec[0]).toBe('40 Tsd.');
+    expect(sec[sec.length - 1]).toBe('70 Tsd.');
+    // a switched primary axis stays left when a secondary axis occupies the right
+    const c = svg('lineClusteredColumnComboChart', { valueAxis: { secShow: true, switchAxisPosition: true } });
+    const tick = [...c.querySelectorAll('[data-part="axis-label"]')].find((t) => t.textContent === '0 Tsd.')!;
+    expect(tick.getAttribute('text-anchor')).toBe('end');
+  });
   it('renders the combo secondary axis with its own scale', () => {
     const c = svg('lineClusteredColumnComboChart', { valueAxis: { secShow: true, secLabelColor: solid('#AB0004') } });
     const sec = c.querySelectorAll('[data-part="secondary-axis"]');
@@ -81,9 +108,23 @@ describe('reference lines', () => {
     expect(label.textContent).toMatch(/^Ziel /);
     expect(label.getAttribute('text-anchor')).toBe('end');
   });
-  it('draws a vertical category reference line', () => {
-    const line = svg('clusteredColumnChart', { xAxisReferenceLine: { show: true, value: 2 } }).querySelector('[data-part="reference-line"]')!;
-    expect(line.getAttribute('x1')).toBe(line.getAttribute('x2'));
+  it('draws a vertical category reference line, by index or by category name', () => {
+    const byIndex = svg('clusteredColumnChart', { xAxisReferenceLine: { show: true, value: 2 } }).querySelector('[data-part="reference-line"]')!;
+    expect(byIndex.getAttribute('x1')).toBe(byIndex.getAttribute('x2'));
+    const byName = svg('clusteredColumnChart', { xAxisReferenceLine: { show: true, value: 'West' } }).querySelector('[data-part="reference-line"]')!;
+    expect(byName.getAttribute('x1')).toBe(byIndex.getAttribute('x1'));
+  });
+  it('treats a reference value of 0 as a value and shades towards lower values from the scale', () => {
+    const zero = svg('clusteredColumnChart', { valueAxis: { start: -20 }, y1AxisReferenceLine: { show: true, value: 0, shadeShow: true, shadeRegion: 'before' } });
+    const line = zero.querySelector('[data-part="reference-line"]')!;
+    const shade = zero.querySelector('[data-part="reference-shade"]')!;
+    // "before" = below the line in a column chart: the shade starts at the line
+    expect(Number(shade.getAttribute('y'))).toBeCloseTo(Number(line.getAttribute('y1')), 3);
+    const inv = svg('clusteredColumnChart', { valueAxis: { invertAxis: true }, y1AxisReferenceLine: { show: true, value: 40, shadeShow: true, shadeRegion: 'before' } });
+    const invLine = inv.querySelector('[data-part="reference-line"]')!;
+    const invShade = inv.querySelector('[data-part="reference-shade"]')!;
+    // inverted axis: lower values are above the line
+    expect(Number(invShade.getAttribute('y')) + Number(invShade.getAttribute('height'))).toBeCloseTo(Number(invLine.getAttribute('y1')), 3);
   });
 });
 
@@ -98,6 +139,34 @@ describe('bars, waterfall, scatter', () => {
     expect(totals[0]!.textContent).toMatch(/Tsd\./);
     const labels = svg('clusteredColumnChart', { labels: { show: true, labelPosition: 'InsideBase' } }).querySelectorAll('[data-part="data-label"]');
     expect(labels.length).toBeGreaterThan(5);
+  });
+  it('overlaps clustered bars only when clusteredGapOverlaps is on, and flips labels with invertAxis', () => {
+    const bars = (layout: CardEntry) => [...svg('clusteredColumnChart', { layout }).querySelectorAll('[data-part="bar"]')].map((b) => ({ x: Number(b.getAttribute('x')), w: Number(b.getAttribute('width')) }));
+    const plain = bars({ clusteredGapSize: 40 });
+    const overlapped = bars({ clusteredGapSize: 40, clusteredGapOverlaps: true });
+    // the second bar of a cluster starts inside the first one only with the overlap switch on
+    expect(plain[1]!.x).toBeGreaterThanOrEqual(plain[0]!.x + plain[0]!.w - 0.01);
+    expect(overlapped[1]!.x).toBeLessThan(overlapped[0]!.x + overlapped[0]!.w);
+    const normal = svg('clusteredColumnChart', { labels: { show: true, labelPosition: 'OutsideEnd' } });
+    const inverted = svg('clusteredColumnChart', { valueAxis: { invertAxis: true }, labels: { show: true, labelPosition: 'OutsideEnd' } });
+    const barEnd = (c: Element, inv: boolean) => { const b = c.querySelector('[data-part="bar"]')!; return Number(b.getAttribute('y')) + (inv ? Number(b.getAttribute('height')) : 0); };
+    expect(Number(normal.querySelector('[data-part="data-label"] text')!.getAttribute('y'))).toBeLessThan(barEnd(normal, false));
+    expect(Number(inverted.querySelector('[data-part="data-label"] text')!.getAttribute('y'))).toBeGreaterThan(barEnd(inverted, true));
+    // vertical labels are centred on the column and anchored at the column end
+    const vertical = svg('clusteredColumnChart', { labels: { show: true, labelPosition: 'OutsideEnd', labelOrientation: 0 } }).querySelector('[data-part="data-label"]')!;
+    expect(vertical.getAttribute('transform')).toMatch(/^rotate\(-90/);
+    expect(vertical.querySelector('text')!.getAttribute('text-anchor')).toBe('start');
+  });
+  it('scatter: fixed X range, decimals from the tick step and the waterfall keeps negative labels', () => {
+    const sc = svg('scatterChart', { categoryAxis: { start: 10, end: 30 }, valueAxis: { start: 20 } });
+    const labels = [...sc.querySelectorAll('[data-part="axis-label"]')].map((t) => t.textContent);
+    expect(labels).toContain('10');
+    expect(labels).toContain('30');
+    expect(labels).not.toContain('0'); // Y starts at 20, X at 10
+    const fine = [...svg('scatterChart', { categoryAxis: { start: 0, end: 1 } }).querySelectorAll('[data-part="axis-label"]')].map((t) => t.textContent);
+    expect(fine).toContain('0,2');
+    const wf = [...svg('waterfallChart', { labels: { show: true } }).querySelectorAll('[data-part="data-label"] text')].map((t) => t.textContent);
+    expect(wf.some((t) => t?.startsWith('-'))).toBe(true);
   });
   it('waterfall ends with a total bar and the scatter chart shades and colours by category', () => {
     expect(svg('waterfallChart', {}).querySelectorAll('[data-part="bar"]').length).toBe(6);
@@ -115,6 +184,10 @@ describe('container', () => {
     const c = svg('barChart', { title: { show: true, text: 'Ein sehr langer Titel, der auf jeden Fall über die verfügbare Breite hinausgeht und umgebrochen werden muss', titleWrap: true }, dropShadow: { show: true, position: 'Inner' }, subheader: { show: true, fontColor: solid('#AB0009') } }, [300, 300]);
     expect(c.querySelectorAll('[data-part="title"] tspan').length).toBe(2);
     expect(c.querySelector('filter feComponentTransfer')).not.toBeNull();
+    // the container shadow is painted from an opaque stand-in, so a transparent background still casts it
+    const faint = svg('barChart', { background: { show: true, transparency: 100 }, dropShadow: { show: true } }, [300, 300]);
+    expect(faint.querySelector('[data-part="shadow"]')?.getAttribute('fill')).toBe('#000000');
+    expect(faint.querySelector('[data-part="frame"]')?.getAttribute('filter')).toBeNull();
     expect(c.querySelector('[data-part="subheader"]')?.getAttribute('fill')).toBe('#AB0009');
     expect(svg('barChart', { title: { show: true, text: 'Ein sehr langer Titel, der auf jeden Fall über die verfügbare Breite hinausgeht', titleWrap: false } }, [300, 300]).querySelectorAll('[data-part="title"] tspan').length).toBe(0);
   });
@@ -164,7 +237,7 @@ describe('cards, KPI, slicers, buttons', () => {
   it('buttons: icon, shadow preset, rotation and tile shapes', () => {
     const c = svg('actionButton', { icon: { show: true, shapeType: 'rightArrow', lineColor: solid('#AB0020') }, shadow: { show: true, shadowPositionPreset: 'topLeft', shadowDistance: 4 }, rotation: { angle: 10 }, shape: { tileShape: 'hexagon' } });
     expect(c.querySelector('[data-part="button-icon"] path')?.getAttribute('stroke')).toBe('#AB0020');
-    expect(c.querySelector('feDropShadow')?.getAttribute('dx')).toBe('-4');
+    expect(c.querySelector('filter feOffset[dx="-4"]')).not.toBeNull();
     expect(c.innerHTML).toContain('rotate(10 ');
     expect(c.querySelector('[data-part="button-face"] polygon')).not.toBeNull();
   });
