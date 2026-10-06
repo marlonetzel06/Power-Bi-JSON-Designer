@@ -32,7 +32,8 @@ export interface ThemeState {
   setTextClass: (cls: string, prop: 'fontFace' | 'fontSize' | 'fontWeight' | 'color', value: string | number | undefined) => void;
   /** Write a property; `stateId` targets a `$id` entry (filter card "Applied", button "hover", …). */
   setCardProp: (visualKey: string, cardKey: string, propKey: string, value: PropValue | undefined, stateId?: string) => void;
-  resetCard: (visualKey: string, cardKey: string) => void;
+  /** Reset a card to the baseline; with `stateId` only that `$id` entry (other states keep their edits). */
+  resetCard: (visualKey: string, cardKey: string, stateId?: string) => void;
   resetVisual: (visualKey: string) => void;
   resetTheme: () => void;
   copyVisualSettings: (sourceKey: string, targetKeys: string[]) => void;
@@ -43,12 +44,22 @@ export interface ThemeState {
   deleteCustomPreset: (id: string) => void;
 }
 
-function ensureCardEntry(theme: ReportTheme, visualKey: string, cardKey: string, stateId?: string): CardEntry {
+/** Entries that hold the default state: no `$id`, or `$id: "default"` (Power BI treats both alike). */
+function defaultEntries(entries: readonly CardEntry[] | undefined): CardEntry[] {
+  return (entries ?? []).filter((e) => isDefaultState(e.$id));
+}
+
+/**
+ * The entry a write for `propKey` goes to. In the default state the property may already live
+ * in any default entry (the base theme splits `cardVisual.layout` across a plain and a
+ * `$id: "default"` entry); writing elsewhere would leave two values of which only the first wins.
+ */
+function ensureCardEntry(theme: ReportTheme, visualKey: string, cardKey: string, stateId?: string, propKey?: string): CardEntry {
   const vs = (theme.visualStyles ??= {});
   const presets = (vs[visualKey] ??= {});
   const cards = (presets[DEFAULT_PRESET] ??= {});
   const entries = (cards[cardKey] ??= []);
-  let entry = findStateEntry(entries, stateId);
+  let entry = (propKey !== undefined && isDefaultState(stateId) ? defaultEntries(entries).find((e) => e[propKey] !== undefined) : undefined) ?? findStateEntry(entries, stateId);
   if (!entry) {
     if (isDefaultState(stateId)) {
       entry = {};
@@ -133,17 +144,31 @@ export const useThemeStore = create<ThemeState>()(
         setCardProp: (visualKey, cardKey, propKey, value, stateId) =>
           set((s) => {
             if (value === undefined) {
-              const entry = findStateEntry(s.theme.visualStyles?.[visualKey]?.[DEFAULT_PRESET]?.[cardKey], stateId);
-              if (entry) delete entry[propKey];
+              const entries = s.theme.visualStyles?.[visualKey]?.[DEFAULT_PRESET]?.[cardKey];
+              // the default state may be spread over several entries; clear the property from all of them
+              const targets = isDefaultState(stateId) ? defaultEntries(entries) : [findStateEntry(entries, stateId)];
+              for (const entry of targets) if (entry) delete entry[propKey];
               pruneEmpty(s.theme, visualKey, cardKey);
               return;
             }
-            ensureCardEntry(s.theme, visualKey, cardKey, stateId)[propKey] = value;
+            ensureCardEntry(s.theme, visualKey, cardKey, stateId, propKey)[propKey] = value;
           }),
-        resetCard: (visualKey, cardKey) =>
+        resetCard: (visualKey, cardKey, stateId) =>
           set((s) => {
             const base = s.baseline.visualStyles?.[visualKey]?.[DEFAULT_PRESET]?.[cardKey];
             const cards = s.theme.visualStyles?.[visualKey]?.[DEFAULT_PRESET];
+            if (stateId !== undefined && !isDefaultState(stateId)) {
+              // only this state's entry: swap it for the baseline entry (or drop it)
+              const entries = cards?.[cardKey];
+              const baseEntry = findStateEntry(base, stateId);
+              if (!entries && !baseEntry) return;
+              const kept = (entries ?? []).filter((e) => e.$id !== stateId);
+              if (baseEntry) kept.push(deepClone(baseEntry));
+              ensureCardEntry(s.theme, visualKey, cardKey);
+              s.theme.visualStyles![visualKey]![DEFAULT_PRESET]![cardKey] = kept;
+              pruneEmpty(s.theme, visualKey, cardKey);
+              return;
+            }
             if (base) {
               ensureCardEntry(s.theme, visualKey, cardKey);
               s.theme.visualStyles![visualKey]![DEFAULT_PRESET]![cardKey] = deepClone(base);

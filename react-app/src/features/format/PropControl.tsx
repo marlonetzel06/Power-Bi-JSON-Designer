@@ -21,7 +21,7 @@ export interface PropControlProps {
 }
 
 /** Numbers whose Power BI default is "Auto" (shown empty unless the theme sets them). */
-const AUTO_KEYS = /^(sec)?(start|end)$|Precision$|^(labelPrecision|dataLabelDecimalPoints)$/;
+const AUTO_KEYS = /^(start|end|secStart|secEnd)$|Precision$|^dataLabelDecimalPoints$/;
 const FONT_SIZE_KEYS = new Set(['fontSize', 'textSize', 'titleFontSize', 'secFontSize', 'secTitleFontSize', 'valueFontSize', 'detailFontSize', 'levelTitleFontSize', 'levelSubtitleFontSize', 'categoryLabelFontSize', 'dataLabelFontSize', 'titleSize', 'headerSize', 'searchTextSize', 'labelFontSize', 'calloutSize']);
 const PERCENT_KEYS = /transparency|Transparency|Percent|innerPadding|labelDensity|maxMarginFactor|seriesMaximumWidth|innerRadiusRatio|clusteredGapSize|stackedGapSize|ribbonGapSize|labelSpace|valueArea|imageAreaSize|interpolationSmoothParam/;
 const PX_KEYS = /^(width|weight|radius|top|bottom|left|right|borderSize|borderWidth|strokeWidth|markerSize|markerShapeSize|markerBorderWidth|shadowBlur|shadowDistance|shadowSpread|glowDistance|glowSpread|gridlineThickness|gridLineWidth|gridlineWidth|lineWidth|steppedLayoutIndentation|rowPadding|columnPadding|cellPadding|imageHeight|imageWidth|rectangleRoundedCurve\w*|roundEdge|barWeight|barWidth|barBorderSize|pageSizeWidth|pageSizeHeight|outlineWeight|iconSize|size|spacing|cardPadding|gridVerticalWeight|gridHorizontalWeight|\w+OuterMargin|\w+Margin|padding\w*|outerPadding|paddingBeforeDivider|paddingAfterDivider|leaderLineWidth|dividerWidth|indentation|containerIndentation|bubbleRadius|minBubbleRadius|maxRadius|bubbleStrokeWidth|borderThickness|filterRadius|dismissSize|dismissSpacing)$/;
@@ -34,7 +34,7 @@ export const PropControl = memo(function PropControl({ visualKey, cardKey, prop,
   const setCardProp = (vk: string, ck: string, pk: string, v: PropValue | undefined) => setProp(vk, ck, pk, v, stateId);
   const id = `${visualKey}-${cardKey}-${prop.key}${stateId ? `-${stateId}` : ''}`.replace(/[^a-zA-Z0-9_-]/g, '_');
   const label = propLabel(locale, prop);
-  const sourceLabel = source === 'visual' ? t('format.setOnVisual') : source === 'global' ? t('format.inheritedFromGlobal') : source === 'base' ? t('format.inheritedBase') : t('format.inheritedDefault');
+  const sourceLabel = source === 'visual' ? t('format.setOnVisual') : source === 'state-default' ? t('format.inheritedState') : source === 'global' ? t('format.inheritedFromGlobal') : source === 'base' ? t('format.inheritedBase') : t('format.inheritedDefault');
 
   switch (prop.type) {
     case 'boolean':
@@ -78,6 +78,7 @@ export const PropControl = memo(function PropControl({ visualKey, cardKey, prop,
             integer={prop.type === 'integer'}
             suffix={suffix}
             placeholder={prop.type === 'mixed' || auto ? t('format.auto') : undefined}
+            allowEmpty={prop.type === 'mixed' || auto}
             onValueChange={(n) => setCardProp(visualKey, cardKey, prop.key, n)}
           />
         </Field>

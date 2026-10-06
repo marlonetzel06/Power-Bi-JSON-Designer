@@ -57,7 +57,7 @@ describe('buildDeltaTheme', () => {
 
 describe('$schema', () => {
   it('points every export at the official schema file the catalog was generated from', () => {
-    expect(SCHEMA_REF).toBe('https://raw.githubusercontent.com/microsoft/powerbi-desktop-samples/main/Report-Theme-JSON-Schema/reportThemeSchema-2.144.json');
+    expect(SCHEMA_REF).toBe('https://raw.githubusercontent.com/microsoft/powerbi-desktop-samples/main/Report%20Theme%20JSON%20Schema/reportThemeSchema-2.144.json');
     expect(buildExportTheme(THEME_INITIAL).$schema).toBe(SCHEMA_REF);
     expect(buildExportTheme(THEME_INITIAL, { schemaRef: null }).$schema).toBeUndefined();
     expect(Object.keys(buildExportTheme(THEME_INITIAL))[0]).toBe('name');
@@ -110,6 +110,17 @@ describe('validateTheme', () => {
     expect(codes).not.toContain('schema.unknownProperty:visualStyles.cardVisual.*.border.0.style');
     expect(codes).toContain('schema.unknownProperty:visualStyles.cardVisual.*.border.0.radius');
     expect(codes.filter((c) => c.includes('visualStyles.group'))).toEqual([]);
+  });
+
+  it('accepts any card of any visual under "*", like the base theme does', async () => {
+    const t: ReportTheme = {
+      name: 'global',
+      visualStyles: { '*': { '*': { filterCard: [{ $id: 'Applied', border: true }], valueAxis: [{ gridlineStyle: 'dotted' }], lineStyles: [{ strokeWidth: 3 }], nope: [{ a: 1 }], legend: [{ bogus: 1 }] } } },
+    };
+    const codes = (await validateTheme(t)).issues.map((i) => `${i.code}:${i.path}`);
+    expect(codes.filter((c) => c.includes('filterCard') || c.includes('valueAxis') || c.includes('lineStyles'))).toEqual([]);
+    expect(codes).toContain('schema.unknownCard:visualStyles.*.*.nope');
+    expect(codes).toContain('schema.unknownProperty:visualStyles.*.*.legend.0.bogus');
   });
 
   it('accepts a theme that sets every curated property of every visual (curation = schema)', async () => {

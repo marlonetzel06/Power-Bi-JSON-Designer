@@ -157,6 +157,24 @@ function getSchemaKeys(): Promise<SchemaKeys> {
   return (keysPromise ??= import('./generated/schemaKeys.json').then((m) => m.default as unknown as SchemaKeys));
 }
 
+/**
+ * `*` applies to every visual, so any card of any visual (and of the page / report scopes) is
+ * valid there — Microsoft's base theme keeps `filterCard`, `valueAxis`, … under `*`. A property
+ * is allowed if any visual accepts it on that card.
+ */
+function globalCardIndex(keys: SchemaKeys): Record<string, Set<number>> {
+  const out: Record<string, Set<number>> = {};
+  const add = (index: Record<string, number>) => {
+    for (const [card, setId] of Object.entries(index)) (out[card] ??= new Set()).add(setId);
+  };
+  add(keys.common);
+  add(keys.page);
+  for (const scope of Object.values(keys.scopes)) add(scope);
+  for (const visual of Object.values(keys.visuals)) add(visual);
+  return out;
+}
+const globalIndexCache = new WeakMap<SchemaKeys, Record<string, Set<number>>>();
+
 /** Unknown cards / properties per visual — the schema itself cannot flag these (allOf composition). */
 export function keyIssues(theme: ReportTheme, keys: SchemaKeys): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
@@ -165,16 +183,21 @@ export function keyIssues(theme: ReportTheme, keys: SchemaKeys): ValidationIssue
     const own = vk === 'page' ? keys.page : scope ?? (vk === '*' ? {} : keys.visuals[vk]);
     if (!own) continue; // unknown visual: reported elsewhere; custom visuals are allowed by Power BI
     const common = vk === 'page' || scope ? {} : keys.common;
+    let global: Record<string, Set<number>> | undefined;
+    if (vk === '*') {
+      global = globalIndexCache.get(keys);
+      if (!global) globalIndexCache.set(keys, (global = globalCardIndex(keys)));
+    }
     for (const [preset, cards] of Object.entries(presets ?? {})) {
       for (const [card, entries] of Object.entries(cards ?? {})) {
         if (card === '*') continue;
-        const setId = own[card] ?? common[card];
-        if (setId === undefined) {
-          const allowed = [...Object.keys(own), ...Object.keys(common)].sort();
+        const setIds = global ? global[card] : own[card] ?? common[card];
+        if (setIds === undefined) {
+          const allowed = global ? Object.keys(global).sort() : [...Object.keys(own), ...Object.keys(common)].sort();
           issues.push({ path: `visualStyles.${vk}.${preset}.${card}`, message: `"${card}" is not a format card of ${vk} (allowed: ${allowed.slice(0, 8).join(', ')}${allowed.length > 8 ? ', …' : ''})`, severity: 'error', code: 'schema.unknownCard', params: { visual: vk, card, allowed } });
           continue;
         }
-        const allowedProps = keys.propSets[setId] ?? [];
+        const allowedProps = typeof setIds === 'number' ? keys.propSets[setIds] ?? [] : [...setIds].flatMap((id) => keys.propSets[id] ?? []);
         entries?.forEach((entry, i) => {
           for (const prop of Object.keys(entry ?? {})) {
             if (prop === '$id' || allowedProps.includes(prop)) continue;

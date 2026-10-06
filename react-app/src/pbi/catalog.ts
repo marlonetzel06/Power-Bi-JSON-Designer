@@ -50,7 +50,7 @@ const catalog = catalogJson as unknown as CatalogShape;
 export const SCHEMA_VERSION = catalog.schemaVersion;
 export const SCHEMA_FILE = catalog.schemaFile;
 /** Official location of the vendored schema file (Microsoft publishes it in powerbi-desktop-samples). */
-export const SCHEMA_REF = `https://raw.githubusercontent.com/microsoft/powerbi-desktop-samples/main/Report-Theme-JSON-Schema/${SCHEMA_FILE}`;
+export const SCHEMA_REF = `https://raw.githubusercontent.com/microsoft/powerbi-desktop-samples/main/Report%20Theme%20JSON%20Schema/${SCHEMA_FILE}`;
 export const TEXT_CLASS_NAMES = catalog.textClasses;
 export const TOP_LEVEL_COLOR_KEYS = catalog.topLevelColors;
 export const ALL_SCHEMA_VISUAL_KEYS = catalog.allVisualKeys;

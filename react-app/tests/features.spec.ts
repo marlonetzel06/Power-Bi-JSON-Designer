@@ -151,7 +151,7 @@ test('filter cards are edited per state (applied / available) and exports carry 
   const json = page.getByTestId('json-output');
   await expect(json).toContainText('"$id": "Applied"');
   await expect(json).not.toContainText('"$id": "Available"');
-  await expect(json).toContainText('"$schema": "https://raw.githubusercontent.com/microsoft/powerbi-desktop-samples/main/Report-Theme-JSON-Schema/reportThemeSchema-2.144.json"');
+  await expect(json).toContainText('"$schema": "https://raw.githubusercontent.com/microsoft/powerbi-desktop-samples/main/Report%20Theme%20JSON%20Schema/reportThemeSchema-2.144.json"');
 });
 
 test('visual-own variants of common cards and the combo secondary axis are offered', async ({ page }) => {

@@ -73,6 +73,7 @@ export const de = {
   'format.inheritedFromGlobal': 'Vom Standardformat aller Visuals übernommen',
   'format.inheritedBase': 'Vom Power BI-Basisdesign (Classic 2026 / CY26SU02) übernommen',
   'format.inheritedDefault': 'Power BI-Standard',
+  'format.inheritedState': 'Vom Standardzustand übernommen',
   'format.setOnVisual': 'Für dieses Visual gesetzt',
   'format.pageTitle': 'Seite',
   'format.globalTitle': 'Alle Visuals',

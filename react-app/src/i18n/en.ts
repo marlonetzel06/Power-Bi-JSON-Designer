@@ -74,6 +74,7 @@ export const en: Dictionary = {
   'format.inheritedFromGlobal': 'Inherited from the default for all visuals',
   'format.inheritedBase': 'Inherited from the Power BI base theme (Classic 2026 / CY26SU02)',
   'format.inheritedDefault': 'Power BI default',
+  'format.inheritedState': 'Inherited from the default state',
   'format.setOnVisual': 'Set for this visual',
   'format.pageTitle': 'Page',
   'format.globalTitle': 'All visuals',

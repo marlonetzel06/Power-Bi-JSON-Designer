@@ -54,6 +54,25 @@ describe('base theme layering (CY26SU02)', () => {
     expect(resolveProp(empty, 'cardVisual', 'label', 'position')).toBe('belowValue');
     expect(getValueSource(empty, 'cardVisual', 'label', 'position')).toBe('base');
   });
+  it('reports a state value inherited from the visual\'s own default entry as "state-default"', () => {
+    const t: ReportTheme = { name: 'x', visualStyles: { actionButton: { '*': { fill: [{ fillColor: solid('#111111') }, { $id: 'hover', transparency: 10 }] } } } };
+    expect(getValueSource(t, 'actionButton', 'fill', 'fillColor', 'hover')).toBe('state-default');
+    expect(getValueSource(t, 'actionButton', 'fill', 'transparency', 'hover')).toBe('visual');
+    expect(getValueSource(t, 'actionButton', 'fill', 'fillColor')).toBe('visual');
+    expect(getValueSource(t, 'actionButton', 'fill', 'fillColor', 'default')).toBe('visual');
+  });
+  it('derives curated colour defaults from the structural and data colours of the theme', () => {
+    expect(resolveProp(empty, 'lineChart', 'trend', 'lineColor')).toBe('#252423');
+    expect(resolveProp({ name: 'x', firstLevelElements: '#102030' }, 'lineChart', 'trend', 'lineColor')).toBe('#102030');
+    expect(resolveProp({ name: 'x', foreground: '#302010' }, 'lineChart', 'trend', 'lineColor')).toBe('#302010');
+    expect(resolveProp({ name: 'x', secondLevelElements: '#445566' }, 'barChart', 'categoryAxis', 'labelColor')).toBe('#445566');
+    expect(resolveProp({ name: 'x', dataColors: ['#ABCDEF'] }, 'tableEx', 'sparklines', 'dataColor')).toBe('#ABCDEF');
+    expect(resolveProp(empty, 'tableEx', 'sparklines', 'dataColor')).toBe('#118DFF');
+    expect(resolveProp({ name: 'x', bad: '#FF0000' }, 'kpi', 'status', 'badColor')).toBe('#FF0000');
+    // enum values that share a name with a structural colour are untouched
+    expect(resolveProp(empty, 'lineChart', 'lineStyles', 'interpolationStep')).toBe('center');
+    expect(resolveProp(empty, 'actionButton', 'glow', 'color')).toBe('#118DFF');
+  });
   it('is never exported: an empty custom theme exports without base values and validates', async () => {
     const { buildExportTheme } = await import('./builder');
     const out = buildExportTheme(empty);

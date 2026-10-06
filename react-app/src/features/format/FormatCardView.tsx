@@ -2,8 +2,10 @@ import { useLocale, useT } from '@/i18n';
 import type { Locale } from '@/store/uiStore';
 import { getVisualCard, type CatalogProp } from '@/pbi/catalog';
 import { cardLabel, propLabel, stateLabel } from '@/pbi/curation/labels';
+import { stateModified } from '@/pbi/modified';
 import { getStoredValue, getValueSource } from '@/pbi/resolve';
-import { useResolvedCard, useTheme } from '@/store/selectors';
+import { DEFAULT_STATE } from '@/pbi/types';
+import { useBaseline, useResolvedCard, useTheme } from '@/store/selectors';
 import { useThemeStore } from '@/store/theme';
 import { useUiStore } from '@/store/uiStore';
 import { Field, FormatCard, Select, Switch } from '@/ui';
@@ -41,6 +43,7 @@ export function FormatCardView({ visualKey, cardKey, open, onOpenChange, modifie
   const t = useT();
   const locale = useLocale();
   const theme = useTheme();
+  const baseline = useBaseline();
   const card = getVisualCard(visualKey, cardKey);
   const setCardProp = useThemeStore((s) => s.setCardProp);
   const resetCard = useThemeStore((s) => s.resetCard);
@@ -54,7 +57,8 @@ export function FormatCardView({ visualKey, cardKey, open, onOpenChange, modifie
   const visualStates = Boolean(states?.includes('default'));
   let effectiveState: string | undefined;
   let showOwnSelector = false;
-  if (states && visualStates) effectiveState = stateId;
+  // a visual-level state this card does not know (e.g. `disabled`) falls back to the default state
+  if (states && visualStates) effectiveState = stateId !== undefined && states.includes(stateId) ? stateId : DEFAULT_STATE;
   else if (states && stateId && states.includes(stateId)) effectiveState = stateId;
   else if (states) {
     effectiveState = cardState && states.includes(cardState) ? cardState : states[0];
@@ -62,6 +66,9 @@ export function FormatCardView({ visualKey, cardKey, open, onOpenChange, modifie
   }
 
   const resolved = useResolvedCard(visualKey, cardKey, effectiveState);
+  // with states, "modified" and reset apply to the shown state only (resetting "Applied" must keep "Available")
+  const stateChanged = states ? stateModified(theme, baseline, visualKey, cardKey, effectiveState) : modified;
+  const reset = () => resetCard(visualKey, cardKey, effectiveState);
 
   if (!card) return null;
   const props = visibleProps(card.props, query, locale, visualKey, cardKey);
@@ -103,10 +110,10 @@ export function FormatCardView({ visualKey, cardKey, open, onOpenChange, modifie
   if (flat) {
     return (
       <div data-card={id}>
-        {(toggle || modified) && (
+        {(toggle || stateChanged) && (
           <div className="mb-1 flex items-center justify-end gap-2">
-            {modified && (
-              <button type="button" onClick={() => resetCard(visualKey, cardKey)} className="text-[11.5px] font-medium text-text-link hover:underline">{t('format.resetCard')}</button>
+            {stateChanged && (
+              <button type="button" onClick={reset} className="text-[11.5px] font-medium text-text-link hover:underline">{t('format.resetCard')}</button>
             )}
             {toggle && <Switch size="sm" checked={toggle.checked} onCheckedChange={toggle.onCheckedChange} aria-label={toggle.label} />}
           </div>
@@ -122,8 +129,8 @@ export function FormatCardView({ visualKey, cardKey, open, onOpenChange, modifie
       open={open}
       onOpenChange={onOpenChange}
       toggle={toggle}
-      modified={modified}
-      onReset={() => resetCard(visualKey, cardKey)}
+      modified={stateChanged}
+      onReset={reset}
       resetLabel={t('format.resetCard')}
     >
       {body}

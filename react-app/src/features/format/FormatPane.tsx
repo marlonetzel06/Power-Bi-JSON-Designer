@@ -23,6 +23,9 @@ const GENERAL_GROUPS: readonly { id: string; labelKey: 'format.general.propertie
   { id: 'tooltips', labelKey: 'format.general.tooltips', cards: ['visualTooltip'] },
 ];
 
+/** Old state names the schema still lists next to their namespaced successors (slicers); only the new ones are offered. */
+const LEGACY_STATE_ALIASES: Record<string, string> = { hover: 'interaction:hover', press: 'interaction:press', selection: 'selection:selected' };
+
 /** The Power BI format pane for the current selection (visual, page or all visuals). */
 export function FormatPane() {
   const t = useT();
@@ -46,7 +49,10 @@ export function FormatPane() {
   const visualCards = useMemo(() => (visualKey && !isPage && !isGlobal ? (VISUAL_CARDS[visualKey] ?? []).filter((c) => !COMMON_CARDS.includes(c)) : []), [visualKey, isPage, isGlobal]);
   const generalCards = useMemo(() => (visualKey && !isPage ? COMMON_CARDS.filter((c) => getVisualCard(visualKey, c)) : []), [visualKey, isPage]);
   const count = visualKey ? (modified.cardCounts[visualKey] ?? 0) : 0;
-  const states = useMemo(() => (visualKey && !isPage && !isGlobal ? getVisualStates(visualKey) : undefined), [visualKey, isPage, isGlobal]);
+  const states = useMemo(() => {
+    const all = visualKey && !isPage && !isGlobal ? getVisualStates(visualKey) : undefined;
+    return all?.filter((s) => !(LEGACY_STATE_ALIASES[s] && all.includes(LEGACY_STATE_ALIASES[s])));
+  }, [visualKey, isPage, isGlobal]);
   const stateId = states ? (previewState && states.includes(previewState) ? previewState : 'default') : undefined;
 
   if (!visualKey) {

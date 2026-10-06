@@ -8,7 +8,7 @@ export interface FieldProps {
   children: ReactNode;
   hint?: ReactNode;
   /** Marker shown when the value differs from the inherited/default value. */
-  source?: 'visual' | 'global' | 'base' | 'default';
+  source?: 'visual' | 'state-default' | 'global' | 'base' | 'default';
   sourceLabel?: string;
   inline?: boolean;
   className?: string;

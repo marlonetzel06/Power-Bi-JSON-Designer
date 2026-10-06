@@ -14,12 +14,10 @@ export const useGlobalStyle = () => useThemeStore((s) => s.theme.visualStyles?.[
 
 /** All curated properties of a card (for a `$id` state), resolved through the visual → `*` → default chain. */
 export function useResolvedCard(visualKey: string, cardKey: string, stateId?: string): Record<string, Resolved> {
+  // Depends on the whole theme: defaults follow the structural colours and data colours,
+  // and the store shares structure, so an unrelated edit still means one cheap resolve.
   const theme = useTheme();
-  const own = theme.visualStyles?.[visualKey]?.['*']?.[cardKey];
-  const global = theme.visualStyles?.['*']?.['*']?.[cardKey];
-  const dataColors = theme.dataColors;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  return useMemo(() => resolveCard(theme, visualKey, cardKey, stateId), [own, global, dataColors, visualKey, cardKey, stateId]);
+  return useMemo(() => resolveCard(theme, visualKey, cardKey, stateId), [theme, visualKey, cardKey, stateId]);
 }
 
 export function useModified() {

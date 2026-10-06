@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { useThemeStore } from './theme';
 import { THEME_INITIAL } from '@/pbi/defaults';
-import { computeModified } from '@/pbi/modified';
+import { computeModified, stateModified } from '@/pbi/modified';
 import { resolveProp } from '@/pbi/resolve';
 import { solid } from '@/pbi/types';
 
@@ -62,6 +62,40 @@ describe('theme store', () => {
     useThemeStore.getState().setCardProp('actionButton', 'fill', 'fillColor', solid('#010101'));
     useThemeStore.getState().setCardProp('actionButton', 'fill', 'fillColor', solid('#020202'), 'hover');
     expect(useThemeStore.getState().theme.visualStyles!.actionButton!['*']!.fill).toEqual([{ $id: 'default', show: true, fillColor: solid('#010101') }, { $id: 'hover', fillColor: solid('#020202') }]);
+  });
+
+  it('writes default-state values into the entry that already holds the property and clears from every default entry', () => {
+    useThemeStore.getState().loadTheme({ name: 'd', visualStyles: { cardVisual: { '*': { layout: [{ maxTiles: 3 }, { $id: 'default', cellPadding: 12 }] } } } });
+    const s = useThemeStore.getState();
+    s.setCardProp('cardVisual', 'layout', 'cellPadding', 20);
+    s.setCardProp('cardVisual', 'layout', 'orientation', 1);
+    expect(useThemeStore.getState().theme.visualStyles!.cardVisual!['*']!.layout).toEqual([{ maxTiles: 3, orientation: 1 }, { $id: 'default', cellPadding: 20 }]);
+    expect(resolveProp(useThemeStore.getState().theme, 'cardVisual', 'layout', 'cellPadding')).toBe(20);
+    useThemeStore.getState().setCardProp('cardVisual', 'layout', 'cellPadding', undefined);
+    useThemeStore.getState().setCardProp('cardVisual', 'layout', 'maxTiles', undefined);
+    expect(useThemeStore.getState().theme.visualStyles!.cardVisual!['*']!.layout).toEqual([{ orientation: 1 }]);
+  });
+
+  it('resets one $id state without touching the others', () => {
+    useThemeStore.getState().loadTheme({ name: 'r', visualStyles: { page: { '*': { filterCard: [{ transparency: 5 }, { $id: 'Applied', border: true }] } } } });
+    const s = useThemeStore.getState();
+    s.setCardProp('page', 'filterCard', 'border', false, 'Applied');
+    s.setCardProp('page', 'filterCard', 'border', false, 'Available');
+    s.setCardProp('page', 'filterCard', 'transparency', 50);
+    const { theme, baseline } = useThemeStore.getState();
+    expect(stateModified(theme, baseline, 'page', 'filterCard', 'Applied')).toBe(true);
+    expect(stateModified(theme, baseline, 'page', 'filterCard', 'Available')).toBe(true);
+    expect(stateModified(theme, baseline, 'page', 'filterCard', undefined)).toBe(true);
+    useThemeStore.getState().resetCard('page', 'filterCard', 'Applied');
+    let entries = useThemeStore.getState().theme.visualStyles!.page!['*']!.filterCard!;
+    expect(entries).toEqual([{ transparency: 50 }, { $id: 'Available', border: false }, { $id: 'Applied', border: true }]);
+    expect(stateModified(useThemeStore.getState().theme, baseline, 'page', 'filterCard', 'Applied')).toBe(false);
+    expect(stateModified(useThemeStore.getState().theme, baseline, 'page', 'filterCard', 'Available')).toBe(true);
+    useThemeStore.getState().resetCard('page', 'filterCard', 'Available'); // not in the baseline → entry removed
+    entries = useThemeStore.getState().theme.visualStyles!.page!['*']!.filterCard!;
+    expect(entries).toEqual([{ transparency: 50 }, { $id: 'Applied', border: true }]);
+    useThemeStore.getState().resetCard('page', 'filterCard');
+    expect(useThemeStore.getState().theme.visualStyles!.page!['*']!.filterCard).toEqual([{ transparency: 5 }, { $id: 'Applied', border: true }]);
   });
 
   it('supports undo and redo', async () => {

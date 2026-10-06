@@ -2,7 +2,7 @@
  * "Modified" bookkeeping: which visuals/cards differ from the baseline theme.
  * Computed once per theme reference (WeakMap cache), never per render.
  */
-import type { ReportTheme } from './types';
+import { DEFAULT_PRESET, findStateEntry, type ReportTheme } from './types';
 
 export interface ModifiedInfo {
   /** visual key → number of cards that differ from the baseline */
@@ -59,4 +59,16 @@ export function computeModified(theme: ReportTheme, baseline: ReportTheme): Modi
   };
   perBase.set(baseline, info);
   return info;
+}
+
+/**
+ * Whether one `$id` state of a card differs from the baseline (the card-level set above marks a
+ * card as modified for every state once any of them changed). The default state compares the
+ * plain and `$id: "default"` entries together.
+ */
+export function stateModified(theme: ReportTheme, baseline: ReportTheme, visualKey: string, cardKey: string, stateId: string | undefined): boolean {
+  const a = theme.visualStyles?.[visualKey]?.[DEFAULT_PRESET]?.[cardKey];
+  const b = baseline.visualStyles?.[visualKey]?.[DEFAULT_PRESET]?.[cardKey];
+  if (a === b) return false;
+  return !same(findStateEntry(a, stateId), findStateEntry(b, stateId));
 }

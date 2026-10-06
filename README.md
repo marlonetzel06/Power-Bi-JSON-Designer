@@ -81,7 +81,7 @@ npm run test:e2e       # Playwright (startet den Dev-Server selbst)
 npm run generate:catalog   # nach einem Schema-Update neu erzeugen und committen
 ```
 
-**Schema aktualisieren:** neue `reportThemeSchema-*.json` aus [microsoft/powerbi-desktop-samples](https://github.com/microsoft/powerbi-desktop-samples/tree/main/Report-Theme-JSON-Schema) nach `react-app/schema/` legen, Dateinamen in `scripts/generate-pbi-catalog.ts` und `src/pbi/validate.ts` anpassen, `npm run generate:catalog` ausführen. Der Generator bricht ab, wenn eine kuratierte Karte oder Eigenschaft im Schema fehlt.
+**Schema aktualisieren:** neue `reportThemeSchema-*.json` aus [microsoft/powerbi-desktop-samples](https://github.com/microsoft/powerbi-desktop-samples/tree/main/Report%20Theme%20JSON%20Schema) nach `react-app/schema/` legen, Dateinamen in `scripts/generate-pbi-catalog.ts` und `src/pbi/validate.ts` anpassen, `npm run generate:catalog` ausführen. Der Generator bricht ab, wenn eine kuratierte Karte oder Eigenschaft im Schema fehlt.
 
 `archive/` enthält den ursprünglichen Single-File-HTML-Editor – nur Referenz, nicht gewartet.
 

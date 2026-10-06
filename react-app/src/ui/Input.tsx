@@ -24,13 +24,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input({ c
 
 export interface NumberInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 'type'> {
   value: number | undefined;
-  onValueChange: (value: number) => void;
+  onValueChange: (value: number | undefined) => void;
   min?: number;
   max?: number;
   step?: number;
   /** Round to integer on commit. */
   integer?: boolean;
   suffix?: ReactNode;
+  /** Clearing the field commits `undefined` (Power BI "Auto") instead of restoring the old value. */
+  allowEmpty?: boolean;
 }
 
 /**
@@ -38,7 +40,7 @@ export interface NumberInputProps extends Omit<InputHTMLAttributes<HTMLInputElem
  * (Power BI Desktop behaviour: typing "1" must not immediately snap to a minimum of 6).
  */
 export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(function NumberInput(
-  { value, onValueChange, min, max, step = 1, integer, className, suffix, ...rest },
+  { value, onValueChange, min, max, step = 1, integer, className, suffix, allowEmpty, ...rest },
   ref,
 ) {
   const [text, setText] = useState(value === undefined ? '' : String(value));
@@ -53,7 +55,9 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
   const commit = () => {
     const raw = text.replace(',', '.').trim();
     if (raw === '') {
-      setText(value === undefined ? '' : String(value));
+      if (allowEmpty) {
+        if (value !== undefined) onValueChange(undefined);
+      } else setText(value === undefined ? '' : String(value));
       return;
     }
     let n = Number(raw);

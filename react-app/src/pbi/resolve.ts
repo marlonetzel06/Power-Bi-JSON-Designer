@@ -18,11 +18,38 @@ const COLOR_KEYS = new Set<string>(TOP_LEVEL_COLOR_KEYS);
 /** Page cards the base theme stores under `visualStyles["*"]["*"]` (the filter pane belongs to the report, not a visual). */
 const PAGE_CARDS_FROM_GLOBAL = new Set(['filterCard', 'outspacePane']);
 
-/** Resolve a named structural colour (`"backgroundLight"`) against the theme, then the base theme. */
+/**
+ * Power BI's structural colours have two names each (legacy and the "…LevelElements" names of
+ * the theme generator); a theme may set either, so both are consulted.
+ */
+const COLOR_ALIASES: Record<string, string> = {
+  foreground: 'firstLevelElements', firstLevelElements: 'foreground',
+  foregroundNeutralSecondary: 'secondLevelElements', secondLevelElements: 'foregroundNeutralSecondary',
+  backgroundLight: 'thirdLevelElements', thirdLevelElements: 'backgroundLight',
+  foregroundNeutralTertiary: 'fourthLevelElements', fourthLevelElements: 'foregroundNeutralTertiary',
+  backgroundNeutral: 'secondaryBackground', secondaryBackground: 'backgroundNeutral',
+};
+
+/** Resolve a named structural colour (`"backgroundLight"`) against the theme (either alias), then the base theme. */
 export function namedColor(theme: ReportTheme, name: string): string | undefined {
   if (!COLOR_KEYS.has(name)) return undefined;
-  const own = (theme as Record<string, unknown>)[name];
-  return typeof own === 'string' ? own : baseColor(name);
+  const alias = COLOR_ALIASES[name];
+  const t = theme as Record<string, unknown>;
+  const own = typeof t[name] === 'string' ? (t[name] as string) : alias && typeof t[alias] === 'string' ? (t[alias] as string) : undefined;
+  return own ?? baseColor(name) ?? (alias ? baseColor(alias) : undefined);
+}
+
+/**
+ * Curated colour defaults name a structural colour (`"foreground"`) or a data colour
+ * (`"@dataColor0"`) instead of a hex value, so they follow the theme like Power BI's own defaults.
+ */
+function defaultColor(theme: ReportTheme, value: string): string {
+  const dc = /^@dataColor(\d+)$/.exec(value);
+  if (dc) {
+    const i = Number(dc[1]);
+    return theme.dataColors?.[i] ?? BASE_THEME.dataColors?.[i] ?? value;
+  }
+  return namedColor(theme, value) ?? value;
 }
 
 function unwrap(value: PropValue | undefined, theme: ReportTheme): Resolved {
@@ -44,8 +71,12 @@ export function getCardEntry(theme: ReportTheme, visualKey: string, cardKey: str
   return findStateEntry(theme.visualStyles?.[visualKey]?.[preset]?.[cardKey], stateId);
 }
 
-/** Where a resolved value comes from (used by the UI to show inheritance). */
-export type ValueSource = 'visual' | 'global' | 'base' | 'default';
+/**
+ * Where a resolved value comes from (used by the UI to show inheritance). `state-default`:
+ * a non-default state (`hover`, `Applied`, …) has no own value on this visual and inherits
+ * from the visual's default-state entry — shown as inherited, not as set on this state.
+ */
+export type ValueSource = 'visual' | 'state-default' | 'global' | 'base' | 'default';
 
 /**
  * Default-state value of a card: the entry without `$id` first, then the `$id: "default"` entry.
@@ -58,27 +89,30 @@ function defaultValue(entries: readonly CardEntry[] | undefined, propKey: string
   return undefined;
 }
 
-function fromLevel(theme: ReportTheme, visualKey: string, cardKey: string, propKey: string, stateId: string | undefined): PropValue | undefined {
+/** Value of one theme level; `fromDefault` marks a state value inherited from the default-state entry. */
+function fromLevel(theme: ReportTheme, visualKey: string, cardKey: string, propKey: string, stateId: string | undefined): { value: PropValue; fromDefault: boolean } | undefined {
   const entries = theme.visualStyles?.[visualKey]?.[DEFAULT_PRESET]?.[cardKey];
   if (!entries) return undefined;
-  if (!isDefaultState(stateId)) {
+  const isState = !isDefaultState(stateId);
+  if (isState) {
     const state = entries.find((e) => e.$id === stateId)?.[propKey];
-    if (state !== undefined) return state;
+    if (state !== undefined) return { value: state, fromDefault: false };
   }
-  return defaultValue(entries, propKey);
+  const value = defaultValue(entries, propKey);
+  return value === undefined ? undefined : { value, fromDefault: isState };
 }
 
 function findStored(theme: ReportTheme, visualKey: string, cardKey: string, propKey: string, stateId?: string): { value: PropValue; source: ValueSource } | undefined {
   const own = fromLevel(theme, visualKey, cardKey, propKey, stateId);
-  if (own !== undefined) return { value: own, source: 'visual' };
+  if (own) return { value: own.value, source: own.fromDefault ? 'state-default' : 'visual' };
   const baseOwn = fromLevel(BASE_THEME, visualKey, cardKey, propKey, stateId);
-  if (baseOwn !== undefined) return { value: baseOwn, source: 'base' };
+  if (baseOwn) return { value: baseOwn.value, source: 'base' };
   const useGlobal = visualKey !== GLOBAL_KEY && (visualKey !== PAGE_KEY || PAGE_CARDS_FROM_GLOBAL.has(cardKey));
   if (useGlobal) {
     const global = fromLevel(theme, GLOBAL_KEY, cardKey, propKey, stateId);
-    if (global !== undefined) return { value: global, source: 'global' };
+    if (global) return { value: global.value, source: 'global' };
     const baseGlobal = fromLevel(BASE_THEME, GLOBAL_KEY, cardKey, propKey, stateId);
-    if (baseGlobal !== undefined) return { value: baseGlobal, source: 'base' };
+    if (baseGlobal) return { value: baseGlobal.value, source: 'base' };
   }
   return undefined;
 }
@@ -96,7 +130,11 @@ export function resolveProp(theme: ReportTheme, visualKey: string, cardKey: stri
   const stored = unwrap(getStoredValue(theme, visualKey, cardKey, propKey, stateId), theme);
   if (stored !== undefined) return stored;
   if (fallback !== undefined) return fallback;
-  return getDefault(visualKey, cardKey, propKey, getProp(visualKey, cardKey, propKey));
+  const prop = getProp(visualKey, cardKey, propKey);
+  const def = getDefault(visualKey, cardKey, propKey, prop);
+  // only colour properties: enum values such as `center` share names with structural colours
+  if (typeof def === 'string' && (prop === undefined || prop.type === 'color') && (def.startsWith('@') || COLOR_KEYS.has(def))) return defaultColor(theme, def);
+  return def;
 }
 
 /** Resolve every curated property of a card into a flat object. */
